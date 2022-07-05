@@ -2218,6 +2218,8 @@ lordDied=False
 #map objects (name,mapLevel,location,defBonus,avoidBonus,hpBonus,moveCost,display)
 #chartriggers(name,mapLevel,event,characters,*location)
 #triggers(name,mapLevel,location,event,*character)
+#treasure_chest(mapLevel,location,contents)
+#shop(mapLevel,location,contents)
 baseShop=shop(None,[-1,-1],[[silver_axe(False),1],[shield(False),1]])
 map1=mapLevel('Tutorial',11,15,[[0,0],[0,1]])
 fort(map1,[0,0])
@@ -2225,6 +2227,7 @@ throne(map1,[0,1])
 void(map1,[8,0])
 void(map1,[8,1])
 shop(map1,[3,2],[[silver_axe(False),1],[shield(False),1]])
+treasure_chest(map1,[5,4],shield(False))
 trigger('Save Tutorial',map1,[0,0],'Hi \nDid you know you can save?')
 char_trigger('Discussion of games',map1,'Hi King\nGet pwnd Saitama',('Saitama','King'),[0,0])
 map2=mapLevel('Map 2',11,10,[[0,0],[0,1],[0,2]])
@@ -2234,7 +2237,7 @@ curMap=mapLevel.map_list[mapNum]
 #alignments
 enemy=alignment('Enemy')
 player=alignment('Player')
-player.support_master={('Saitama','King'):[0,'Hi','Yo','Final']}
+player.support_master={('Saitama','King'):[0,'Hi','Yo','Final'],('King','Zatch'):[0,'Hello','No Way']}
 #Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
 luna=skill('Luna',9,'skill','defense',.5,'*',True,'enemy')
 sol=skill('Sol',5,'skill','curhp',10,'+',False,'self')
@@ -2256,7 +2259,7 @@ mercenary=classType('Mercenary','Foot',5,{'Sword':0,'Fist':0},[hero],[armsthrift
 mage=classType('Mage','Mage',4,{'Tome':0},[],[mag_up])
 pirate=classType('Pirate','Pirate',4,{'Axe':0},[],[placeholder])
 lord=classType('Lord','Foot',6,{'Sword':0},[],[placeholder])
-#Characters (name,curhp,hp,hpG,atk,atkG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classType,joinMap,inventory,supports/spawn)
+#Characters (name,curhp,hp,hpG,atk,atkG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classType,{weaponType},joinMap,[inventory],level,*{supports}/[spawn],^[weapon_arts])
 garou=enemy_char('Garou',25,25,.6,10,.4,6,.8,2,.35,4,.25,6,.1,7,.5,0,wyvern,{},0,[javelin(False),iron_axe(True)],1,[1,1])
 hao=enemy_char('Hao',25,25,.6,10,.4,6,.8,2,.35,4,.25,6,.1,7,.5,0,pirate,{},0,[javelin(False),iron_axe(False)],1,[1,0])
 mumen=enemy_char('Mumen',25,25,.6,10,.4,6,.8,2,.35,4,.25,6,.1,7,.5,0,pirate,{},0,[iron_axe(False)],1,[1,2])
@@ -2265,8 +2268,8 @@ yuffie=enemy_char('Yuffie',25,25,.6,10,.4,6,.8,2,.35,4,.25,6,.1,7,.5,0,wyvern,{}
 saitama=player_char('Saitama',25,25,.6,10,.4,6,.8,2,.35,4,.25,6,.1,20,.5,0,swordmaster,{},0,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{'King':0},[grounder])
 saitama.add_skill(luna)
 saitama.add_skill(armsthrift)
-king=player_char('King',3,3,.6,10,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,lord,{},0,[iron_sword(False)],1,{'Saitama':0},[])
-zatch=player_char('Zatch',25,25,.6,10,.4,6,.8,2,.35,4,.25,6,.1,20,.5,0,mercenary,{},1,[iron_sword(False)],1,{},[])
+king=player_char('King',3,3,.6,10,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,lord,{},0,[iron_sword(False),key(False)],1,{'Saitama':0,'Zatch':0},[])
+zatch=player_char('Zatch',25,25,.6,10,.4,6,.8,2,.35,4,.25,6,.1,20,.5,0,mercenary,{},1,[iron_sword(False)],1,{'King':0},[])
 #Debug mode
 ##debug=input('Input KGJ to activate debug mode')
 ##if debug=='630':
