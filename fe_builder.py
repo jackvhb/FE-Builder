@@ -2367,9 +2367,9 @@ def create_character():
     #set join map
     cont=False
     while cont==False:
-        join_map=input('Input the number of the map that you would like this character to join/be on\n')
+        join_map=input('Input the number of the map that you would like this character to join/be on, for example if you want them to join in the first map enter 1\n')
         try:
-            join_map=int(join_map)
+            join_map=int(join_map)-1
             if join_map>0:
                 cont=True
         except:
