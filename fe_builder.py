@@ -2359,7 +2359,8 @@ def create_character():
         level=input('Input what level you would like your character to be\n')
         try:
             level=int(level)
-            cont=True
+            if level>0 and level<=20:
+                cont=True
         except:
             print(traceback.format_exc())
             print('Invalid input, try again')
@@ -2369,7 +2370,8 @@ def create_character():
         join_map=input('Input the number of the map that you would like this character to join/be on\n')
         try:
             join_map=int(join_map)
-            cont=True
+            if join_map>0:
+                cont=True
         except:
             print(traceback.format_exc())
             print('Invalid input, try again')
@@ -3232,10 +3234,15 @@ saitama.add_skill(armsthrift)
 king=player_char('King',3,3,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,lord,{},0,[iron_sword(False),key(False)],1,{'Saitama':0,'Zatch':0},[])
 zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,mercenary,{},1,[iron_sword(False)],1,{'King':0},[])
 #Debug mode
-##debug=input('Input KGJ to activate debug mode')
-##if debug=='630':
-##    print('0 battle')
-##    print('1 skip to map')
+debug=input('Input KGJ to activate debug mode')
+if debug=='630':
+    print('0 char')
+    print('1 map')
+    path=input('press')
+    if path=='1':
+        create_map()
+    elif path=='0':
+        create_character()
 #Loading
 loadX='placeholder'    
 if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
