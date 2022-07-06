@@ -1786,7 +1786,7 @@ class mapObject:
     def info(self):
         print(f'Name: {self.name}')
         print(f'Defense Bonus: {self.defBonus}')
-        print(f'Avoid Bonus: {self.avoidBonus')
+        print(f'Avoid Bonus: {self.avoidBonus}')
         print(f'Healing: {self.hpBonus} per turn')
         print(f'Move Cost: {self.moveCost}')
 display_list=[]
@@ -2894,7 +2894,7 @@ def create_map():
                 swap_out=None
             elif move.lower()=='x':
                 mapLevel.map_list.insert(dest,swap_out)
-                contX=False:
+                contX=False
                 while contX==False:
                     for i in range(0,len(mapLevel.map_list)):
                         if mapLevel.map_list[i]!=None:
@@ -2990,179 +2990,183 @@ def create_map():
                             location=location.split(',')
                             location[0]=int(location[0])
                             location[1]=int(location[1])
-                            if possibility.name=='Chest' or possibility.name=='Shop':
-                                contI=True
-                                inventory=[]
-                            while contI==True:                                
-                                if possibility.name=='Chest':
-                                    if len(inventory)==1:
+                            if location[0]<x_size and location[1]<y_size and location[0]>=0 and location[1]>=0:
+                                if possibility.name=='Chest' or possibility.name=='Shop':
+                                    contI=True
+                                    inventory=[]
+                                while contI==True:                                
+                                    if possibility.name=='Chest':
+                                        if len(inventory)==1:
+                                            contI=False
+                                        else:
+                                            item_inventory=input('Press 1 to add a weapon to this chest, 2 to add armor, 3 to add misc, or x to cancel.\n')
+                                    elif possibility.name=='Shop':
+                                        item_inventory=input('Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, y to finish stocking, or x to cancel.\n')
+                                    if item_inventory.lower()=='x':
+                                        cont=False
+                                    elif item_inventory.lower()=='y':
                                         contI=False
-                                    else:
-                                        item_inventory=input('Press 1 to add a weapon to this chest, 2 to add armor, 3 to add misc, or x to cancel.\n')
-                                elif possibility.name=='Shop':
-                                    item_inventory=input('Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, y to finish stocking, or x to cancel.\n')
-                                if item_inventory.lower()=='x':
-                                    cont=False
-                                elif item_inventory.lower()=='y':
-                                    contI=False
-                                elif item_inventory=='1':
-                                    weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, or anything else to cancel\n')
-                                    if weapon_inventory=='1':
-                                        base_iron_sword.info()
-                                        base_silver_sword.info()
-                                        base_levin_sword.info()
-                                        sword_inventory=input('Press 1 to add an iron sword, 2 to add a silver sword, 3 to add a levin sword, or anything else to cancel.\n')
-                                        if sword_inventory=='1':
+                                    elif item_inventory=='1':
+                                        weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, or anything else to cancel\n')
+                                        if weapon_inventory=='1':
+                                            base_iron_sword.info()
+                                            base_silver_sword.info()
+                                            base_levin_sword.info()
+                                            sword_inventory=input('Press 1 to add an iron sword, 2 to add a silver sword, 3 to add a levin sword, or anything else to cancel.\n')
+                                            if sword_inventory=='1':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(iron_sword(True))
+                                                else:
+                                                    inventory.append(iron_sword(False))
+                                            if sword_inventory=='2':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(silver_sword(True))
+                                                else:
+                                                    inventory.append(silver_sword(False))
+                                            if sword_inventory=='3':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(levin_sword(True))
+                                                else:
+                                                    inventory.append(levin_sword(False))
+                                        elif weapon_inventory=='2':
+                                            base_iron_lance.info()
+                                            base_silver_lance.info()
+                                            base_javelin.info()
+                                            lance_inventory=input('Press 1 to add an iron lance, 2 to add a silver lance, 3 to add a javelin, or anything else to cancel.\n')
+                                            if lance_inventory=='1':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(iron_lance(True))
+                                                else:
+                                                    inventory.append(iron_lance(False))
+                                            if lance_inventory=='2':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(silver_lance(True))
+                                                else:
+                                                    inventory.append(silver_lance(False))
+                                            if lance_inventory=='3':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(javelin(True))
+                                                else:
+                                                    inventory.append(javelin(False))
+                                        elif weapon_inventory=='3':
+                                            base_iron_axe.info()
+                                            base_silver_axe.info()
+                                            base_hand_axe.info()
+                                            axe_inventory=input('Press 1 to add an iron axe, 2 to add a silver axe, 3 to add a hand axe, or anything else to cancel.\n')
+                                            if axe_inventory=='1':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(iron_axe(True))
+                                                else:
+                                                    inventory.append(iron_axe(False))
+                                            if axe_inventory=='2':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(silver_axe(True))
+                                                else:
+                                                    inventory.append(silver_axe(False))
+                                            if axe_inventory=='3':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(hand_axe(True))
+                                                else:
+                                                    inventory.append(hand_axe(False))
+                                        elif weapon_inventory=='4':
+                                            base_iron_bow.info()
+                                            base_silver_bow.info()
+                                            bow_inventory=input('Press 1 to add an iron bow, 2 to add a silver bow, or anything else to cancel.\n')
+                                            if bow_inventory=='1':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(iron_bow(True))
+                                                else:
+                                                    inventory.append(iron_bow(False))
+                                            if bow_inventory=='2':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(silver_bow(True))
+                                                else:
+                                                    inventory.append(silver_bow(False))
+                                        elif weapon_inventory=='5':
+                                            base_fire.info()
+                                            base_forsetti.info()
+                                            tome_inventory=input('Press 1 to add a fire, 2 to add a forsetti, or anything else to cancel.\n')
+                                            if tome_inventory=='1':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(fire(True))
+                                                else:
+                                                    inventory.append(fire(False))
+                                            if tome_inventory=='2':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(forsetti(True))
+                                                else:
+                                                    inventory.append(forsetti(False))
+                                        elif weapon_inventory=='6':
+                                            base_gauntlet.info()
+                                            fist_inventory=input('Press 1 to add a gauntlet or anything else to cancel.\n')
+                                            if fist_inventory=='1':
+                                                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+                                                if droppable.lower()=='y':
+                                                    inventory.append(gauntlet(True))
+                                                else:
+                                                    inventory.append(gauntlet(False))
+                                    elif item_inventory=='2':
+                                        base_shield.info()
+                                        armor_inventory=input('Input 1 to add a shield to this characters inventory or anything else to cancel\n')
+                                        if armor_inventory=='1':
                                             droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
                                             if droppable.lower()=='y':
-                                                inventory.append(iron_sword(True))
+                                                inventory.append(shield(True))
                                             else:
-                                                inventory.append(iron_sword(False))
-                                        if sword_inventory=='2':
+                                                inventory.append(shield(False))
+                                    elif item_inventory=='3':
+                                        consumable_inventory=input('Input 1 to add a master seal, 2 to add a vulnary, 3 to add a mystic water, 4 to add a key, or anything else to cancel\n')
+                                        if consumable_inventory=='1':
                                             droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
                                             if droppable.lower()=='y':
-                                                inventory.append(silver_sword(True))
+                                                inventory.append(master_seal(True))
                                             else:
-                                                inventory.append(silver_sword(False))
-                                        if sword_inventory=='3':
+                                                inventory.append(master_seal(False))
+                                        elif consumable_inventory=='2':
                                             droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
                                             if droppable.lower()=='y':
-                                                inventory.append(levin_sword(True))
+                                                inventory.append(vulnary(True))
                                             else:
-                                                inventory.append(levin_sword(False))
-                                    elif weapon_inventory=='2':
-                                        base_iron_lance.info()
-                                        base_silver_lance.info()
-                                        base_javelin.info()
-                                        lance_inventory=input('Press 1 to add an iron lance, 2 to add a silver lance, 3 to add a javelin, or anything else to cancel.\n')
-                                        if lance_inventory=='1':
+                                                inventory.append(vulnary(False))
+                                        elif consumable_inventory=='3':
                                             droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
                                             if droppable.lower()=='y':
-                                                inventory.append(iron_lance(True))
+                                                inventory.append(mystic_water(True))
                                             else:
-                                                inventory.append(iron_lance(False))
-                                        if lance_inventory=='2':
+                                                inventory.append(mystic_water(False))
+                                        elif consumable_inventory=='4':
                                             droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
                                             if droppable.lower()=='y':
-                                                inventory.append(silver_lance(True))
+                                                inventory.append(key(True))
                                             else:
-                                                inventory.append(silver_lance(False))
-                                        if lance_inventory=='3':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(javelin(True))
-                                            else:
-                                                inventory.append(javelin(False))
-                                    elif weapon_inventory=='3':
-                                        base_iron_axe.info()
-                                        base_silver_axe.info()
-                                        base_hand_axe.info()
-                                        axe_inventory=input('Press 1 to add an iron axe, 2 to add a silver axe, 3 to add a hand axe, or anything else to cancel.\n')
-                                        if axe_inventory=='1':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(iron_axe(True))
-                                            else:
-                                                inventory.append(iron_axe(False))
-                                        if axe_inventory=='2':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(silver_axe(True))
-                                            else:
-                                                inventory.append(silver_axe(False))
-                                        if axe_inventory=='3':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(hand_axe(True))
-                                            else:
-                                                inventory.append(hand_axe(False))
-                                    elif weapon_inventory=='4':
-                                        base_iron_bow.info()
-                                        base_silver_bow.info()
-                                        bow_inventory=input('Press 1 to add an iron bow, 2 to add a silver bow, or anything else to cancel.\n')
-                                        if bow_inventory=='1':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(iron_bow(True))
-                                            else:
-                                                inventory.append(iron_bow(False))
-                                        if bow_inventory=='2':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(silver_bow(True))
-                                            else:
-                                                inventory.append(silver_bow(False))
-                                    elif weapon_inventory=='5':
-                                        base_fire.info()
-                                        base_forsetti.info()
-                                        tome_inventory=input('Press 1 to add a fire, 2 to add a forsetti, or anything else to cancel.\n')
-                                        if tome_inventory=='1':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(fire(True))
-                                            else:
-                                                inventory.append(fire(False))
-                                        if tome_inventory=='2':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(forsetti(True))
-                                            else:
-                                                inventory.append(forsetti(False))
-                                    elif weapon_inventory=='6':
-                                        base_gauntlet.info()
-                                        fist_inventory=input('Press 1 to add a gauntlet or anything else to cancel.\n')
-                                        if fist_inventory=='1':
-                                            droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                            if droppable.lower()=='y':
-                                                inventory.append(gauntlet(True))
-                                            else:
-                                                inventory.append(gauntlet(False))
-                                elif item_inventory=='2':
-                                    base_shield.info()
-                                    armor_inventory=input('Input 1 to add a shield to this characters inventory or anything else to cancel\n')
-                                    if armor_inventory=='1':
-                                        droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                        if droppable.lower()=='y':
-                                            inventory.append(shield(True))
-                                        else:
-                                            inventory.append(shield(False))
-                                elif item_inventory=='3':
-                                    consumable_inventory=input('Input 1 to add a master seal, 2 to add a vulnary, 3 to add a mystic water, 4 to add a key, or anything else to cancel\n')
-                                    if consumable_inventory=='1':
-                                        droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                        if droppable.lower()=='y':
-                                            inventory.append(master_seal(True))
-                                        else:
-                                            inventory.append(master_seal(False))
-                                    elif consumable_inventory=='2':
-                                        droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                        if droppable.lower()=='y':
-                                            inventory.append(vulnary(True))
-                                        else:
-                                            inventory.append(vulnary(False))
-                                    elif consumable_inventory=='3':
-                                        droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                        if droppable.lower()=='y':
-                                            inventory.append(mystic_water(True))
-                                        else:
-                                            inventory.append(mystic_water(False))
-                                    elif consumable_inventory=='4':
-                                        droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                                        if droppable.lower()=='y':
-                                            inventory.append(key(True))
-                                        else:
-                                            inventory.append(key(False))
+                                                inventory.append(key(False))
+                                z=possibility.name.replace(' ','_')
+                                z=z.lower()
+                                #THIS WONT WORK NEED TO ADD THE NUMBER ASSIGNMENT
+                                if possibility.name=='Shop':
+                                    globals()[z](mapCreated,[location[0],location[1]],inventory)
+                                elif possibility.name=='Treasure Chest':
+                                    globals()[z](mapCreated,[location[0],location[1]],inventory[0])
+                                else:
+                                    globals()[z](mapCreated,[location[0],location[1]])
+                            else:
+                                print('Invalid input, try again')
                         except:
-                           print(traceback.format_exc())
-                        z=possibility.name.replace(' ','_')
-                        z=z.lower()
-                        #THIS WONT WORK NEED TO ADD THE NUMBER ASSIGNMENT
-                        if possibility.name=='Shop':
-                            globals()[z](mapCreated,[location[0],location[1]],inventory)
-                        elif possibility.name=='Treasure Chest':
-                            globals()[z](mapCreated,[location[0],location[1]],inventory[0])
-                        else:
-                            globals()[z](mapCreated,[location[0],location[1]])
+                                print(traceback.format_exc())
+                        
                     
 
                             
