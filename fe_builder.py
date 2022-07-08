@@ -67,10 +67,11 @@ def init_battle(char1,char2,dist,*weaponX):
         weapon2=empty
     else:
         weapon2=char2.active_item
-    if isinstance(char1,player_char):
-        hitMod+=char1.check_support_bonus()
-    elif isinstance(char2,player_char):
-        hitMod-=char2.check_support_bonus()
+    if not nosupport:
+        if isinstance(char1,player_char):
+            hitMod+=char1.check_support_bonus()
+        elif isinstance(char2,player_char):
+            hitMod-=char2.check_support_bonus()
     if weapon1.weapontype=='Sword' and weapon2.weapontype=='Lance':
         dmgMod+=-1
         hitMod+=-10
@@ -295,7 +296,7 @@ def menu(self):
             print("0 : Battle")
         if len(tradeRange)>0:
             print("T : Trade")
-        if len(supportRange)>0:
+        if len(supportRange)>0 and not nosupport:
             print("B : Support")
         if len(charTriggerRange)>0:
             print("C : Character Event")
@@ -329,7 +330,7 @@ def menu(self):
             if openableDoor:
                 print('D : Open Door')
         v=input("Press the key of the action you wish to take \n")
-        if v.lower()=='b' and len(supportRange)>0:
+        if v.lower()=='b' and len(supportRange)>0 and not nosupport:
             for i in range(0,len(supportRange)):
                 print(f"{i} : {supportRange[i]}")
             choiceSupport=input("Press the number of the support you wish to view or x to cancel \n")
@@ -455,7 +456,9 @@ def menu(self):
                                            
             
 class character:
-    character_list=[]
+    character_list=[]    
+    stats=['hp','atk','mag','skill','luck','defense','res','spd','movModifier']
+    growths=['hpG','atkG','magG','skillG','luckG','defG','resG','spdG']
     def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classType,weaponType,joinMap,inventory,level):
         self.name=name
         self.curhp=curhp
@@ -809,38 +812,118 @@ class character:
             self.add_skill(skillY)
         if not silent:
             print('Current level: '+str(self.level))
-        if rand.random()<=self.hpG:
+        if self.hpG>=1:
+            self.hp+=int(self.hpG)
+            if not silent:
+                print(f"+{int(hpG)} HP {self.hp}")
+        if rand.random()<=self.hpG-int(self.hpG) and self.hpG>=0:
             self.hp+=1
             if not silent:
                 print("+1 HP " + str(self.hp))
-        if rand.random()<=self.atkG:
+        elif self.hpG<0:
+            if -rand.random()>=self.hpG:
+                if self.hp>1:
+                    self.hp-=1
+                    if not silent:
+                        print(f"-1 HP {self.hp}")
+        if self.atkG>=1:
+            self.atk+=int(self.atkG)
+            if not silent:
+                print(f"+{int(atkG)} ATK {self.atk}")
+        if rand.random()<=self.atkG and self.atkG>=0:
             self.atk+=1
             if not silent:
                 print("+1 ATK " + str(self.atk))
-        if rand.random()<=self.magG:
+        elif self.atkG<0:
+            if -rand.random()>=self.atkG:
+                if self.atk>0:
+                    self.atk-=1
+                    if not silent:
+                        print(f"-1 ATK {self.atk}")
+        if self.magG>=1:
+            self.mag+=int(self.magG)
+            if not silent:
+                print(f"+{int(magG)} MAG {self.mag}")
+        if rand.random()<=self.magG and self.magG>=0:
             self.mag+=1
             if not silent:
                 print("+1 MAG " + str(self.mag))
-        if rand.random()<=self.skillG:
+        elif self.magG<0:
+            if -rand.random()>=self.magG:
+                if self.mag>0:
+                    self.mag-=1
+                    if not silent:
+                        print(f"-1 MAG {self.mag}")
+        if self.skillG>=1:
+            self.skill+=int(self.skillG)
+            if not silent:
+                print(f"+{int(skillG)} SKILL {self.skill}")
+        if rand.random()<=self.skillG and self.skillG>=0:
             self.skill+=1
             if not silent:
                 print("+1 SKILL " + str(self.skill))
-        if rand.random()<=self.luckG:
+        elif self.skillG<0:
+            if -rand.random()>=self.skillG:
+                if self.skill>0:
+                    self.skill-=1
+                    if not silent:
+                        print(f"-1 SKILL {self.skill}")
+        if self.luckG>=1:
+            self.luck+=int(self.luckG)
+            if not silent:
+                print(f"+{int(luckG)} LUCK {self.luck}")
+        if rand.random()<=self.luckG and self.luckG>=0:
             self.luck+=1
             if not silent:
                 print("+1 LUCK " + str(self.luck))
-        if rand.random()<=self.defG:
+        elif self.luckG<0:
+            if -rand.random()>=self.luckG:
+                if self.luck>0:
+                    self.luck-=1
+                    if not silent:
+                        print(f"-1 LUCK {self.luck}")
+        if self.defG>=1:
+            self.defense+=int(self.defG)
+            if not silent:
+                print(f"+{int(defG)} DEFENSE {self.defense}")
+        if rand.random()<=self.defG and self.defG>=0:
             self.defense+=1
             if not silent:
                 print("+1 DEF " + str(self.defense))
-        if rand.random()<=self.resG:
+        elif self.defG<0:
+            if -rand.random()>=self.defG:
+                if self.defense>0:
+                    self.defense-=1
+                    if not silent:
+                        print(f"-1 DEFENSE {self.defense}")
+        if self.resG>=1:
+            self.res+=int(self.resG)
+            if not silent:
+                print(f"+{int(resG)} RES {self.res}")
+        if rand.random()<=self.resG and self.resG>=0:
             self.res+=1
             if not silent:
                 print("+1 RES " + str(self.res))
-        if rand.random()<=self.spdG:
+        elif self.resG<0:
+            if -rand.random()>=self.resG:
+                if self.res>0:
+                    self.res-=1
+                    if not silent:
+                        print(f"-1 RES {self.res}")
+        if self.spdG>=1:
+            self.spd+=int(self.spdG)
+            if not silent:
+                print(f"+{int(spdG)} SPD {self.spd}")
+        if rand.random()<=self.spdG and self.spdG>=0:
             self.spd+=1
             if not silent:
                 print("+1 SPD " + str(self.spd))
+        elif self.spdG<0:
+            if -rand.random()>=self.spdG:
+                if self.spd>0:
+                    self.spd-=1
+                    if not silent:
+                        print(f"-1 SPEED{self.spd}")
     def skill_roll(self,enemy):
         changed_stats_player={}
         changed_stats_enemy={}
@@ -1016,22 +1099,131 @@ class character:
                 for i in range(0,len(self.classType.promotions)):
                     print(f'{i}: {self.classType.promotions[i].name}')
                 choice=input('Choose the class to promote to')
-                self.classType=self.classType.promotions[int(choice)]
-                self.mov=classType.moveRange+self.movModifier
-                for i in self.classType.promotionBonuses:            
-                    statO=getattr(self,i)
-                    update=statO+self.classType.promotionBonuses[i]
-                    setattr(self,i,update)
-                self.add_skill(self.classType.skill_list[0])
-                for i in self.classType.promotions[int(choice)].weaponType:
+                newClass=self.classType.promotions[int(choice)]
+                self.reclass(newClass)
+                self.add_skill(newClass.skill_list[0])
+                for i in newClass.weaponType:
                     if i in self.weaponType:
-                        if self.classType.promotions[int(choice)].weaponType[i]>self.weaponType[i]:
-                            self.weaponType[i]=self.classType.promotions[int(choice)].weaponType[i]
+                        if newClass.weaponType[i]>self.weaponType[i]:
+                            self.weaponType[i]=newClass.weaponType[i]
                 self.level=1
                 self.exp=0
                 return
             except Exception as e:
                 print(traceback.format_exc())
+    def reclass(self,newClass):
+        allow=False
+        if neggrowth:
+            allow=True
+        mov_change=newClass.moveRange-self.classType.moveRange
+        self.mov+=mov_change
+        if self.mov<1:
+            self.mov=1
+        print(f'MOV +{mov_change}')
+        hp_change=newClass.hp-self.classType.hp
+        self.hp+=hp_change
+        if self.hp<=0:
+            self.hp=1
+        if self.curhp>self.hp:
+            self.curhp=self.hp
+        print(f'HP +{hp_change}')
+        hpG_change=newClass.hpG-self.classType.hpG
+        if self.hpG<0:
+            allow=True
+        self.hpG+=hpG_change
+        if self.hpG<0 and allow==False:
+            self.hpG=0
+        print(f'HP Growth +{hpG_change}')
+        atk_change=newClass.atk-self.classType.atk
+        self.atk+=atk_change
+        if self.atk<0:
+            self.atk=0
+        print(f'ATK +{atk_change}')
+        atkG_change=newClass.atkG-self.classType.atkG
+        if self.atkG<0:
+            allow=True
+        self.atkG+=atkG_change
+        if self.atkG<0 and allow==False:
+            self.atkG=0
+        print(f'ATK Growth +{atkG_change}')
+        mag_change=newClass.mag-self.classType.mag
+        self.mag+=mag_change
+        if self.mag<0:
+            self.mag=0
+        print(f'MAG +{mag_change}')
+        magG_change=newClass.magG-self.classType.magG
+        self.magG+=magG_change
+        if self.magG<0:
+            allow=True
+        if self.magG<0 and allow==False:
+            self.magG=0
+        print(f'MAG Growth +{magG_change}')
+        skill_change=newClass.skill-self.classType.skill
+        self.skill+=skill_change
+        if self.skill<0:
+            self.skill=0
+        print(f'SKILL +{skill_change}')
+        skillG_change=newClass.skillG-self.classType.skill
+        if self.skillG<0:
+            allow=True
+        self.skillG+=skillG_change
+        if self.skillG<0 and allow==False:
+            self.skillG=0
+        print(f'SKILL Growth +{skillG_change}')
+        luck_change=newClass.luck-self.classType.luck
+        self.luck+=luck_change
+        if self.luck<0:
+            self.luck=0
+        print(f'LUCK +{luck_change}')
+        luckG_change=newClass.luckG-self.classType.luck
+        if self.luckG<0:
+            allow=True
+        self.luckG+=luckG_change
+        if self.luckG<0 and allow==False:
+            self.luckG=0
+        print(f'LUCK Growth +{luckG_change}')
+        def_change=newClass.defense-self.classType.defense
+        self.defense+=def_change
+        if self.defense<0:
+            self.defense=0
+        print(f'DEF +{def_change}')
+        defG_change=newClass.defG-self.classType.defG
+        if self.defG<0:
+            allow=True
+        self.defG+=defG_change
+        if self.defG<0 and allow==False:
+            self.defG=0
+        print(f'DEF Growth +{defG_change}')
+        res_change=newClass.res-self.classType.res
+        self.res+=res_change
+        if self.res<0:
+            self.res=0
+        print(f'RES +{res_change}')
+        resG_change=newClass.resG-self.classType.resG
+        if self.resG<0:
+            allow=True
+        self.resG+=resG_change
+        if self.resG<0 and allow==False:
+            self.resG=0
+        print(f'RES Growth +{resG_change}')
+        spd_change=newClass.spd-self.classType.spd
+        self.spd+=spd_change
+        if self.spd<0:
+            self.spd=0
+        print(f'SPEED +{spd_change}')
+        spdG_change=newClass.spdG-self.classType.spdG
+        if self.spdG<0:
+            allow=True
+        self.spdG+=spdG_change
+        if self.spdG<0 and allow==False:
+            self.spdG=0
+        print(f'SPEED Growth +{spdG_change}')
+        self.add_skill(newClass.skill_list[0])
+        print(f'Learned {newClass.skill_list[0].name}')
+        for i in newClass.weaponType:
+            if i not in self.weaponType:
+                self.weaponType[i]=newClass.weaponType[i]
+        self.classType=newClass
 class enemy_char(character):
     def __init__(self,name,classType,joinMap,inventory,level,spawn):
         self.name=name
@@ -1142,8 +1334,9 @@ class weapon:
         print('\n')
     def breakX(self,char):        
         input(self.name + " Broke!")
-        char.inventory.remove(self)
+        char.inventory.pop(self)
         char.active_item=None
+unique_weapons=[]
 empty=weapon('Empty',0,0,'Empty',[0],0,0,'Empty',False,0,0,{})
 class sword(weapon):
     def __init__(self,name,maxUses,dmg,dmgtype,rng,crit,hit,droppable,cost,rank,super_effective):
@@ -1498,8 +1691,10 @@ class mapLevel:
             print('4 Sell Items')
             print('5 Use Items')
             print('6 Swap Skills')
-            print('7 Support')
-            print('8 Save')
+            if not nosupport:
+                print('7 Support')
+            if saveallowed:
+                print('8 Save')
             print('9 Place Units And Start Map')
             inventory_input=input('Input the number key of the path you want to take or input x to exit \n')
             if inventory_input=='0':
@@ -1605,7 +1800,7 @@ class mapLevel:
                     except Exception as e:
                         print(traceback.format_exc())
                         print('Invalid input, returning to menu')
-            elif inventory_input=='7':
+            elif inventory_input=='7' and not nosupport:
                 supportRange=[]
                 for unit in player.roster:
                     for support_partner in unit.support_list:
@@ -1629,7 +1824,7 @@ class mapLevel:
                             player.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+=1
                         except Exception as e:
                             print(traceback.format_exc())
-            elif inventory_input=='8':
+            elif inventory_input=='8' and saveallowed:
                 save()
             elif inventory_input.lower()=='x' or inventory_input=='9':
                 inventory=False
@@ -1815,7 +2010,11 @@ class mapLevel:
         rows.append(cur)
         for j in rows:
             print(j)
-            
+
+class tempMap:
+    def __init__(self,name,mapLevel):
+        self.name=name
+        self.mapLevel=mapLevel
         
 class mapObject:
     objectList=[]
@@ -1997,12 +2196,12 @@ def gameplay(align):
         print("4: View convoy")
         print("5: View map features")
         print("6: End Turn")
-        if curMap.battle_saves<1:
+        if curMap.battle_saves<1 and saveallowed:
             print("7: Save (you get 1 battle save per map)")
         path=input('Enter the number of the path you want to take \n')
         if path=='3':
             align.show_roster()
-        elif path=='7' and curMap.battle_saves<1:
+        elif path=='7' and curMap.battle_saves<1 and saveallowed:
             curMap.battle_saves+=1
             save('_battle')
         elif path=='4':
@@ -2231,49 +2430,50 @@ def djikstra(self):
     return shortest_path
 
 def save(kind=''):
-    print("Saving data, please don't turn off the power")
-    if not os.path.exists(f'save_data{kind}.txt'):
-        open(f'save_data{kind}.txt', 'w')
-    with open(f'save_data{kind}.txt', 'r+') as f:
-        f.truncate(0)
-        toc = time.perf_counter()
-        playtime=int(toc-tic)
-        playtime+=timemodifier
-        f.write(f'time\n{playtime}\nmap\n{mapNum}\n')
-        for i in mapLevel.map_list:
-            f.write(str(i.completion_turns))
-            f.write('\n')
-        f.write('roster\n')
-        for i in player.roster:
-            f.write(i.name)
-            f.write('\n')
-        f.write(f'support\n{player.support_master}\n')
-        f.write(f'turncount\n{mapLevel.map_list[mapNum].turn_count}\nbattlesaves\n{mapLevel.map_list[mapNum].battle_saves}')
-    f.close()
-    with open(f'save_data_chars{kind}.txt', 'w') as f:
-        f.truncate(0)
-        for i in character.character_list:
-            for attr, value in i.__dict__.items():
-                if type(value) is list:
-                    for j in value:
-                        if attr=='inventory':
-                            f.write(f'{attr}XYZCYX{j.name}/{str(j.curUses)}/{str(j.droppable)}\n')
-                        else:
-                            try:
-                                f.write(f'{attr}XYZCYX{j.name}\n')
-                            except Exception as e:
-                                f.write(f'{attr}XYZCYX{value}\n')
-                                pass
-                else:
-                    try:
-                        if attr=='active_item':
-                            f.write(f'{attr}XYZCYX{value.name}/{str(value.curUses)}/{str(value.droppable)}\n')
-                        else:
-                            f.write(f'{attr}XYZCYX{value.name}\n')
-                    except Exception as e:
-                        f.write(f'{attr}XYZCYX{str(value)}\n')
-            f.write('BREAK\n')
-    print('Save complete!')
+    if saveallowed:
+        print("Saving data, please don't turn off the power")
+        if not os.path.exists(f'save_data{kind}.txt'):
+            open(f'save_data{kind}.txt', 'w')
+        with open(f'save_data{kind}.txt', 'r+') as f:
+            f.truncate(0)
+            toc = time.perf_counter()
+            playtime=int(toc-tic)
+            playtime+=timemodifier
+            f.write(f'time\n{playtime}\nmap\n{mapNum}\n')
+            for i in mapLevel.map_list:
+                f.write(str(i.completion_turns))
+                f.write('\n')
+            f.write('roster\n')
+            for i in player.roster:
+                f.write(i.name)
+                f.write('\n')
+            f.write(f'support\n{player.support_master}\n')
+            f.write(f'turncount\n{mapLevel.map_list[mapNum].turn_count}\nbattlesaves\n{mapLevel.map_list[mapNum].battle_saves}')
+        f.close()
+        with open(f'save_data_chars{kind}.txt', 'w') as f:
+            f.truncate(0)
+            for i in character.character_list:
+                for attr, value in i.__dict__.items():
+                    if type(value) is list:
+                        for j in value:
+                            if attr=='inventory':
+                                f.write(f'{attr}XYZCYX{j.name}/{str(j.curUses)}/{str(j.droppable)}\n')
+                            else:
+                                try:
+                                    f.write(f'{attr}XYZCYX{j.name}\n')
+                                except Exception as e:
+                                    f.write(f'{attr}XYZCYX{value}\n')
+                                    pass
+                    else:
+                        try:
+                            if attr=='active_item':
+                                f.write(f'{attr}XYZCYX{value.name}/{str(value.curUses)}/{str(value.droppable)}\n')
+                            else:
+                                f.write(f'{attr}XYZCYX{value.name}\n')
+                        except Exception as e:
+                            f.write(f'{attr}XYZCYX{str(value)}\n')
+                f.write('BREAK\n')
+        print('Save complete!')
 
 def load(kind=''):
     j = open(f"save_data{kind}.txt", "r")
@@ -2537,11 +2737,11 @@ def create_character():
     cont=False
     inventory=[]
     while cont==False:
-        if len(inventory)==5:
-            cont=True
-        print('Current inventory:')
-        for i in inventory:
-            print(i.name)
+##        if len(inventory)==5:
+##            cont=True
+##        print('Current inventory:')
+##        for i in inventory:
+##            print(i.name)
         inventory=stock_inventory('inventory')
         cont=True
     #Setting active item
@@ -2762,11 +2962,11 @@ def map_ordering(name,map_num,*map_lev):
                         mapLevel.map_list.pop(i)
                 elif new.lower()=='y':
                     taken_nums=[]
+                    if not map_lev:
+                        taken_nums.append(tempMap(name,map_num))
                     for j in mapLevel.map_list:
                         if j!=i:
                             taken_nums.append(j.mapNum)
-                    if not map_lev:
-                        taken_nums.append(map_num)
                     print(f'The currently taken map numbers are {taken_nums}')
                     new_num=input(f'Input the new number that you want {i.name} to be\n')
                     new_num=int(new_num)
@@ -2824,6 +3024,9 @@ def create_map():
             delete=None           
             map_num=int(map_num)
             map_num=map_ordering(name,int(map_num))
+            for i in mapLevel.map_list:
+                if isinstance(i,tempMap):
+                    mapLevel.map_list.pop(i)
             cont=True
         except:
             print(traceback.format_exc())
@@ -2950,7 +3153,7 @@ def create_map():
                                                 cont=False
                                                 contI=False
                                             elif item_inventory=='1':
-                                                weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, or anything else to cancel\n')
+                                                weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
                                                 if weapon_inventory=='1':
                                                     for i in base_sword:
                                                         i.info()
@@ -3032,6 +3235,22 @@ def create_map():
                                                         count=input('Input how many of this item you want this shop to have\n')
                                                         if int(count)>0:
                                                             inventory.append([base_gauntlet,int(count)])
+                                                elif weapon_inventory=='7':
+                                                    for i in range(0,len(unique_weapons)):
+                                                        print(f'{i}: {unique_weapons[i].name}')
+                                                    unique_inventory=input('Input the number of the unique item you wish to add to this shop or X to cancel\n')
+                                                    if unique_inventory.lower()=='x':
+                                                        pass
+                                                    else:
+                                                        if unique_inventory.isdigit():
+                                                            if int(unique_inventory) in range(0,len(unique_weapons)):
+                                                                confirm=input(f'Input Y to confirm that you wish to add {unique_weapons[int(unique_inventory)]} to the shop or anything else to cancel\n')
+                                                                if confirm.lower()=='y':
+                                                                    inventory.append([unique_weapons.pop(int(unique_inventory)),1])
+                                                            else:
+                                                                print('That number doesnt exist')
+                                                        else:
+                                                            print('Invalid input, returning to menu')
                                             elif item_inventory=='2':
                                                 for i in base_armor:
                                                     i.info()
@@ -3073,15 +3292,205 @@ def create_map():
                                 print(traceback.format_exc())
                                 
 def create_unique_weapon():
-    pass
-
+    #(name,maxUses,dmg,dmgtype,rng,crit,hit,weapontype,droppable,cost,rank,super_effective):
+    #Name
+    cont=True
+    while cont==True:
+        name=input(f'Enter the name for this weapon\n')
+        confirm=input(f'Input Y to confirm that you wish to name this weapon {name} or anything else to cancel\n')
+        if confirm.lower()=='y':
+            cont=False
+    #Weapon type
+    cont=True
+    while cont==True:
+        weptype=input(f'Input 1 to make this a sword, 2 a lance, 3 an axe, 4 a bow, 5 a tome, or 6 a gauntlet\n')
+        if weptype=='1':
+            weapontype='Sword'
+            cont=False
+        elif weptype=='2':
+            weapontype='Lance'
+            cont=False
+        elif weptype=='3':
+            weapontype='Axe'
+            cont=False
+        elif weptype=='4':
+            weapontype='Bow'
+            cont=False
+        elif weptype=='5':
+            weapontype='Tome'
+            cont=False
+        elif weptype=='6':
+            weapontype='Fist'
+            cont=False
+        else:
+            print('Invalid input, try again')
+    #Damage type
+    cont=True
+    while cont==True:
+        damagetype=input(f'Input P to make this a physical weapon or M to make it a magical weapon\n')
+        if damagetype.lower()=='p':
+            dmgtype='Phys'
+            cont=False
+        elif damagetype.lower()=='m':
+            dmgtype='Magic'
+            cont=False
+        else:
+            print('Invalid input, try again')
+    #range
+    cont=False
+    while cont==False:
+        rng=[]
+        print('Input the ranges that you want this weapon to be able to attack from seperated by commas.')
+        print('For example if you wanted this weapon to be able to attack enemies 1,2, or 3 tiles away you would enter 1,2,3')
+        ranges=input(f'Input the range now\n')
+        try:
+            ranges=ranges.split(',')
+            er=False
+            for i in ranges:
+                i=int(i)
+                if i<=0:
+                    er=True
+            if er!=True:
+                rng=ranges
+                cont=True
+            else:
+                print('Invalid input, ranges must be 1 or above')
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    #stats
+    #(maxUses,dmg,crit,hit,droppable,cost,rank,super_effective):
+    print('In this step you will set the stats for this weapon. Each stat must be a positive integer') 
+    cont=False
+    while cont==False:
+        try:
+            maxUses=input('Weapon Uses\n')
+            maxUses=int(maxUses)
+            if maxUses>0:
+                cont=True
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    cont=False
+    while cont==False:
+        try:
+            dmg=input('Damage\n')
+            dmg=int(dmg)
+            if dmg>=0:
+                cont=True
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    cont=False
+    while cont==False:
+        try:
+            hit=input('Hit Rate (between 0 and 200, higher numbers are more accurate)\n')
+            hit=int(hit)
+            if hit>=0:
+                cont=True
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    cont=False
+    while cont==False:
+        try:
+            crit=input('Crit Rate\n')
+            crit=int(crit)
+            if crit>=0:
+                cont=True
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    cont=False
+    while cont==False:
+        try:
+            cost=input('Shop Cost\n')
+            cost=int(cost)
+            if cost>=0:
+                cont=True
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    cont=False
+    while cont==False:
+        try:
+            rank=input('Weapon Rank (what a characters weapon level has to be to use this)\n')
+            rank=int(rank)
+            if cost>=0:
+                cont=True
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    #Droppable
+    cont=False
+    while cont==False:
+        dropY=input('Input y to make this weapon drop on death or x to no\n')
+        if dropY.lower()=='y':
+            droppable=True
+            cont=True
+        elif dropY.lower()=='x':
+            droppable=False
+            cont=True
+        else:
+            print('Invalid input, try again')
+    #super_effective
+    cont=False
+    super_effective={}
+    print(f'In this step you will choose the classes you want this weapon to be super effective against\n')
+    print(f'If the class you want it to be super effective against hasnt been made yet thats fine, just enter the name now and create that class later')
+    print(f'As long as a class with the input name is made at some point it will work')
+    print(f'You can add multiple classes to be super effective against as long as its done one at a time')
+    print(f'If you dont want this weapon to be super effective against any unit types just immediately input X to finish')
+    while cont==False:
+        print(f'Current classes this weapon is super effective against: {super_effective}')
+        for i in range(0,len(classType.class_list)):
+            print(f'{i}: {classType.class_list[i].name}')
+        super_effective_route=input(f'Input the number/name of the class or X to finish\n')
+        if super_effective.lower()=='x':
+            cont=True
+        elif super_effective.isdigit():
+            if int(super_effective_route)>=0 and int(super_effective_route)<len(classType.class_list):
+                if classType.class_list[int(super_effective_route)].name not in super_effective:
+                    multiplier=input(f'Input the integer damage multiplier for this weapon against {classType.class_list[int(super_effective_route)].name}s or x to cancel\n')
+                    if multiplier.isdigit():
+                        super_effective[classType.class_list[int(super_effective_route)].name]=int(multiplier)
+                    elif multiplier.lower()=='x':
+                        pass
+                    else:
+                        print('The multiplier must be an integer')
+                else:
+                    print('This weapon is already super effective against that enemy type')
+            else:
+                print('Class type names cant be numbers!')
+        else:
+            confirm=(f'Input y to confirm that you want this weapon to be super effective against {super_effective_route}s or anything else to cancel\n')
+            if confirm.lower()=='y':
+                if super_effective_route not in super_effective:
+                    multiplier=input(f'Input the integer damage multiplier for this weapon against {super_effective_route}s or x to cancel\n')
+                    if multiplier.isdigit():
+                        super_effective[super_effective_route]=int(multiplier)
+                    elif multiplier.lower()=='x':
+                        pass
+                    else:
+                        print('The multiplier must be an integer')
+                else:
+                    print('This weapon is already super effective against that enemy type')
+    weapon(name,maxUses,dmg,dmgtype,rng,crit,hit,weapontype,droppable,cost,rank,super_effective)
+    print(f'{name} has been created. You can put it in an inventory, chest, or shop via the character/map editors')
+                        
 def create_skill():
+    #Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
     pass
 
 def create_weapon_art():
+    #Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
     pass
 
 def create_class():
+    #Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
+    pass
+
+def write_support():
     pass
 
 def stock_inventory(name,*inventory):
@@ -3105,7 +3514,7 @@ def stock_inventory(name,*inventory):
         if item_inventory.lower()=='x':
             contI=False
         elif item_inventory=='1':
-            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, or anything else to cancel\n')
+            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
             if weapon_inventory=='1':
                 for i in base_sword:
                     i.info()
@@ -3214,6 +3623,19 @@ def stock_inventory(name,*inventory):
                         inventory.append(gauntlet(True))
                     else:
                         inventory.append(gauntlet(False))
+            elif weapon_inventory=='7':
+                for i in range(0,len(unique_weapons)):
+                    print(f'{i}:{unique_weapons[i].info()}')
+                unique_inventory=input('Input the number of the item you wish to add or x to cancel.\n')
+                if unique_inventory.lower()=='x':
+                    pass
+                else:
+                    try:
+                        inventory.append(unique_weapons.pop(int(unique_inventory)))
+                        print('Item added')
+                    except:
+                       print(traceback.format_exc())
+                       print('Invalid input, try again')
         elif item_inventory=='2':
             for i in base_armor:
                 i.info()
@@ -3272,7 +3694,61 @@ def edit_char():
         path=input('Input 1 to edit this characters stats and growths, 2 to edit their join map, 3 to edit their level/experience, 4 to edit their class, 5 to edit their skills, 6 to edit their inventory, or x to finish\n')
         if path=='1':
             #stats and growths
-            pass
+            cont=True
+            while cont==True:
+                print('The stats you can change are as follows:')
+                for i in stats:
+                    print(i)
+                print('The G stats are growths, and movModifer is how many extra spaces a character can move compared to a default member of their class')
+                print('Growths are decimals, and represent the change that a character gains that stat when leveling up')
+                print('For example a .6 hpG would mean that a character has a 60% chance of gaining 1 hp on level up and a 40% chance of gaining 0')
+                stat_change=input(f"Input the abreviation for the stat you'd like to change or x to finish\n")
+                if stat_change in character.stats or stat_change in character.growths:
+                    print(f"The current value for {char.name}'s {stat_change} is {getattr(char,eval(stat_change))}")
+                    new_value=input(f"Input the new value you want {stat_change} to be\n")
+                    try:
+                        if stat_change in character.stats:
+                            if stat_change!='hp' and stat_change!='movModifier':
+                                if int(new_value)>=0:
+                                    confirm=input(f"Input Y to confirm that you want to change {stat_change} to {new_value} or anything else to cancel\n")
+                                    if confirm.lower()=='y':
+                                        setattr(char,stat_change,int(new_value))
+                                else:
+                                    print('Stats must be positive integers')
+                            elif stat_change=='hp':
+                                if int(new_value)>0:
+                                    confirm=input(f"Input Y to confirm that you want to change {stat_change} to {new_value} or anything else to cancel\n")
+                                    if confirm.lower()=='y':
+                                        setattr(char,stat_change,int(new_value))
+                                else:
+                                    print('Stats must be positive integers')
+                            elif stat_change=='movModifier':
+                                if int(new_value)>=-3:
+                                    confirm=input(f"Input Y to confirm that you want to change {stat_change} to {new_value} or anything else to cancel\n")
+                                    if confirm.lower()=='y':
+                                        curMod=getattr(char,stat_change)
+                                        setattr(char,stat_change,int(new_value))
+                                        char.mov+=new_value-curMod
+                                else:
+                                    print('The minimum value for the move modifier is -3')                                    
+                        elif stat_change in character.growths:
+                            if float(new_value)>=0:
+                                confirm=input(f"Input Y to confirm that you want to change {stat_change} to {new_value} or anything else to cancel\n")
+                                if confirm.lower()=='y':
+                                    setattr(char,stat_change,float(new_value))
+                            else:
+                                print('WARNING: YOU HAVE INPUT A NEGATIVE VALUE AS A GROWTH')
+                                print(f'THIS MEANS THAT THIS CHARACTER WILL NEVER GAIN A STAT IN THIS LEVEL, AND HAS A {float(new_value)*100}\% CHANCE OF LOSING A POINT IN THE STAT ON LEVEL UP')
+                                confirm=input(f"IF YOU ARE ABSOLUTELY SURE THIS IS WHAT YOU WANT\nInput Y to confirm that you want to change {stat_change} to {new_value} or anything else to cancel\n")
+                                if confirm.lower()=='y':
+                                    setattr(char,stat_change,float(new_value))                             
+                    except:
+                        print(traceback.format_exc())
+                        print('Invalid input, try again')
+                elif stat_change.lower()=='x':
+                    cont=False
+                else:
+                    print('Invalid input, try again')
         elif path=='2':
             #join map
             existing_levels=[]
@@ -3328,7 +3804,15 @@ def edit_char():
             exp=input(f'Enter their new EXP\n')
             try:
                 if int(lev)<=20 and int(exp)<100:
-                    char.level=int(lev)
+                    if int(lev)>char.level:
+                        gain_stats=input('Since you are raising this characters level, input Y to make them gain stats as if leveling up or anything else to keep their stats the same\n')
+                        if gain_stats.lower()=='y':
+                            while char.level<int(lev):
+                                char.level_up(1)
+                        else:
+                            char.level=int(lev)
+                    else:
+                        char.level=int(lev)
                     char.exp=int(exp)
                     print(f"{char.name}'s level and exp have been updated")
                 else:
@@ -3338,10 +3822,23 @@ def edit_char():
                 print('Invalid input, returning to menu')
         elif path=='4':
             #class
-            pass
+            for i in range(0,len(classType.class_list)):
+                print(f'{i}: {classType.class_list[i].name}')
+            class_choice=input('Input the class number that you would like to reclass to\n')
+            try:
+                newClass=classType.class_list[int(class_choice)]
+                confirm=input(f'Input y to confirm that you wish to change {char.name} to {newClass.name} or anything else to cancel\n')
+                if confirm.lower()=='y':
+                    stat_change=input(f"Input Y to update {char.name}'s stats based off of this new clas or anything else to keep them the same\n")
+                    if stat_change.lower()=='y':
+                        char.reclass(newClass)
+                    else:
+                        char.classType=newClass
+            except:
+                print(traceback.format_exc())
+                print('Invalid input, returning to menu')
         elif path=='5':
             #skills
-            #incomplete, need the d and x routes
             skills_path=input(f'Input A to add a skill, D to drop a skill, or X to finish\n')
             if skills_path.lower()=='a':
                 cont=False
@@ -3365,7 +3862,24 @@ def edit_char():
                             print(traceback.format_exc())
                             print('Invalid input,try again')
             elif skills_path.lower()=='d':
-                pass                            
+                cont=False
+                while cont==False:
+                    for i in range(0,len(self.skills_all)):
+                        print(f'{i}: {self.skills_all[i].name}')
+                    skill_drop=input(f'Input the number of the skill you would like to drop or X to finish\n')
+                    if skill_drop.lower()=='x':
+                        cont=True
+                    else:
+                        try:
+                            confirm=input(f'Input Y to confirm that you wish to drop {self.skills_all[int(skill_drop)].name} or anything else to cancel\n')
+                            if confirm.lower()=='y':
+                                dropped_skill=self.skills_all.pop(int(skill_drop))
+                                if dropped_skill in self.skills:
+                                    self.skills.pop(dropped_skill)
+                                print(f'{dropped_skill.name} dropped')
+                        except:
+                            print(traceback.format_exc())
+                            print('Invalid input, try again')   
         elif path=='6':
             #inventory
             inventory_path=input(f"Input A to add items to {char.name}'s inventory or D to drop items\n")
@@ -3432,12 +3946,11 @@ char_trigger('Discussion of games',map1,'Hi King\nGet pwnd Saitama',('Saitama','
 map2=mapLevel('Map 2',11,10,2,[[0,0],[0,1],[0,2]],[],[])
 throne(map2,[0,1])
 mapNum=1
-next_map()
-#alignments
+###alignments
 enemy=alignment('Enemy')
 player=alignment('Player')
 player.support_master={('Saitama','King'):[0,'Hi','Yo','Final'],('King','Zatch'):[0,'Hello','No Way']}
-#Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
+###Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
 luna=skill('Luna',9,'skill','defense',.5,'*',True,'enemy')
 sol=skill('Sol',5,'skill','curhp',10,'+',False,'self')
 astra=skill('Astra',5,'skill','atk',2.5,'*',True,'self')
@@ -3445,9 +3958,9 @@ mag_up=skill('Mag Up',100,'skill','atk',5,'+',True,'self')
 mag_up_2=skill('Mag Up 2',100,'skill','atk',5,'+',True,'self')
 armsthrift=skill('Armsthrift',500,'luck','curUses',1,'+',False,'weapon')
 placeholder=skill('Placeholder',0,'luck','atk',0,'+',True,'self')
-#Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
+###Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
 grounder=weapon_art('Grounder',3,10,'atk',2,'*','Sword',[],[1,2,3,4])
-#Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
+###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
 wyvern=classType('Wyvern','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Axe':0,'Lance':0},[],[luna,placeholder,placeholder])
 swordmaster=classType('Swordmaster','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],[sol,placeholder,placeholder])
 hero=classType('Hero','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0,'Axe':0},[],[placeholder,placeholder,placeholder])
@@ -3458,41 +3971,131 @@ mercenary=classType('Mercenary','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.
 mage=classType('Mage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Tome':0},[],[mag_up,placeholder,placeholder])
 pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],[placeholder,placeholder,placeholder])
 lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],[placeholder,placeholder,placeholder])
-#player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classType,{weaponType},joinMap,[inventory],level,{supports},[weapon_arts])
-#enemy_char(name,classType,joinMap,[inventory],level,[spawn])
-#recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts)
-#boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
+###player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,{weaponType},joinMap,[inventory],level,{supports},[weapon_arts])
+###enemy_char(name,classType,joinMap,[inventory],level,[spawn])
+###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
+###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
 garou=enemy_char('Garou',wyvern,1,[javelin(False),iron_axe(True)],1,[1,1])
 hao=enemy_char('Hao',pirate,1,[javelin(False),iron_axe(False)],1,[1,0])
 mumen=enemy_char('Mumen',pirate,1,[iron_axe(False)],1,[1,2])
 ash=enemy_char('Ash',pirate,1,[silver_axe(False)],1,[9,1])
-yuffie=enemy_char('Yuffie',wyvern,2,[javelin(False)],1,[9,1])
+yuffie=enemy_char('Yuffie',wyvern,2,[javelin(False)],2,[9,1])
 saitama=player_char('Saitama',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,swordmaster,{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{'King':0},[grounder])
 saitama.add_skill(luna)
 saitama.add_skill(armsthrift)
 king=player_char('King',3,3,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,lord,{},1,[iron_sword(False),key(False)],1,{'Saitama':0,'Zatch':0},[])
 zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,mercenary,{},2,[iron_sword(False)],1,{'King':0},[])
-#Debug mode
+###Creative mode
+zerogrowth=False
+neggrowth=False
+nosupport=False
+fullgrowth=False
+notriangle=False
+if not os.path.exists('cheatshown.txt'):
+    cheatshown=False
+else:
+    cheatshown=True
+saveallowed=True
+cheatallowed=True
+bighead=False
+cheat_codes=['uuddlrlrab','630660714755868972','nobitches','superjack','oldschool','bestboy','ultimatelifeform','edgelord','galaxybrain','gettinghead','alphamale']
 print('Welcome to FE Builder, created by Schwa')
 print('In this there are 2 main modes, creative and survival.\nIn creative mode you can create maps, edit characters, write supports, whatever you like.\nIn survival mode you can use your creations, or just use premade ones if you just want to get into the action.\n')
 debug=input('Input Y for creative mode or anything else for survival\n')
 while debug.lower()=='y':
     print('0 Character Creator')
     print('1 Map Creator')
-    print('2 Character Editor')
-    print('3 Map Editor')
+    print('2 Weapon Creator')
+    print('3 Class Creator')
+    print('4 Weapon Art Creator')
+    print('5 Skill Creator')
+    print('6 Support Writer')
+    print('7 Character Editor')
+    print('8 Map Editor')    
     path=input('Input which path you would like to take, or x to move to survival mode\n')
     if path=='1':
         create_map()
+        cheatallowed=False
     elif path=='0':
         create_character()
-    elif path=='2':
+        cheatallowed=False
+    elif path=='7':
         edit_char()
-    elif path=='3':
+        cheatallowed=False
+    elif path=='8':
         edit_map()
+        cheatallowed=False
+    elif path=='2':
+        create_unique_weapon()
+        cheatallowed=False
+    elif path=='3':
+        create_class()
+        cheatallowed=False
+    elif path=='4':
+        create_weapon_art()
+        cheatallowed=False
+    elif path=='5':
+        create_skill()
+        cheatallowed=False
+    elif path=='6':
+        write_support()
+        cheatallowed=False
     elif path.lower()=='x':
         debug='x'
-#Loading
+    elif cheatshown==False and (path.lower()=='cheat code' or path.lower()=='password' or path.lower()=='secret'):
+        print(cheat_codes[rand.randrange(0,len(cheat_codes))])
+        cheatshown=True
+        open('cheatshown.txt', 'w')
+    elif path.lower()=='uuddlrlrab' and zerogrowth==False and fullgrowth==False and cheatallowed:
+        #negative growth mode
+        #disable saving
+        neggrowth=True
+        saveallowed=False
+        print('Negative growth mode has been activated. Wither away to dust with a smile!')
+        print('Saving has been disabled')
+    elif path.lower()=='630660714755868972' and fullgrowth==False and fullgrowth==False and cheatallowed:
+        #0% growth mode
+        #disable saving
+        saveallowed=False
+        zerogrowth=True
+        print('Zero percent growth mode has been activated. Showing no personal growth has never felt so good!')
+        print('Saving has been disabled')
+    elif path.lower()=='nobitches' and cheatallowed:
+        #no support mode
+        nosupport=True
+        print('No support mode has been activated. Prepare to die alone!')
+    elif path.lower()=='superjack' and zerogrowth==False and neggrowth==False and cheatallowed:
+        #100% growth mode
+        #disable saving
+        print('100% growth mode has been activated. This should be easy, right?')
+        print('Saving has been disabled')
+    elif path.lower()=='oldschool' and cheatallowed:
+        #no triangle mode
+        notriangle=True
+        print("No weapon triangle mode has been activated. Rock paper scisors waifu chess has been reduced to just chess at this point!")
+    elif path.lower()=='bestboy' and cheatallowed:
+        #unlock laslow
+        pass
+    elif path.lower()=='ultimatelifeform' and cheatallowed:
+        #unlock shadow
+        pass
+    elif path.lower()=='edgelord' and cheatallowed:
+        #unlock schwa
+        pass
+    elif path.lower()=='galaxybrain' and cheatallowed:
+        #unlock kie
+        pass
+    elif path.lower()=='gettinghead' and cheatallowed:
+        #unlock big head mode
+        bighead=True
+        pass
+    elif path.lower()=='alphamale' and cheatallowed:
+        #unlock all the alpha characters
+        pass
+    else:
+        pass
+###Loading
+#Probably need to move this before the creative mode
 loadX='placeholder'    
 if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
     if os.path.exists('save_data_battle.txt'):
@@ -3535,8 +4138,19 @@ if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
             print('Save file deleted')
 #Gameplay loop
 tic = time.perf_counter()
+next_map()
+if zerogrowth or neggrowth or fullgrowth:
+    for char in characters.character_list:
+        for growth in characters.growths:
+            if zerogrowth:
+                setattr(char,growth,0)
+                pass
+            elif neggrowth:
+                pass
+            elif fullgrowth:
+                setattr(char,growth,1)
 while mapNum<len(mapLevel.map_list):
-    curMap=mapLevel.map_list[mapNum]
+    #curMap=mapLevel.map_list[mapNum]
     if curMap.battle_saves==0:
         curMap.start_map()
     else:
@@ -3557,12 +4171,13 @@ while mapNum<len(mapLevel.map_list):
         curMap.completion_turns=curMap.turn_count
         mapNum+=1
         next_map()
-        saveX=input('Would you like to save the game? Input Y to save. \n')
-        if saveX.lower()=='y':
-            save()
-            if os.path.exists('save_data_battle.txt'):
-                os.remove('save_data_battle.txt')
-                os.remove('save_data_chars_battle.txt')
+        if saveallowed:
+            saveX=input('Would you like to save the game? Input Y to save. \n')
+            if saveX.lower()=='y':
+                save()
+                if os.path.exists('save_data_battle.txt'):
+                    os.remove('save_data_battle.txt')
+                    os.remove('save_data_chars_battle.txt')
 #Ending
 print("You beat the game!")
 total_turns=0
