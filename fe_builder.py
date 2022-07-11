@@ -505,13 +505,12 @@ class character:
         for i in self.classType.weaponType:
             if i not in self.weaponType:
                 self.weaponType[i]=self.classType.weaponType[i]
+        self.active_item=None
         if len(inventory)>0:
             if isinstance(inventory[0],weapon):
                 if inventory[0].weapontype in self.weaponType:
                     if inventory[0].weaponlevel>=self.weaponType[inventory[0].weapontype]:
                         self.active_item=inventory[0]
-        else:
-            self.active_item=None
         self.location=[-1,-1]
         self.moved=False
         self.placed=False
@@ -571,7 +570,7 @@ class character:
                 return
             else:
                 try:
-                    item=self.drop(self.inventory[int(dropY)-1])
+                    item=self.drop_item(self.inventory[int(dropY)-1])
                     self.alignment.convoy.append(item)
                 except Exception as e:
                     print('Invalid input, try again')
@@ -602,7 +601,7 @@ class character:
                 confirm=input(f"Would you like to sell the {self.inventory[int(sell)].name} for {(self.inventory[int(sell)].cost/2)*(self.inventory[int(sell)].curUses/self.inventory[int(sell)].maxUses)} gold? Input Y to confirm, anything else to cancel \n")
                 if confirm.lower()=='y':
                     print(f"Sold {self.inventory[int(sell)].name} for {(self.inventory[int(sell)].cost/2)*(self.inventory[int(sell)].curUses/self.inventory[int(sell)].maxUses)} gold")
-                    item=self.drop(self.inventory[int(sell)])
+                    item=self.drop_item(self.inventory[int(sell)])
                     self.alignment.gold+=(item.cost/2)*(item.curUses/item.maxUses)
             except Exception as e:
                 print(traceback.format_exc())
@@ -658,7 +657,7 @@ class character:
                     break
                 else:
                     try:
-                        item=self.drop(self.inventory[int(route2)])
+                        item=self.drop_item(self.inventory[int(route2)])
                         trade_partner.inventory.append(item)
                         while len(trade_partner.inventory)>5:
                             routeFix=input(f"{trade_partner.name} has too many items, input 0 to send one to the convoy or 1 to trade an item to {self.name} \n")
@@ -667,7 +666,7 @@ class character:
                                     print(f"{i} {trade_partner.inventory.name}")
                                 routeConvoyFix=input(f"Input the item to store \n")
                                 try:
-                                    itemX=trade_partner.drop(trade_partner.inventory[int(routeConvoyFix)])
+                                    itemX=trade_partner.drop_item(trade_partner.inventory[int(routeConvoyFix)])
                                     trade_partner.alignment.convoy.append(itemX)
                                 except Exception as e:
                                     print('Invalid input, try again')
@@ -676,7 +675,7 @@ class character:
                                     print(f"{i} {trade_partner.inventory.name}")
                                 routeTradeFix=input(f"Input the item to trade \n")
                                 try:
-                                    itemX=trade_partner.drop(trade_partner.inventory[int(routeTradeFix)])
+                                    itemX=trade_partner.drop_item(trade_partner.inventory[int(routeTradeFix)])
                                     self.inventory.append(itemX)
                                 except Exception as e:
                                     print('Invalid input, try again')
@@ -703,7 +702,7 @@ class character:
                                     print(f"{i} {self.inventory.name}")
                                 routeConvoyFix=input(f"Input the item to store \n")
                                 try:
-                                    itemX=self.drop(self.inventory[int(routeConvoyFix)])
+                                    itemX=self.drop_item(self.inventory[int(routeConvoyFix)])
                                     self.alignment.convoy.append(itemX)
                                 except Exception as e:
                                     print('Invalid input, try again')
@@ -712,7 +711,7 @@ class character:
                                     print(f"{i} {self.inventory.name}")
                                 routeTradeFix=input(f"Input the item to trade \n")
                                 try:
-                                    itemX=self.drop(self.inventory[int(routeTradeFix)])
+                                    itemX=self.drop_item(self.inventory[int(routeTradeFix)])
                                     trade_partner.inventory.append(itemX)
                                 except Exception as e:
                                     print('Invalid input, try again')
@@ -799,7 +798,8 @@ class character:
             self.level=20
             self.exp=0
             return
-        print('Level up!')
+        if not silent:
+            print('Level up!')
         if self.level==10:
             skillX=self.classType.skill_list[1]
             if not silent:
@@ -1090,8 +1090,8 @@ class character:
         for i in self.skills:
             print(i.name)
         print("Weapon Levels")
-        for i in self.weaponTypes:
-            print(f'{i}: {self.weaponTypes[i]}')
+        for i in self.weaponType:
+            print(f'{i}: {self.weaponType[i]}')
     def promote(self):
         cont=False
         while cont==False:
@@ -1225,18 +1225,25 @@ class character:
                 self.weaponType[i]=newClass.weaponType[i]
         self.classType=newClass
 class enemy_char(character):
+    enemy_char_list=[]
     def __init__(self,name,classType,joinMap,inventory,level,spawn):
         self.name=name
         self.spawn=spawn
         super().__init__(name,classType.hp,classType.hp,classType.hpG,classType.atk,classType.atkG,classType.mag,classType.magG,classType.skill,classType.skillG,classType.luck,classType.luckG,classType.defense,classType.defG,classType.res,classType.resG,classType.spd,classType.spdG,0,enemy,classType,{},joinMap,inventory,1)
         while self.level<level:
             self.level_up(1)
+        if self not in self.enemy_char_list:
+            self.enemy_char_list.append(self)
 class boss(character):
+    boss_list=[]
     def __init__(self,name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
         self.name=name
         self.spawn=spawn
         super().__init__(name,curhp,hp,0,atk,0,mag,0,skill,0,luck,0,defense,0,res,0,spd,0,mov,enemy,classType,weaponType,joinMap,inventory,level)
+        if self not in self.boss_list:
+            self.boss_list.append(self)
 class recruitable(character):
+    recruitable_list=[]
     def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo):
         self.name=name
         self.support_list=support_list
@@ -1244,6 +1251,8 @@ class recruitable(character):
         self.spawn=spawn
         self.recruit_convo=recruit_convo
         super().__init__(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,enemy,classType,weaponType,joinMap,inventory,level)
+        if self not in self.recruitable_list:
+            self.recruitable_list.append(self)
 class player_char(character):
     player_char_list=[]
     def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,support_list,weapon_arts):
@@ -1389,7 +1398,7 @@ class javelin(lance):
     def __init__(self,droppable):
         super().__init__('Javelin',30,5,'Phys',[1,2],0,65,droppable,750,10,{})
 base_javelin=javelin(False)
-base_lance.append(javelin)
+base_lance.append(base_javelin)
 class silver_lance(lance):
     def __init__(self,droppable):
         super().__init__('Silver Lance',20,14,'Phys',[1],0,90,droppable,1500,25,{})
@@ -1652,7 +1661,7 @@ class alignment:
             
 class mapLevel:
     map_list=[]
-    def __init__(self,name,x_size,y_size,mapNum,spawns,player_roster,enemy_roster):
+    def __init__(self,name,y_size,x_size,mapNum,spawns,player_roster,enemy_roster):
         self.name=name
         self.objectList={}
         self.spaces={}
@@ -1662,9 +1671,10 @@ class mapLevel:
         self.mapNum=mapNum
         self.turn_count=1
         self.battle_saves=0
-        self.y_size=x_size
-        for i in range(0,x_size):
-            for j in range(0,y_size):
+        self.y_size=y_size
+        self.x_size=x_size
+        for i in range(0,y_size):
+            for j in range(0,x_size):
                 self.spaces[j,i]=[False]
         self.completion_turns=0
         self.player_roster=[]
@@ -1830,7 +1840,7 @@ class mapLevel:
                 inventory=False
             else:
                 print('Invalid input, please try again')   
-        self.display()
+        self.display('cur')
         for i in self.spawns:
             cont=False
             count=0
@@ -1856,7 +1866,7 @@ class mapLevel:
         for i in player.roster:
             i.placed=False
             i.moved=False
-    def display(self):
+    def display(self,mode):
         prev=-1
         rows=[]
         cur=[]
@@ -1884,25 +1894,39 @@ class mapLevel:
                 if prev!=-1:
                     rows.append(cur)
                 cur=[i[1]]
-                if self.spaces[i][0]==False and char==None:                    
+                if char==None:                    
                     char=" "
-                elif self.spaces[i][0]==True:
-                    if self.spaces[i][1].alignment==enemy:
-                        char="E"
-                    elif self.spaces[i][1].alignment==player:
-                        char="P"
+                if self.spaces[i][0]==True:
+                    if mode.lower()=='cur':
+                        if self.spaces[i][1].alignment==enemy:
+                            char="E"
+                        elif self.spaces[i][1].alignment==player:
+                            char="P"
+                if mode.lower()=='base':
+                    for j in self.enemy_roster:
+                        if [i[0],i[1]]==j.spawn:
+                            char='E'
+                    if [i[0],i[1]] in self.spawns:
+                        char='P'
                 if i[0]>=10:
                     char+=' '
                 cur.append(char)
                 prev=i[1]
             else:
-                if self.spaces[i][0]==False and char==None:                    
+                if char==None:                    
                     char=" "
-                elif self.spaces[i][0]==True:
-                    if self.spaces[i][1].alignment==enemy:
-                        char="E"
-                    elif self.spaces[i][1].alignment==player:
-                        char="P"
+                if self.spaces[i][0]==True:
+                    if mode.lower()=='cur':
+                        if self.spaces[i][1].alignment==enemy:
+                            char="E"
+                        elif self.spaces[i][1].alignment==player:
+                            char="P"
+                if mode.lower()=='base':
+                    for j in self.enemy_roster:
+                        if [i[0],i[1]]==j.spawn:
+                            char='E'
+                    if [i[0],i[1]] in self.spawns:
+                        char='P'
                 if i[0]>=10:
                     char+=' '
                 cur.append(char)
@@ -1910,50 +1934,104 @@ class mapLevel:
         rows.append(cur)
         for j in rows:
             print(j)            
-    def display_map(self):
-        prev=-1
-        rows=[]
-        cur=[]
-        cont=False
-        while cont==False:
-            for i in self.spaces:
-                if i[1]==0:
-                    if i[0]==0:
-                        cur=[0]                  
-                        cur.append(str(i[0]))
-                        prev=i[1]
-                    else:                   
-                        cur.append(str(i[0]))
-                        prev=i[1]
-            cont=True
-        rows.append(cur)
-        prev=-1
-        for i in self.spaces:
-            char=None
-            try:
-                char=self.objectList[i].display
-            except Exception as e:
-                pass
-            if(i[1]!=prev):
-                if prev!=-1:
-                    rows.append(cur)
-                cur=[i[1]]
-                if char==None:                    
-                    char=" "
-                if i[0]>=10:
-                    char+=' '
-                cur.append(char)
-                prev=i[1]
-            else:
-                if char==None:                    
-                    char=" "
-                if i[0]>=10:
-                    char+=' '
-                cur.append(char)
-                prev=i[1]
-        rows.append(cur)
-        for j in rows:
-            print(j)
+##    def display_map(self):
+##        prev=-1
+##        rows=[]
+##        cur=[]
+##        cont=False
+##        while cont==False:
+##            for i in self.spaces:
+##                if i[1]==0:
+##                    if i[0]==0:
+##                        cur=[0]                  
+##                        cur.append(str(i[0]))
+##                        prev=i[1]
+##                    else:                   
+##                        cur.append(str(i[0]))
+##                        prev=i[1]
+##            cont=True
+##        rows.append(cur)
+##        prev=-1
+##        for i in self.spaces:
+##            char=None
+##            try:
+##                char=self.objectList[i].display
+##            except Exception as e:
+##                pass
+##            if(i[1]!=prev):
+##                if prev!=-1:
+##                    rows.append(cur)
+##                cur=[i[1]]
+##                if char==None:                    
+##                    char=" "
+##                if i[0]>=10:
+##                    char+=' '
+##                cur.append(char)
+##                prev=i[1]
+##            else:
+##                if char==None:                    
+##                    char=" "
+##                if i[0]>=10:
+##                    char+=' '
+##                cur.append(char)
+##                prev=i[1]
+##        rows.append(cur)
+##        for j in rows:
+##            print(j)
+##    def display_base(self):
+##        prev=-1
+##        rows=[]
+##        cur=[]
+##        cont=False
+##        while cont==False:
+##            for i in self.spaces:
+##                if i[1]==0:
+##                    if i[0]==0:
+##                        cur=[0]                  
+##                        cur.append(str(i[0]))
+##                        prev=i[1]
+##                    else:                   
+##                        cur.append(str(i[0]))
+##                        prev=i[1]
+##            cont=True
+##        rows.append(cur)
+##        prev=-1
+##        for i in self.spaces:
+##            char=None
+##            try:
+##                char=self.objectList[i].display
+##            except Exception as e:
+##                pass
+##            if(i[1]!=prev):
+##                if prev!=-1:
+##                    rows.append(cur)
+##                cur=[i[1]]
+##                if char==None:                    
+##                    char=" "
+##                for j in self.enemy_roster:
+##                    if [i[0],i[1]]==j.spawn:
+##                        char='E'
+##                if [i[0],i[1]] in self.spawns:
+##                    char='P'
+##                if i[0]>=10:
+##                    char+=' '
+##                cur.append(char)
+##                prev=i[1]
+##            else:
+##                for j in self.enemy_roster:
+##                    if [i[0],i[1]]==j.spawn:
+##                        char='E'
+##                if [i[0],i[1]] in self.spawns:
+##                    char='P'
+##                if char==None:                    
+##                    char=" "
+##                if i[0]>=10:
+##                    char+=' '
+##                cur.append(char)
+##                prev=i[1]
+##        rows.append(cur)
+##        for j in rows:
+##            print(j)
     def display_djik(self,dj):
         prev=-1
         rows=[]
@@ -2010,6 +2088,131 @@ class mapLevel:
         rows.append(cur)
         for j in rows:
             print(j)
+    def add_map_objects(self):
+        cont=False
+        while cont==False:
+    ##        print('X: Void')
+    ##        print('F: Fort')
+    ##        print('^: Forest')
+    ##        print('~: Water')
+    ##        print('.: Desert')
+    ##        print('h: Throne')
+    ##        print('H: Chest')
+    ##        print('D: Door')
+    ##          S=Shop
+            obj_list=[]
+            for i in display_list:
+                if isinstance(i,mapObject):
+                    print(f'{i.display}: {i.name}')
+                    obj_list.append(i)
+            self.display('base')
+            object_place=input('Input the display character for the map object you wish to place, 1 to view details of an object, or 0 to finish\n')
+            if object_place=='0':
+                confirm=input('Input Y to confirm that you are done editing this map and quit, anything else to cancel\n')
+                if confirm.lower()=='y':
+                    return
+            elif object_place=='1':
+                for i in obj_list:
+                    print(f'{i.display}: {i.name}')
+                object_info=input('Input the display character for the map object you wish to view details on')
+                for i in obj_list:
+                    if object_info==i.display:
+                        i.info()
+            else:
+                cont=True
+                while cont==True:
+                    possibility=None
+                    for i in obj_list:
+                        if object_place==i.display:
+                            possibility=i
+                    if possibility==None:
+                        print('Invalid input, try again')
+                    else:
+                        print(f'Input the coordinates where you would like the {possibility.name} to be placed on the map in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                        print('Any x,y pair will work as long as its on the map and not currently occupied, not just 0,0 or 1,1')
+                        print('Input x to cancel')
+                        location=input('Enter the coordinates now\n')
+                        if location.lower()!='x':
+                            try:
+                                location=location.split(',')
+                                location[0]=int(location[0])
+                                location[1]=int(location[1])
+                                print(self.x_size)
+                                print(self.y_size)
+                                moveOn=True
+                                if (location[0],location[1]) in self.objectList:
+                                    print(f'There is already a {self.objectList[location[0],location[1]].name} at {location[0]},{location[1]}.')
+                                    confirm=input(f'Input Y to confirm that you want to overwrite this object or anything else to cancel\n')
+                                    if confirm.lower()=='y':
+                                        pass
+                                    else:
+                                        moveOn=False
+                                for i in self.spawns:
+                                    if [location[0],location[1]]==i and possibility.name=='Void' or possibility.name=='Water' or possibility.name=='Door':
+                                        print('There is a spawn at this location, you cant add this object there')
+                                        moveOn=False
+                                for i in self.enemy_roster:
+                                    if [location[0],location[1]]==i.spawn:
+                                        if i.classType.moveType!='Pirate' and i.classType.moveType!='Flying' and possibility.name=='Water':
+                                            print('There is a enemy spawn at this location, you cant add this object there')
+                                            moveOn=False
+                                        elif i.classType.moveType!='Flying' and possibility.name=='Void':
+                                            print('There is a enemy spawn at this location, you cant add this object there')
+                                            moveOn=False
+                                        elif possibility.name=='Door':
+                                            print('There is a enemy spawn at this location, you cant add this object there')
+                                            moveOn=False
+                                if location[0]<self.x_size and location[1]<self.y_size and location[0]>=0 and location[1]>=0 and moveOn==True:
+                                    contI=False
+                                    if possibility.name=='Chest' or possibility.name=='Shop':
+                                        contI=True
+                                        inventory=[]
+                                    while contI==True:                                
+                                        if possibility.name=='Chest':
+                                            inventory=stock_inventory('chest')
+                                            if inventory==[]:
+                                                cont=False
+                                                contI=False
+                                        elif possibility.name=='Shop':
+                                            inventory=edit_shop()
+                                    z=possibility.name.replace(' ','_')
+                                    z=z.lower()
+                                    if possibility.name=='Shop':
+                                        globals()[z](self,[location[0],location[1]],inventory)
+                                    elif possibility.name=='Treasure Chest':
+                                        globals()[z](self,[location[0],location[1]],inventory[0])
+                                    else:
+                                        globals()[z](self,[location[0],location[1]])
+                                else:
+                                    print('Invalid input, try again')
+                            except:
+                                    print(traceback.format_exc())
+    def delete_map_objects(self):
+        cont=True
+        while cont==True:
+            self.display('base')
+            for i in self.objectList:
+                print(f'{i}: {self.objectList[i].name}')
+            path=input(f'Input the x,y coordinates of the object you want to delete or x to finish\n')
+            if path.lower()=='x':
+                cont=False
+            else:
+                try:
+                    path=path.split(',')
+                    path[0]=int(path[0])
+                    path[1]=int(path[1])
+                    if (path[0],path[1]) in self.objectList:
+                        confirm=input(f'Input Y to confirm that you want to delete the {self.objectList[path[0],path[1]].name} at {path[0]},{path[1]} or anything else to cancel\n')
+                        if confirm.lower()=='y':
+                            del self.objectList[path[0],path[1]]
+                            print('Object deleted')
+                        else:
+                            print('Deletion canceled, returning to menu')
+                except:
+                    print(traceback.format_exc())
+                    print('Invalid input, try again')
+        
+
 
 class tempMap:
     def __init__(self,name,mapLevel):
@@ -2037,6 +2240,9 @@ class mapObject:
         print(f'Healing: {self.hpBonus} per turn')
         print(f'Move Cost: {self.moveCost}')
 display_list=[]
+###WHEN ADDING NEW OBJECTS
+###IF THEY ARE IMPASSIBLE ADD THEM TO THE add_map_objects EXCEPTION LIST
+###AND ADD IN BASE FORMS AND APPEND THOSE BASE FORMS TO THE DISPLAY LIST
 class fort(mapObject):
     def __init__(self,mapLevel,location):
         super().__init__('Fort',mapLevel,location,1,10,10,1,'F')
@@ -2084,6 +2290,15 @@ class treasure_chest(mapObject):
     def info(self):
         super().info()
         print('Can be opened by a key to gain the treasure inside')
+    def edit_contents(self):
+        print(f'The current item in this chest is {contents.name}')
+        print('Choose the new item for this chest')
+        new_item=stock_inventory('chest')
+        if len(new_item)>0:
+            self.contents=new_item[0]
+            print(f'{self.contents.name} is now in the chest')
+        else:
+            print('No new item added to chest')
 base_treasure_chest=treasure_chest(None,None,None)
 display_list.append(base_treasure_chest)
 class shop(mapObject):
@@ -2093,6 +2308,8 @@ class shop(mapObject):
     def info(self):
         super().info()
         print('Can enter these to buy and sell items with gold')
+    def edit_contents(self):
+        self.contents=edit_shop(self)
 base_shop=shop(None,None,None)
 display_list.append(base_shop)
 class door(mapObject):
@@ -2160,10 +2377,10 @@ def gameplay(align):
             count+=1
         elif align.roster[i].moved==True and align.roster[i].status=='Alive' and align.roster[i].deployed==True and checkpoint==True:
             checkpoint=False
-    if curMap==map1 and curMap.turn_count==5 and checkpoint==True:
+    if curMap.mapNum==1 and curMap.turn_count==5 and checkpoint==True:
         print('You can save the game once every 5 turns for free, but only if you havent moved any units. Use this wisely!')
     while checkpoint==True:
-        saveQue=input('Would you like to save? Input Y to save or X to pass')
+        saveQue=input('Would you like to save? Input Y to save or X to pass\n')
         if saveQue.lower()=='y':
             save('_battle')
             checkpoint=False
@@ -2186,7 +2403,7 @@ def gameplay(align):
             print("Error")
     for i in display_list:
         print(f'{i.name} : {i.display}')
-    curMap.display()
+    curMap.display('cur')
     cont2=False
     while cont2==False:
         print(f'There are {count} units that can still move')
@@ -2207,7 +2424,7 @@ def gameplay(align):
         elif path=='4':
             align.show_convoy()
         elif path=='5':
-            curMap.display_map()
+            curMap.display('map')
         elif path=='6':
             align.turn_end()
             return
@@ -2283,7 +2500,7 @@ def ai(align):
         else:
             print("Error")
     #We just choose the last item in the list cuz its easiest this way
-    curMap.display()
+    curMap.display('cur')
     choice=j
     self=align.roster[j]
     #dist, weapon
@@ -2592,6 +2809,163 @@ def load(kind=''):
             for i in player.roster:
                 if i.deployed==True:
                    mapLevel.map_list[mapNum].spaces[i.location[0],i.location[1]]=[True,i]
+                   
+def edit_shop(*shop):
+    if shop:
+        inventory=shop[0].contents
+    else:
+        inventory=[]
+    contI=True
+    while contI==True:
+        if len(inventory)>0:
+            print('Current inventory:')
+            for i in range(0,len(inventory)):
+                print(f'{i}: {inventory[i][0].name}')
+        item_inventory=input(f'Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, 4 to remove items, or x to finish.\n')
+        if item_inventory.lower()=='x':
+            return(inventory)
+        elif item_inventory=='4' and len(inventory)>0:
+            for i in range(0,len(inventory)):
+                print(f'{i}: {inventory[i][0].name}')
+            path=input(f'Input the item number that you would like to drop or X to cancel\n')
+            if path.lower()=='x':
+                pass
+            else:
+                try:
+                    confirm=input(f'Input Y to confirm that you would like to remove {inventory[int(path)][0].name} or anything else to cancel\n')
+                    if confirm.lower()=='y':
+                        inventory.pop(int(path))
+                        print('Item removed')
+                    else:
+                        print("Removal canceled")
+                except:
+                    print(traceback.format_exc())
+                    print('Invalid input, returning to menu')
+        elif item_inventory=='1':
+            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
+            if weapon_inventory=='1':
+                for i in base_sword:
+                    i.info()
+                sword_inventory=input('Press 1 to add an iron sword, 2 to add a silver sword, 3 to add a levin sword, or anything else to cancel.\n')
+                if sword_inventory=='1':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_iron_sword,int(count)])
+                if sword_inventory=='2':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_silver_sword,int(count)])
+                if sword_inventory=='3':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_levin_sword,int(count)])
+            elif weapon_inventory=='2':
+                print(base_lance)
+                for i in base_lance:
+                    i.info()
+                lance_inventory=input('Press 1 to add an iron lance, 2 to add a silver lance, 3 to add a javelin, or anything else to cancel.\n')
+                if lance_inventory=='1':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_iron_lance,int(count)])
+                if lance_inventory=='2':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_silver_lance,int(count)])
+                if lance_inventory=='3':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_javelin,int(count)])
+            elif weapon_inventory=='3':
+                for i in base_axe:
+                    i.info()
+                axe_inventory=input('Press 1 to add an iron axe, 2 to add a silver axe, 3 to add a hand axe, or anything else to cancel.\n')
+                if axe_inventory=='1':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_iron_axe,int(count)])
+                if axe_inventory=='2':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_silver_axe,int(count)])
+                if axe_inventory=='3':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_hand_axe,int(count)])
+            elif weapon_inventory=='4':
+                for i in base_bow:
+                    i.info()
+                bow_inventory=input('Press 1 to add an iron bow, 2 to add a silver bow, or anything else to cancel.\n')
+                if bow_inventory=='1':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_iron_bow,int(count)])
+                if bow_inventory=='2':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_silver_bow,int(count)])
+            elif weapon_inventory=='5':
+                for i in base_tome:
+                    i.info()
+                tome_inventory=input('Press 1 to add a fire, 2 to add a forsetti, or anything else to cancel.\n')
+                if tome_inventory=='1':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_fire,int(count)])
+                if tome_inventory=='2':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_forsetti,int(count)])
+            elif weapon_inventory=='6':
+                for i in base_fist:
+                    i.info()
+                fist_inventory=input('Press 1 to add a gauntlet or anything else to cancel.\n')
+                if fist_inventory=='1':
+                    count=input('Input how many of this item you want this shop to have\n')
+                    if int(count)>0:
+                        inventory.append([base_gauntlet,int(count)])
+            elif weapon_inventory=='7':
+                for i in range(0,len(unique_weapons)):
+                    print(f'{i}: {unique_weapons[i].name}')
+                unique_inventory=input('Input the number of the unique item you wish to add to this shop or X to cancel\n')
+                if unique_inventory.lower()=='x':
+                    pass
+                else:
+                    if unique_inventory.isdigit():
+                        if int(unique_inventory) in range(0,len(unique_weapons)):
+                            confirm=input(f'Input Y to confirm that you wish to add {unique_weapons[int(unique_inventory)]} to the shop or anything else to cancel\n')
+                            if confirm.lower()=='y':
+                                inventory.append([unique_weapons.pop(int(unique_inventory)),1])
+                        else:
+                            print('That number doesnt exist')
+                    else:
+                        print('Invalid input, returning to menu')
+        elif item_inventory=='2':
+            for i in base_armor:
+                i.info()
+            armor_inventory=input('Input 1 to add a shield to this shop or anything else to cancel\n')
+            if armor_inventory=='1':
+                count=input('Input how many of this item you want this shop to have\n')
+                if int(count)>0:
+                    inventory.append([base_shield,int(count)])
+        elif item_inventory=='3':
+            consumable_inventory=input('Input 1 to add a master seal, 2 to add a vulnary, 3 to add a mystic water, 4 to add a key, or anything else to cancel\n')
+            if consumable_inventory=='1':
+                count=input('Input how many of this item you want this shop to have\n')
+                if int(count)>0:
+                    inventory.append([base_master_seal,int(count)])
+            elif consumable_inventory=='2':
+                count=input('Input how many of this item you want this shop to have\n')
+                if int(count)>0:
+                    inventory.append([base_vulnary,int(count)])
+            elif consumable_inventory=='3':
+                count=input('Input how many of this item you want this shop to have\n')
+                if int(count)>0:
+                    inventory.append([base_mystic_water,int(count)])
+            elif consumable_inventory=='4':
+                count=input('Input how many of this item you want this shop to have\n')
+                if int(count)>0:
+                    inventory.append([base_key,int(count)])
 
 def create_character():
     #Choosing alignment
@@ -2606,7 +2980,7 @@ def create_character():
                 manual=True
                 cont=True
         elif align_input.lower()=='e':
-            confirm=input('To confirm your character will be a generic enem input Y, input anything else to cancel\n')
+            confirm=input('To confirm your character will be a generic enemy input Y, input anything else to cancel\n')
             if confirm.lower()=='y':
                 unit_type='Generic'
                 align=enemy
@@ -2648,14 +3022,15 @@ def create_character():
     while cont==False:
         existing_maps=[]
         for i in mapLevel.map_list:
-            existing_maps.append(i.mapNum)
-        print(f"The existing maps are {existing_maps}")
+            print(f'Map Number {i.mapNum}: {i.name}')
         join_map=input('Input the number of the map that you would like this character to join/be on, for example if you want them to join in the first map enter 1\n')
         try:
             join_map=int(join_map)
-            if join_map in existing_maps:
-                cont=True
-            else:
+            for i in mapLevel.map_list:
+                if join_map==i.mapNum:
+                    mapX=i
+                    cont=True
+            if cont!=True:
                 print('Invalid input, try again')
         except:
             print(traceback.format_exc())
@@ -2668,10 +3043,10 @@ def create_character():
             print(f'{i}: {classType.class_list[i].name}')
         class_choice=input('Input the number of the class you want this character to be\n')
         try:
-            class_list[int(class_choice)].info()
-            end_class=input(f'Input Y to confirm you wish {name} to be a {class_list[int(class_choice)].name}, and anything else to cancel\n')
+            classType.class_list[int(class_choice)].info()
+            end_class=input(f'Input Y to confirm you wish {name} to be a {classType.class_list[int(class_choice)].name}, and anything else to cancel\n')
             if end_class.lower()=='y':
-                class_type=class_list[int(class_choice)]
+                class_type=classType.class_list[int(class_choice)]
                 cont=True
             else:
                 pass
@@ -2684,9 +3059,11 @@ def create_character():
     if unit_type=='Generic':
         cont=True
     while cont==False:
-        for i in classType.weaponType:
-            print(f'{i} : Level {classType.weaponType[i]}')
-        print(f"The default usable weapon types and weapon level for {name}'s class of {class_type.name} are printed above\n")
+        for i in class_type.weaponType:
+            print(f'{i} : Level {class_type.weaponType[i]}')
+        for i in weapon_type:
+            print(f'{i} : Level {weapon_type[i]}')
+        print(f"The current usable weapon types and weapon level for {name} are printed above\n")
         print('Here you can add new usable types or change the weapon level for existing ones\n')
         weapon_type_add=input('Input 1 to add/edit Sword, 2 for Lance, 3 for Axe, 4 for Bow, 5 for Tome, 6 for Fist, or x to exit\n')
         if weapon_type_add.lower()=='x':
@@ -2735,15 +3112,8 @@ def create_character():
                 print('Invalid input, returning to choice')
     #Creating the inventory
     cont=False
-    inventory=[]
-    while cont==False:
-##        if len(inventory)==5:
-##            cont=True
-##        print('Current inventory:')
-##        for i in inventory:
-##            print(i.name)
-        inventory=stock_inventory('inventory')
-        cont=True
+    print(f"Now you will stock {name}'s inventory")
+    inventory=stock_inventory('inventory')
     #Setting active item
     cont=False
     while cont==False:
@@ -2819,10 +3189,21 @@ def create_character():
                 spawn=spawn.split(',')
                 spawn[0]=int(spawn[0])
                 spawn[1]=int(spawn[1])
-                if spawn[0]>=0 and spawn[1]>=0:
-                    cont=True
+                contCont=True
+                if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
+                    if (spawn[0],spawn[1]) in mapX.objectList:
+                        if mapX.objectList[spawn[0],spawn[1]].name=='Door':
+                            contCont=False
+                        elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and class_choice.moveType!='Flying':
+                            contCont=False
+                        elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and (class_choice.moveType!='Flying' and class_choice.moveType!='Pirate'):
+                            contCont=False
+                    if contCont==True:
+                        cont=True
+                elif [spawn[0],spawn[1]] in mapX.spawns:
+                    print('A player unit spawns there, invalid input')
                 else:
-                    print('Spawn coordinates have to be 0 or above, try again')
+                    print('Invalid spawn, try again')
             except:
                 print(traceback.format_exc())
                 print('Invalid input, try again')
@@ -2936,16 +3317,16 @@ def create_character():
                 print(traceback.format_exc())
                 print('Invalid input, try again')
         #Creating the character
-#player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classType,{weaponType},joinMap,[inventory],level,{supports},[weapon_arts])
+#player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,support_list,weapon_arts)
 #enemy_char(name,classType,joinMap,[inventory],level,[spawn])
 #recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
 #boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn)
         if unit_type=='Player':
-            player_char(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,resG,spd,spdG,mov,class_type,weapon_type,join_map,inventory,level,supports,weapon_arts)
+            player_char(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,class_type,weapon_type,join_map,inventory,level,supports,weapon_arts)
         elif unit_type=='Unique':
-            boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,class_type,weapon_type,join_map,inventory,level,spawn)
+            boss(name,hp,hp,atk,mag,skill,luck,defense,res,spd,mov,class_type,weapon_type,join_map,inventory,level,spawn)
         elif unit_type=='Recruitable':
-            recruitable(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,resG,spd,spdG,mov,class_type,weapon_type,join_map,inventory,level,spawn,supports,weapon_arts,recruit_convo)
+            recruitable(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,class_type,weapon_type,join_map,inventory,level,spawn,supports,weapon_arts,recruit_convo)
     elif unit_type=='Generic':
         enemy_char(name,class_type,join_map,inventory,level,spawn)
         
@@ -3053,7 +3434,7 @@ def create_map():
         try:
             spawn_count=int(spawn_count)
             confirm=input(f'Are you sure you want {spawn_count} units? Input Y to confirm and anything else to cancel\n')
-            if confirm.lower()=='y' and spawn_count<x_size*y_size:
+            if confirm.lower()=='y' and spawn_count<x_size*y_size and spawn_count>0:
                 cont=True
         except:
             print(traceback.format_exc())
@@ -3083,213 +3464,8 @@ def create_map():
     #creating the map
     mapCreated=mapLevel(name,y_size,x_size,map_num,spawns,[],[])
     #Adding objects to the map
-    cont=False
-    while cont==False:
-##        print('X: Void')
-##        print('F: Fort')
-##        print('^: Forest')
-##        print('~: Water')
-##        print('.: Desert')
-##        print('h: Throne')
-##        print('H: Chest')
-##        print('D: Door')
-##          S=Shop
-        obj_list=[]
-        for i in display_list:
-            if isinstance(i,mapObject):
-                print(f'{i.display}: {i.name}')
-                obj_list.append(i)
-        mapCreated.display_map()
-        object_place=input('Input the display character for the map object you wish to place, 1 to view details of an object, or 0 to finish\n')
-        if object_place=='0':
-            confirm=input('Input Y to confirm that you are done editing this map and quit, anything else to cancel\n')
-            if confirm.lower()=='y':
-                return
-        elif object_place=='1':
-            for i in obj_list:
-                print(f'{i.display}: {i.name}')
-            object_info=input('Input the display character for the map object you wish to view details on')
-            for i in obj_list:
-                if object_info==i.display:
-                    i.info()
-        else:
-            cont=True
-            while cont==True:
-                possibility=None
-                for i in obj_list:
-                    if object_place==i.display:
-                        possibility=i
-                if possibility==None:
-                    print('Invalid input, try again')
-                else:
-                    print(f'Input the coordinates where you would like the {possibility.name} to be placed on the map in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
-                    print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
-                    print('Input x to cancel')
-                    location=input('Enter the coordinates now\n')
-                    if location.lower()!='x':
-                        try:
-                            location=location.split(',')
-                            location[0]=int(location[0])
-                            location[1]=int(location[1])
-                            print(x_size)
-                            print(y_size)
-                            if location[0]<x_size and location[1]<y_size and location[0]>=0 and location[1]>=0:
-                                contI=False
-                                if possibility.name=='Chest' or possibility.name=='Shop':
-                                    contI=True
-                                    inventory=[]
-                                while contI==True:                                
-                                    if possibility.name=='Chest':
-                                        inventory=stock_inventory('chest')
-                                        if inventory==[]:
-                                            cont=False
-                                            contI=False
-                                    elif possibility.name=='Shop':
-                                        inventory=[]
-                                        contI=True
-                                        while contI==True:
-                                            item_inventory=input(f'Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, or x to finish.\n')
-                                            if item_inventory.lower()=='x':
-                                                cont=False
-                                                contI=False
-                                            elif item_inventory=='1':
-                                                weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
-                                                if weapon_inventory=='1':
-                                                    for i in base_sword:
-                                                        i.info()
-                                                    sword_inventory=input('Press 1 to add an iron sword, 2 to add a silver sword, 3 to add a levin sword, or anything else to cancel.\n')
-                                                    if sword_inventory=='1':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_iron_sword,int(count)])
-                                                    if sword_inventory=='2':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_silver_sword,int(count)])
-                                                    if sword_inventory=='3':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_levin_sword,int(count)])
-                                                elif weapon_inventory=='2':
-                                                    print(base_lance)
-                                                    for i in base_lance:
-                                                        i.info()
-                                                    lance_inventory=input('Press 1 to add an iron lance, 2 to add a silver lance, 3 to add a javelin, or anything else to cancel.\n')
-                                                    if lance_inventory=='1':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_iron_lance,int(count)])
-                                                    if lance_inventory=='2':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_silver_lance,int(count)])
-                                                    if lance_inventory=='3':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_javelin,int(count)])
-                                                elif weapon_inventory=='3':
-                                                    for i in base_axe:
-                                                        i.info()
-                                                    axe_inventory=input('Press 1 to add an iron axe, 2 to add a silver axe, 3 to add a hand axe, or anything else to cancel.\n')
-                                                    if axe_inventory=='1':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_iron_axe,int(count)])
-                                                    if axe_inventory=='2':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_silver_axe,int(count)])
-                                                    if axe_inventory=='3':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_hand_axe,int(count)])
-                                                elif weapon_inventory=='4':
-                                                    for i in base_bow:
-                                                        i.info()
-                                                    bow_inventory=input('Press 1 to add an iron bow, 2 to add a silver bow, or anything else to cancel.\n')
-                                                    if bow_inventory=='1':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_iron_bow,int(count)])
-                                                    if bow_inventory=='2':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_silver_bow,int(count)])
-                                                elif weapon_inventory=='5':
-                                                    for i in base_tome:
-                                                        i.info()
-                                                    tome_inventory=input('Press 1 to add a fire, 2 to add a forsetti, or anything else to cancel.\n')
-                                                    if tome_inventory=='1':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_fire,int(count)])
-                                                    if tome_inventory=='2':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_forsetti,int(count)])
-                                                elif weapon_inventory=='6':
-                                                    for i in base_fist:
-                                                        i.info()
-                                                    fist_inventory=input('Press 1 to add a gauntlet or anything else to cancel.\n')
-                                                    if fist_inventory=='1':
-                                                        count=input('Input how many of this item you want this shop to have\n')
-                                                        if int(count)>0:
-                                                            inventory.append([base_gauntlet,int(count)])
-                                                elif weapon_inventory=='7':
-                                                    for i in range(0,len(unique_weapons)):
-                                                        print(f'{i}: {unique_weapons[i].name}')
-                                                    unique_inventory=input('Input the number of the unique item you wish to add to this shop or X to cancel\n')
-                                                    if unique_inventory.lower()=='x':
-                                                        pass
-                                                    else:
-                                                        if unique_inventory.isdigit():
-                                                            if int(unique_inventory) in range(0,len(unique_weapons)):
-                                                                confirm=input(f'Input Y to confirm that you wish to add {unique_weapons[int(unique_inventory)]} to the shop or anything else to cancel\n')
-                                                                if confirm.lower()=='y':
-                                                                    inventory.append([unique_weapons.pop(int(unique_inventory)),1])
-                                                            else:
-                                                                print('That number doesnt exist')
-                                                        else:
-                                                            print('Invalid input, returning to menu')
-                                            elif item_inventory=='2':
-                                                for i in base_armor:
-                                                    i.info()
-                                                armor_inventory=input('Input 1 to add a shield to this shop or anything else to cancel\n')
-                                                if armor_inventory=='1':
-                                                    count=input('Input how many of this item you want this shop to have\n')
-                                                    if int(count)>0:
-                                                        inventory.append([base_shield,int(count)])
-                                            elif item_inventory=='3':
-                                                consumable_inventory=input('Input 1 to add a master seal, 2 to add a vulnary, 3 to add a mystic water, 4 to add a key, or anything else to cancel\n')
-                                                if consumable_inventory=='1':
-                                                    count=input('Input how many of this item you want this shop to have\n')
-                                                    if int(count)>0:
-                                                        inventory.append([base_master_seal,int(count)])
-                                                elif consumable_inventory=='2':
-                                                    count=input('Input how many of this item you want this shop to have\n')
-                                                    if int(count)>0:
-                                                        inventory.append([base_vulnary,int(count)])
-                                                elif consumable_inventory=='3':
-                                                    count=input('Input how many of this item you want this shop to have\n')
-                                                    if int(count)>0:
-                                                        inventory.append([base_mystic_water,int(count)])
-                                                elif consumable_inventory=='4':
-                                                    count=input('Input how many of this item you want this shop to have\n')
-                                                    if int(count)>0:
-                                                        inventory.append([base_key,int(count)])
-                                z=possibility.name.replace(' ','_')
-                                z=z.lower()
-                                #THIS WONT WORK NEED TO ADD THE NUMBER ASSIGNMENT
-                                if possibility.name=='Shop':
-                                    globals()[z](mapCreated,[location[0],location[1]],inventory)
-                                elif possibility.name=='Treasure Chest':
-                                    globals()[z](mapCreated,[location[0],location[1]],inventory[0])
-                                else:
-                                    globals()[z](mapCreated,[location[0],location[1]])
-                            else:
-                                print('Invalid input, try again')
-                        except:
-                                print(traceback.format_exc())
+    add_map_objects()
+
                                 
 def create_unique_weapon():
     #(name,maxUses,dmg,dmgtype,rng,crit,hit,weapontype,droppable,cost,rank,super_effective):
@@ -3346,8 +3522,8 @@ def create_unique_weapon():
         try:
             ranges=ranges.split(',')
             er=False
-            for i in ranges:
-                i=int(i)
+            for i in range(0,len(ranges)):
+                ranges[i]=int(ranges[i])
                 if i<=0:
                     er=True
             if er!=True:
@@ -3446,9 +3622,9 @@ def create_unique_weapon():
         for i in range(0,len(classType.class_list)):
             print(f'{i}: {classType.class_list[i].name}')
         super_effective_route=input(f'Input the number/name of the class or X to finish\n')
-        if super_effective.lower()=='x':
+        if super_effective_route.lower()=='x':
             cont=True
-        elif super_effective.isdigit():
+        elif super_effective_route.isdigit():
             if int(super_effective_route)>=0 and int(super_effective_route)<len(classType.class_list):
                 if classType.class_list[int(super_effective_route)].name not in super_effective:
                     multiplier=input(f'Input the integer damage multiplier for this weapon against {classType.class_list[int(super_effective_route)].name}s or x to cancel\n')
@@ -3475,7 +3651,8 @@ def create_unique_weapon():
                         print('The multiplier must be an integer')
                 else:
                     print('This weapon is already super effective against that enemy type')
-    weapon(name,maxUses,dmg,dmgtype,rng,crit,hit,weapontype,droppable,cost,rank,super_effective)
+    global unique_weapons
+    unique_weapons.append(weapon(name,maxUses,dmg,dmgtype,rng,crit,hit,weapontype,droppable,cost,rank,super_effective))
     print(f'{name} has been created. You can put it in an inventory, chest, or shop via the character/map editors')
                         
 def create_skill():
@@ -3494,16 +3671,16 @@ def write_support():
     pass
 
 def stock_inventory(name,*inventory):
-    contI=False
+    contI=True
     if not inventory:
         inventory=[]
     else:
         inventory=inventory[0]
     while contI==True:                                
-        if name=='chest':
+        if name.lower()=='chest':
             if len(inventory)==1:
                 contI=False
-        elif name=='inventory':
+        elif name.lower()=='inventory':
             if len(inventory)==5:
                 print(f"The {name} is full")
                 contI=False
@@ -3625,7 +3802,8 @@ def stock_inventory(name,*inventory):
                         inventory.append(gauntlet(False))
             elif weapon_inventory=='7':
                 for i in range(0,len(unique_weapons)):
-                    print(f'{i}:{unique_weapons[i].info()}')
+                    print(f'{i}:{unique_weapons[i].name}')
+                    unique_weapons[i].info()
                 unique_inventory=input('Input the number of the item you wish to add or x to cancel.\n')
                 if unique_inventory.lower()=='x':
                     pass
@@ -3675,7 +3853,190 @@ def stock_inventory(name,*inventory):
     return inventory
 
 def edit_map():
-    pass
+    cont=True
+    while cont==True:
+        for i in range(0,len(mapLevel.map_list)):
+            print(f'{i}: {mapLevel.map_list[i].name}')
+        map_choice=input(f'Input the number for the map you would like to edit\n')
+        try:            
+            mapX=mapLevel.map_list[int(map_choice)]
+            cont=False
+        except:
+            print(traceback.format_exc())
+            print('Invalid input, try again')
+    cont=True
+    while cont==True:
+        path=input('Input 1 to edit this maps objects, 2 to edit the map number, 3 to edit the player spawns, 4 to edit the size, 5 to edit the rosters, or x to finish\n')
+        if path.lower()=='x':
+            cont=False
+        elif path=='1':
+            #edit objects
+            mapX.display('base')
+            #add,delete, edit
+            object_path=input('Input 1 to add objects, 2 to delete objects, 3 to edit the contents of chests, or X to exit/shops\n')
+            if object_path=='1':
+                mapX.add_map_objects()
+            elif object_path=='2':
+                mapX.delete_map_objects()
+            elif object_path=='3':
+                #edit shop/chest contents
+                count=0
+                for i in range(0,len(mapX.objectList)):
+                    if isinstance(mapX.objectList[i],shop) or isinstance(mapX.objectList[i],shop):
+                        print(f'{i}: {mapX.objectList[i].name}')
+                        count+=1
+                if count>0:
+                    route=input(f'Input the coordinates of the shop or chest whose contents you wish to edit in x,y form or x to cancel\n')
+                    if route.lower()=='x':
+                        pass
+                    else:
+                        try:
+                            route=route.split(',')
+                            route[0]=int(route[0])
+                            route[1]=int(route[1])
+                            mapX.objectList[route[0],route[1]].edit_contents()
+                        except:
+                            print(traceback.format_exc())
+                            print('Invalid input, try again')
+                else:
+                    print('There are no shops or chests on this map, returning to menu')
+        elif path=='2':
+            #edit mapnum
+            new_num=input(f'Enter the new number that you want this map to be, its current number is {mapX.mapNum}\n')
+            if isdigit(new_num):
+                map_ordering(mapX.name,int(new_num),mapX)
+            else:
+                print('Invalid input, returning to menu')
+        elif path=='3':
+            #edit spawns
+            path=input('Enter 1 to add spawns, 2 to remove spawns, or anything else to cancel\n')
+            pass
+        elif path=='4':
+            #edit size
+            print(f'This map is currently {mapX.x_size} wide and {mapX.y_size} tall')
+            new_size=input(f'Input the new map size in X,Y form or input X to cancel\n')
+            if new_size.lower()=='x':
+                pass
+            else:
+                try:
+                    new_size=new_size.split(',')
+                    new_size[0]=int(new_size[0])
+                    new_size[1]=int(new_size[1])
+                    missing_enemy=[]
+                    missing_spawn=[]
+                    missing_object=[]
+                    for i in mapX.spaces:
+                        if i[0]>new_size[0]-1 or i[1]>new_size[1]-1:
+                            del mapX.spaces[i]
+                    if new_size[0]>mapX.x_size:
+                        for i in range(mapX.x_size,new_size[0]):
+                            for j in range(0,mapX.y_size):
+                                mapX.spaces[i,j]=[False]
+                    mapX.x_size=new_size[0]
+                    if new_size[1]>mapX.y_size:
+                        for j in range(mapX.y_size,new_size[1]):
+                            for i in range(0,mapX.x_size):
+                                mapX.spaces[i,j]=[False]
+                    mapX.y_size=new_size[1]
+                    for j in mapX.enemy_roster:
+                        if (j.spawn[0],j.spawn[1]) not in mapX.spaces:
+                            missing_enemy.append(mapX.enemy_roster.pop(j))
+                    for k in mapX.spawns:
+                        if (k[0],k[1]) not in mapX.spaces:
+                            missing_spawn.append(mapX.spaces.pop(k))
+                    for l in mapX.objectList:
+                        if l not in mapX.spaces:
+                            missing_object.append(mapX.objectList[l])
+                            del mapX.objectList[l]
+                    contFix=True
+                    while contFix==True:
+                        if len(missing_enemy)==0 and len(missing_object)==0:
+                            contFix=False
+                        mapX.display('base')
+                        print(f'There are {len(missing_enemy)} enemies that need to have their spawn changed, {len(missing_object)} objects that need to be moved, and {len(missing_spawn)} player spawns have been deleted')
+                        while len(missing_enemy)>0:
+                            #update spawm
+                            length=len(missing_enemy)
+                            for aqw in range(0,length):
+                                contZ=False
+                                mapX.display('base')
+                                while contZ==False:
+                                    print(f'Input the coordinates where you would like {missing_enemy[0].name} to spawn on their map in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                                    print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
+                                    spawn=input('Enter the coordinates now, or input X to delete this unit\n')
+                                    if spawn.lower()=='x':
+                                        missing_enemy.pop(0)
+                                        contZ=True
+                                    try:
+                                        spawn=spawn.split(',')
+                                        spawn[0]=int(spawn[0])
+                                        spawn[1]=int(spawn[1])
+                                        contCont=True
+                                        if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
+                                            if (spawn[0],spawn[1]) in mapX.objectList:
+                                                if mapX.objectList[spawn[0],spawn[1]].name=='Door':
+                                                    contCont=False
+                                                elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and class_choice.moveType!='Flying':
+                                                    contCont=False
+                                                elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and (class_choice.moveType!='Flying' and class_choice.moveType!='Pirate'):
+                                                    contCont=False
+                                            if contCont==True:
+                                                missing_enemy[0].spawn=[spawn[0],spawn[1]]
+                                                missing_enemy.pop(0)
+                                                contZ=True
+                                        elif [spawn[0],spawn[1]] in mapX.spawns:
+                                            print('A player unit spawns there, invalid input')
+                                        else:
+                                            print('Invalid spawn, try again')
+                                    except:
+                                        print(traceback.format_exc())
+                                        print('Invalid input, try again')
+                        while len(missing_object)>0:
+                            length=len(missing_object)
+                            for acq in range(0,length):
+                                contZ=False
+                                mapX.display('base')
+                                while contZ==False:
+                                    print(f'Input the coordinates where you would like {missing_object[0].name} to be in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                                    print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
+                                    spawn=input('Enter the coordinates now, or input X to delete this object\n')
+                                    if spawn.lower()=='x':
+                                        missing_object.pop(0)
+                                        contZ=True
+                                    try:
+                                        spawn=spawn.split(',')
+                                        spawn[0]=int(spawn[0])
+                                        spawn[1]=int(spawn[1])
+                                        contCont=True
+                                        if (spawn[0],spawn[1]) in mapX.spaces:
+                                            if (spawn[0],spawn[1]) in mapX.objectList:
+                                                print('Theres already an object there, find somewhere else to put this')
+                                                contCont=False
+                                            if [spawn[0],spawn[1]] in mapX.spawns:
+                                                if missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door':
+                                                    print('Theres already a player unit spawn there, find somewhere else to put this')
+                                                    contCont=False
+                                            for i in mapX.enemy_roster:
+                                                if i.spawn==[spawn[0],spawn[1]] and (missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door'):
+                                                    print('Theres already an enemy unit spawn there, find somewhere else to put this')
+                                                    contCont=False
+                                            if contCont==True:
+                                                missing_object[0].location=[spawn[0],spawn[1]]                                                
+                                                mapX.objectList[spawn[0],spawn[1]]=missing_enemy.pop(0)
+                                                contZ=True
+                                        else:
+                                            print('Invalid location, try again')
+                                    except:
+                                        print(traceback.format_exc())
+                                        print('Invalid input, try again')
+                    print('Map resized')
+                except:
+                    print(traceback.format_exc())
+        elif path=='5':
+            #edit rosters
+            pass
+        else:
+            print('Invalid input, returning to menu')
 
 def edit_char():
     cont=False
@@ -3779,7 +4140,7 @@ def edit_char():
                                 for k in i.spawns:
                                     taken.append(k)
                                 print(f"The current occupied spaces on this map are {taken}\nAnd the map looks like this")
-                                i.display_map()
+                                i.display('base')
                                 new_spawn=input('Input this characters new spawn point in x,y form seperated by a comma\n')
                                 try:
                                     new_spawn=new_spawn.split(',')
@@ -3903,7 +4264,7 @@ def edit_char():
                             print('Invalid input, try again')
                     else:
                         try:
-                            dropY=char.drop(int(drop_route))
+                            dropY=char.drop_item(int(drop_route))
                             print(f"{dropY.name} was dropped")
                         except:
                             print(traceback.format_exc())
@@ -3976,8 +4337,11 @@ lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Swor
 ###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
 ###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
 garou=enemy_char('Garou',wyvern,1,[javelin(False),iron_axe(True)],1,[1,1])
+print(garou.active_item)
 hao=enemy_char('Hao',pirate,1,[javelin(False),iron_axe(False)],1,[1,0])
+#print(hao.active_item)
 mumen=enemy_char('Mumen',pirate,1,[iron_axe(False)],1,[1,2])
+print(mumen.active_item)
 ash=enemy_char('Ash',pirate,1,[silver_axe(False)],1,[9,1])
 yuffie=enemy_char('Yuffie',wyvern,2,[javelin(False)],2,[9,1])
 saitama=player_char('Saitama',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,swordmaster,{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{'King':0},[grounder])
@@ -4150,7 +4514,9 @@ if zerogrowth or neggrowth or fullgrowth:
             elif fullgrowth:
                 setattr(char,growth,1)
 while mapNum<len(mapLevel.map_list):
-    #curMap=mapLevel.map_list[mapNum]
+    for i in mapLevel.map_list:
+        if mapNum==i.mapNum:
+            curMap=i
     if curMap.battle_saves==0:
         curMap.start_map()
     else:
@@ -4187,6 +4553,10 @@ for i in mapLevel.map_list:
 print(f'Total turns: {total_turns}')
 total_kills=0
 total_battles=0
+for i in player_char.player_char_list:
+    print(f"{i.name}: {i.kills} kills in {i.battles} battles, {i.status}")
+    total_kills+=i.kills
+    total_battles+=i.battles
 for i in player_char.player_char_list:
     print(f"{i.name}: {i.kills} kills in {i.battles} battles, {i.status}")
     total_kills+=i.kills
