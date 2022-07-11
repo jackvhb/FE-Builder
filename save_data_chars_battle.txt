@@ -1,0 +1,330 @@
+nameXYZCYXGarou
+spawnXYZCYX[1, 1]
+spawnXYZCYX[1, 1]
+curhpXYZCYX25
+hpXYZCYX25
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX0
+magGXYZCYX0
+skillXYZCYX6
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX7
+spdGXYZCYX0.5
+movXYZCYX8
+movModifierXYZCYX0
+levelXYZCYX1
+expXYZCYX0
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX1
+alignmentXYZCYXEnemy
+inventoryXYZCYXJavelin/30/False
+inventoryXYZCYXIron Axe/30/True
+classTypeXYZCYXWyvern
+skillsXYZCYXLuna
+skills_allXYZCYXLuna
+weaponTypeXYZCYX{'Axe': 0, 'Lance': 0}
+active_itemXYZCYXJavelin/30/False
+locationXYZCYX[1, 1]
+locationXYZCYX[1, 1]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXFalse
+BREAK
+nameXYZCYXHao
+spawnXYZCYX[1, 0]
+spawnXYZCYX[1, 0]
+curhpXYZCYX25
+hpXYZCYX25
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX0
+magGXYZCYX0
+skillXYZCYX6
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX7
+spdGXYZCYX0.5
+movXYZCYX4
+movModifierXYZCYX0
+levelXYZCYX1
+expXYZCYX0
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX1
+alignmentXYZCYXEnemy
+inventoryXYZCYXIron Axe/30/False
+classTypeXYZCYXPirate
+weaponTypeXYZCYX{'Axe': 0}
+active_itemXYZCYXIron Axe/30/False
+locationXYZCYX[1, 0]
+locationXYZCYX[1, 0]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXFalse
+BREAK
+nameXYZCYXMumen
+spawnXYZCYX[1, 2]
+spawnXYZCYX[1, 2]
+curhpXYZCYX25
+hpXYZCYX25
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX0
+magGXYZCYX0
+skillXYZCYX6
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX7
+spdGXYZCYX0.5
+movXYZCYX4
+movModifierXYZCYX0
+levelXYZCYX1
+expXYZCYX0
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX1
+alignmentXYZCYXEnemy
+inventoryXYZCYXIron Axe/30/False
+classTypeXYZCYXPirate
+weaponTypeXYZCYX{'Axe': 0}
+active_itemXYZCYXIron Axe/30/False
+locationXYZCYX[1, 2]
+locationXYZCYX[1, 2]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXFalse
+BREAK
+nameXYZCYXAsh
+spawnXYZCYX[9, 1]
+spawnXYZCYX[9, 1]
+curhpXYZCYX25
+hpXYZCYX25
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX0
+magGXYZCYX0
+skillXYZCYX6
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX7
+spdGXYZCYX0.5
+movXYZCYX4
+movModifierXYZCYX0
+levelXYZCYX1
+expXYZCYX0
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX1
+alignmentXYZCYXEnemy
+inventoryXYZCYXSilver Axe/20/False
+classTypeXYZCYXPirate
+weaponTypeXYZCYX{'Axe': 0}
+active_itemXYZCYXSilver Axe/20/False
+locationXYZCYX[9, 1]
+locationXYZCYX[9, 1]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXFalse
+BREAK
+nameXYZCYXYuffie
+spawnXYZCYX[9, 1]
+spawnXYZCYX[9, 1]
+curhpXYZCYX25
+hpXYZCYX26
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX0
+magGXYZCYX0
+skillXYZCYX7
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX8
+spdGXYZCYX0.5
+movXYZCYX8
+movModifierXYZCYX0
+levelXYZCYX2
+expXYZCYX-100
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX2
+alignmentXYZCYXEnemy
+inventoryXYZCYXJavelin/30/False
+classTypeXYZCYXWyvern
+skillsXYZCYXLuna
+skills_allXYZCYXLuna
+weaponTypeXYZCYX{'Axe': 0, 'Lance': 0}
+active_itemXYZCYXJavelin/30/False
+locationXYZCYX[-1, -1]
+locationXYZCYX[-1, -1]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXFalse
+BREAK
+nameXYZCYXSaitama
+support_listXYZCYX{'King': 0}
+weapon_artsXYZCYXGrounder
+curhpXYZCYX25
+hpXYZCYX25
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX3
+magGXYZCYX0.25
+skillXYZCYX6
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX20
+spdGXYZCYX0.5
+movXYZCYX6
+movModifierXYZCYX0
+levelXYZCYX10
+expXYZCYX0
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX1
+alignmentXYZCYXPlayer
+inventoryXYZCYXLevin Sword/25/False
+inventoryXYZCYXLevin Sword/25/False
+inventoryXYZCYXGauntlet/100/False
+inventoryXYZCYXShield/0/False
+inventoryXYZCYXVulnary/3/False
+classTypeXYZCYXSwordmaster
+skillsXYZCYXSol
+skillsXYZCYXPlaceholder
+skillsXYZCYXLuna
+skillsXYZCYXArmsthrift
+skills_allXYZCYXSol
+skills_allXYZCYXPlaceholder
+skills_allXYZCYXLuna
+skills_allXYZCYXArmsthrift
+weaponTypeXYZCYX{'Sword': 0}
+active_itemXYZCYXLevin Sword/25/False
+locationXYZCYX[0, 0]
+locationXYZCYX[0, 0]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXTrue
+BREAK
+nameXYZCYXKing
+support_listXYZCYX{'Saitama': 0, 'Zatch': 0}
+curhpXYZCYX3
+hpXYZCYX3
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX8
+magGXYZCYX0.4
+skillXYZCYX6
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX2
+spdGXYZCYX0.5
+movXYZCYX6
+movModifierXYZCYX0
+levelXYZCYX1
+expXYZCYX0
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX1
+alignmentXYZCYXPlayer
+inventoryXYZCYXIron Sword/30/False
+inventoryXYZCYXKey/5/False
+classTypeXYZCYXLord
+weaponTypeXYZCYX{'Sword': 0}
+active_itemXYZCYXIron Sword/30/False
+locationXYZCYX[0, 1]
+locationXYZCYX[0, 1]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXTrue
+BREAK
+nameXYZCYXZatch
+support_listXYZCYX{'King': 0}
+curhpXYZCYX25
+hpXYZCYX25
+hpGXYZCYX0.6
+atkXYZCYX10
+atkGXYZCYX0.4
+magXYZCYX12
+magGXYZCYX0.5
+skillXYZCYX6
+skillGXYZCYX0.8
+luckXYZCYX2
+luckGXYZCYX0.35
+defenseXYZCYX4
+defGXYZCYX0.25
+resXYZCYX6
+resGXYZCYX0.1
+spdXYZCYX20
+spdGXYZCYX0.5
+movXYZCYX5
+movModifierXYZCYX0
+levelXYZCYX1
+expXYZCYX0
+killsXYZCYX0
+battlesXYZCYX0
+statusXYZCYXAlive
+joinMapXYZCYX2
+alignmentXYZCYXPlayer
+inventoryXYZCYXIron Sword/30/False
+classTypeXYZCYXMercenary
+skillsXYZCYXArmsthrift
+skills_allXYZCYXArmsthrift
+weaponTypeXYZCYX{'Sword': 0, 'Fist': 0}
+active_itemXYZCYXIron Sword/30/False
+locationXYZCYX[-1, -1]
+locationXYZCYX[-1, -1]
+movedXYZCYXFalse
+placedXYZCYXFalse
+deployedXYZCYXFalse
+BREAK

@@ -1,0 +1,15 @@
+time
+4
+map
+1
+0
+0
+roster
+Saitama
+King
+support
+{('Saitama', 'King'): [0, 'Hi', 'Yo', 'Final'], ('King', 'Zatch'): [0, 'Hello', 'No Way']}
+turncount
+1
+battlesaves
+0

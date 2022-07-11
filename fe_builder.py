@@ -1866,7 +1866,7 @@ class mapLevel:
         for i in player.roster:
             i.placed=False
             i.moved=False
-    def display(self,mode):
+    def display(self,mode,*dj):
         prev=-1
         rows=[]
         cur=[]
@@ -1890,6 +1890,9 @@ class mapLevel:
                 char=self.objectList[i].display
             except Exception as e:
                 pass
+            if dj:
+                if i in dj[0]:
+                    char='#'
             if(i[1]!=prev):
                 if prev!=-1:
                     rows.append(cur)
@@ -1897,7 +1900,7 @@ class mapLevel:
                 if char==None:                    
                     char=" "
                 if self.spaces[i][0]==True:
-                    if mode.lower()=='cur':
+                    if mode.lower()=='cur' or mode.lower()=='djik':
                         if self.spaces[i][1].alignment==enemy:
                             char="E"
                         elif self.spaces[i][1].alignment==player:
@@ -1916,7 +1919,7 @@ class mapLevel:
                 if char==None:                    
                     char=" "
                 if self.spaces[i][0]==True:
-                    if mode.lower()=='cur':
+                    if mode.lower()=='cur' or mode.lower()=='djik':
                         if self.spaces[i][1].alignment==enemy:
                             char="E"
                         elif self.spaces[i][1].alignment==player:
@@ -1934,104 +1937,6 @@ class mapLevel:
         rows.append(cur)
         for j in rows:
             print(j)            
-##    def display_map(self):
-##        prev=-1
-##        rows=[]
-##        cur=[]
-##        cont=False
-##        while cont==False:
-##            for i in self.spaces:
-##                if i[1]==0:
-##                    if i[0]==0:
-##                        cur=[0]                  
-##                        cur.append(str(i[0]))
-##                        prev=i[1]
-##                    else:                   
-##                        cur.append(str(i[0]))
-##                        prev=i[1]
-##            cont=True
-##        rows.append(cur)
-##        prev=-1
-##        for i in self.spaces:
-##            char=None
-##            try:
-##                char=self.objectList[i].display
-##            except Exception as e:
-##                pass
-##            if(i[1]!=prev):
-##                if prev!=-1:
-##                    rows.append(cur)
-##                cur=[i[1]]
-##                if char==None:                    
-##                    char=" "
-##                if i[0]>=10:
-##                    char+=' '
-##                cur.append(char)
-##                prev=i[1]
-##            else:
-##                if char==None:                    
-##                    char=" "
-##                if i[0]>=10:
-##                    char+=' '
-##                cur.append(char)
-##                prev=i[1]
-##        rows.append(cur)
-##        for j in rows:
-##            print(j)
-##    def display_base(self):
-##        prev=-1
-##        rows=[]
-##        cur=[]
-##        cont=False
-##        while cont==False:
-##            for i in self.spaces:
-##                if i[1]==0:
-##                    if i[0]==0:
-##                        cur=[0]                  
-##                        cur.append(str(i[0]))
-##                        prev=i[1]
-##                    else:                   
-##                        cur.append(str(i[0]))
-##                        prev=i[1]
-##            cont=True
-##        rows.append(cur)
-##        prev=-1
-##        for i in self.spaces:
-##            char=None
-##            try:
-##                char=self.objectList[i].display
-##            except Exception as e:
-##                pass
-##            if(i[1]!=prev):
-##                if prev!=-1:
-##                    rows.append(cur)
-##                cur=[i[1]]
-##                if char==None:                    
-##                    char=" "
-##                for j in self.enemy_roster:
-##                    if [i[0],i[1]]==j.spawn:
-##                        char='E'
-##                if [i[0],i[1]] in self.spawns:
-##                    char='P'
-##                if i[0]>=10:
-##                    char+=' '
-##                cur.append(char)
-##                prev=i[1]
-##            else:
-##                for j in self.enemy_roster:
-##                    if [i[0],i[1]]==j.spawn:
-##                        char='E'
-##                if [i[0],i[1]] in self.spawns:
-##                    char='P'
-##                if char==None:                    
-##                    char=" "
-##                if i[0]>=10:
-##                    char+=' '
-##                cur.append(char)
-##                prev=i[1]
-##        rows.append(cur)
-##        for j in rows:
-##            print(j)
     def display_djik(self,dj):
         prev=-1
         rows=[]
@@ -2647,6 +2552,8 @@ def djikstra(self):
     return shortest_path
 
 def save(kind=''):
+    #needs to be completely redone
+    #weapon arts, unique weapons, skills, classes, units, player roster, maps, supports list
     if saveallowed:
         print("Saving data, please don't turn off the power")
         if not os.path.exists(f'save_data{kind}.txt'):
@@ -2693,6 +2600,7 @@ def save(kind=''):
         print('Save complete!')
 
 def load(kind=''):
+    #needs to be completely redone to work with current implementatioon
     j = open(f"save_data{kind}.txt", "r")
     listX=j.read().splitlines()
     j.close()    
@@ -4337,11 +4245,8 @@ lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Swor
 ###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
 ###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
 garou=enemy_char('Garou',wyvern,1,[javelin(False),iron_axe(True)],1,[1,1])
-print(garou.active_item)
-hao=enemy_char('Hao',pirate,1,[javelin(False),iron_axe(False)],1,[1,0])
-#print(hao.active_item)
+hao=enemy_char('Hao',pirate,1,[iron_axe(False)],1,[1,0])
 mumen=enemy_char('Mumen',pirate,1,[iron_axe(False)],1,[1,2])
-print(mumen.active_item)
 ash=enemy_char('Ash',pirate,1,[silver_axe(False)],1,[9,1])
 yuffie=enemy_char('Yuffie',wyvern,2,[javelin(False)],2,[9,1])
 saitama=player_char('Saitama',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,swordmaster,{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{'King':0},[grounder])
@@ -4488,6 +4393,7 @@ if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
         loadX=input('Would you like to load? Press Y to load or X to delete your save file \n')
         if loadX.lower()=='y':
             load('_battle')
+            print('Data loaded')
         elif loadX.lower()=='x':
             os.remove('save_data_battle.txt')
             os.remove('save_data_chars_battle.txt')
