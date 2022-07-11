@@ -1277,7 +1277,6 @@ class player_char(character):
     
 class classType:
     class_list=[]
-    #(name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
     def __init__(self,name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list):
         self.name=name
         self.moveType=moveType
@@ -1937,74 +1936,9 @@ class mapLevel:
         rows.append(cur)
         for j in rows:
             print(j)            
-    def display_djik(self,dj):
-        prev=-1
-        rows=[]
-        cur=[]
-        cont=False
-        while cont==False:
-            for i in self.spaces:
-                if i[1]==0:
-                    if i[0]==0:
-                        cur=[0]                  
-                        cur.append(str(i[0]))
-                        prev=i[1]
-                    else:                   
-                        cur.append(str(i[0]))
-                        prev=i[1]
-            cont=True
-        rows.append(cur)
-        prev=-1
-        for i in self.spaces:
-            char=None
-            try:
-                char=self.objectList[i].display
-            except Exception as e:
-                pass
-            if i in dj:
-                char='#'
-            if(i[1]!=prev):
-                if prev!=-1:
-                    rows.append(cur)
-                cur=[i[1]]
-                if self.spaces[i][0]==False and char==None:                    
-                    char=" "
-                elif self.spaces[i][0]==True:
-                    if self.spaces[i][1].alignment==enemy:
-                        char="E"
-                    elif self.spaces[i][1].alignment==player:
-                        char="P"
-                if i[0]>=10:
-                    char+=' '
-                cur.append(char)
-                prev=i[1]
-            else:
-                if self.spaces[i][0]==False and char==None:                    
-                    char=" "
-                elif self.spaces[i][0]==True:
-                    if self.spaces[i][1].alignment==enemy:
-                        char="E"
-                    elif self.spaces[i][1].alignment==player:
-                        char="P"
-                if i[0]>=10:
-                    char+=' '
-                cur.append(char)
-                prev=i[1]
-        rows.append(cur)
-        for j in rows:
-            print(j)
     def add_map_objects(self):
         cont=False
         while cont==False:
-    ##        print('X: Void')
-    ##        print('F: Fort')
-    ##        print('^: Forest')
-    ##        print('~: Water')
-    ##        print('.: Desert')
-    ##        print('h: Throne')
-    ##        print('H: Chest')
-    ##        print('D: Door')
-    ##          S=Shop
             obj_list=[]
             for i in display_list:
                 if isinstance(i,mapObject):
@@ -2338,7 +2272,7 @@ def gameplay(align):
                 print(f'{i} : {enemy.roster[i].name} {enemy.roster[i].location}')
             enemy_checked=input('Enter the number of the enemy whose range you want to check \n')
             ec_r=djikstra(enemy.roster[int(enemy_checked)])
-            curMap.display_djik(ec_r)
+            curMap.display('djik',ec_r)
             listX=[]
             for i in ec_r:
                 listX.append(i)
@@ -2356,7 +2290,7 @@ def gameplay(align):
                 except Exception as e:
                     print('Bad selection')
             dj=djikstra(align.roster[int(choice)])
-            curMap.display_djik(dj)
+            curMap.display('djik',dj)
             listY=[]
             for i in dj:
                 listY.append(i)
