@@ -36,7 +36,9 @@ def init_battle(char1,char2,dist,*weaponX):
                 if dist in char1.inventory[i].rng or (char1.inventory[i].weapontype in art_types and char1.inventory[i].curUses>=art_types[char1.inventory[i].weapontype]):
                     if char1.inventory[i].weapontype in char1.weaponType:
                         if char1.weaponType[char1.inventory[i].weapontype]>=char1.inventory[i].weaponlevel:
-                            print(str(i)+ " "+char1.inventory[i].name + " " + str(char1.inventory[i].curUses) + " " + str(char1.inventory[i].dmg) + " "+ char1.inventory[i].dmgtype + " " + str(char1.inventory[i].rng) + " " + str(char1.inventory[i].crit))
+                            print(str(i)+ " "+char1.inventory[i].name + " " + str(char1.inventory[i].curUses) +
+                                  " " + str(char1.inventory[i].dmg) + " "+ char1.inventory[i].dmgtype + " " + str(char1.inventory[i].rng) +
+                                  " " + str(char1.inventory[i].crit))
                             viable_weapons.append(char1.inventory[i])
     while cont==False:
         selection=input('Choose a weapon to use \n')
@@ -61,8 +63,7 @@ def init_battle(char1,char2,dist,*weaponX):
                         print('Bad choice, try again')
             cont=True
         except Exception as e:
-            print(traceback.format_exc())
-            pass                
+            print(traceback.format_exc())        
     if char2.active_item==None:
         weapon2=empty
     else:
@@ -113,6 +114,8 @@ def init_battle(char1,char2,dist,*weaponX):
         else:
             char2.weaponType[weapon2.weapontype]+=1
             expGain=startHP-char1.curhp
+        if paragon in char2.skill_list:
+            expGain*=2
         if char1.status!='Dead':
             char1.moved=True
         if char2.status!='Dead':
@@ -127,6 +130,8 @@ def init_battle(char1,char2,dist,*weaponX):
         else:
             char1.weaponType[weapon1.weapontype]+=1
             expGain=startHP-char2.curhp
+        if paragon in char1.skill_list:
+            expGain*=2
         if char1.status!='Dead':
             char1.moved=True
             if char1.level<20:
@@ -279,10 +284,10 @@ def menu(self):
                             tradeRange.append([i,curMap.spaces[i][1]])
                         if curMap.spaces[i][1].name in self.support_list:
                             if (self.name, curMap.spaces[i][1].name) in self.alignment.support_master:
-                                if int(self.support_list[curMap.spaces[i][1].name]/10)>self.alignment.support_master[self.name, curMap.spaces[i][1].name][0] and self.alignment.support_master[self.name, curMap.spaces[i][1].name][0]<len(self.alignment.support_master[self.name, curMap.spaces[i][1].name])-1 and [self.name, curMap.spaces[i][1].name] not in supportRange:
+                                if int(self.support_list[curMap.spaces[i][1].name]/10)>self.alignment.support_master[self.name, curMap.spaces[i][1].name][0] and self.alignment.support_master[self.name, curMap.spaces[i][1].name][0]<len(self.alignment.support_master[self.name, curMap.spaces[i][1].name])-1 and[self.name, curMap.spaces[i][1].name] not in supportRange:
                                     supportRange.append([self.name, curMap.spaces[i][1].name])
                             elif (curMap.spaces[i][1].name,self.name) in self.alignment.support_master:
-                                if int(self.support_list[curMap.spaces[i][1].name]/10)>self.alignment.support_master[curMap.spaces[i][1].name,self.name][0] and self.alignment.support_master[curMap.spaces[i][1].name,self.name][0]<len(self.alignment.support_master[curMap.spaces[i][1].name,self.name])-1 and [curMap.spaces[i][1].name,self.name] not in supportRange:
+                                if int(self.support_list[curMap.spaces[i][1].name]/10)>self.alignment.support_master[curMap.spaces[i][1].name,self.name][0] and self.alignment.support_master[curMap.spaces[i][1].name,self.name][0]<len(self.alignment.support_master[curMap.spaces[i][1].name,self.name])-1 and[curMap.spaces[i][1].name,self.name] not in supportRange:
                                     supportRange.append([curMap.spaces[i][1].name,self.name])
                         if (self.name, curMap.spaces[i][1].name) in curMap.char_trigger_list:
                             charTriggerRange.append([self.name, curMap.spaces[i][1].name])
@@ -338,7 +343,9 @@ def menu(self):
                 print('Returning to menu')
             else:
                 try:
-                    print(self.alignment.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][self.alignment.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+1])
+                    print(self.alignment.support_master[supportRange[int(choiceSupport)][0],
+                                                        supportRange[int(choiceSupport)][1]][self.alignment.support_master[supportRange[int(choiceSupport)][0],
+                                                                                                                           supportRange[int(choiceSupport)][1]][0]+1])
                     self.alignment.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+=1
                     self.moved=True
                     end=True
@@ -459,7 +466,7 @@ class character:
     character_list=[]    
     stats=['hp','atk','mag','skill','luck','defense','res','spd','movModifier']
     growths=['hpG','atkG','magG','skillG','luckG','defG','resG','spdG']
-    def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classType,weaponType,joinMap,inventory,level):
+    def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classtype,weaponType,joinMap,inventory,level):
         self.name=name
         self.curhp=curhp
         self.hp=hp
@@ -478,7 +485,6 @@ class character:
         self.resG=resG
         self.spd=spd
         self.spdG=spdG
-        self.mov=classType.moveRange+mov
         self.movModifier=mov
         self.level=level
         self.exp=0
@@ -488,19 +494,23 @@ class character:
         self.joinMap=joinMap
         self.alignment=alignment
         self.inventory=inventory
-        self.classType=classType
-        if classType.skill_list[0]!=placeholder:
-            self.skills=[classType.skill_list[0]]
-            self.skills_all=[classType.skill_list[0]]
+        self.classType=None
+        for i in classType.class_list:
+            if i.name==classtype:
+                self.classType=i
+        if self.classType.skill_list[0]!=placeholder:
+            self.skills=[self.classType.skill_list[0]]
+            self.skills_all=[self.classType.skill_list[0]]
             if self.level>=10:
-                self.skills.append(classType.skill_list[1])
-                self.skills_all.append(classType.skill_list[1])
+                self.skills.append(self.classType.skill_list[1])
+                self.skills_all.append(self.classType.skill_list[1])
             if self.level==20:
-                self.skills.append(classType.skill_list[2])
-                self.skills_all.append(classType.skill_list[2])
+                self.skills.append(self.classType.skill_list[2])
+                self.skills_all.append(self.classType.skill_list[2])
         else:
             self.skills=[]
-            self.skills_all=[]
+            self.skills_all=[]        
+        self.mov=self.classType.moveRange+mov
         self.weaponType=weaponType
         for i in self.classType.weaponType:
             if i not in self.weaponType:
@@ -528,11 +538,11 @@ class character:
                         count+=1
                 if count!=1:
                     warnings.warn('Error with roster appending')
-                self.alignment.roster_roster[joinMap-1].append(self)
+                #self.alignment.roster_roster[joinMap-1].append(self)
                 cont=True
             except:
                 print(traceback.format_exc())
-                self.alignment.roster_roster.append([])
+                #self.alignment.roster_roster.append([])
         self.character_list.append(self)        
     def add_item(self,item):
         if len(self.inventory)<5:
@@ -983,9 +993,11 @@ class character:
             self.move([int(dest[0]),int(dest[1])])
     def update_location(self,location):
         try:
-            if curMap.spaces[self.location[0],self.location[1]][1]==self:
-                curMap.spaces[self.location[0],self.location[1]]=[False]
+            if self.location[0]!=-1:
+                if curMap.spaces[self.location[0],self.location[1]][1]==self:
+                    curMap.spaces[self.location[0],self.location[1]]=[False]
         except Exception as e:
+            #print(traceback.format_exc())
             pass
         if (location[0],location[1]) in curMap.spaces:
             self.location=location
@@ -1097,9 +1109,11 @@ class character:
         while cont==False:
             try:
                 for i in range(0,len(self.classType.promotions)):
-                    print(f'{i}: {self.classType.promotions[i].name}')
-                choice=input('Choose the class to promote to')
-                newClass=self.classType.promotions[int(choice)]
+                    print(f'{i}: {self.classType.promotions[i]}')
+                choice=input('Choose the class to promote to\n')
+                for i in classType.class_list:
+                    if i.name==self.classType.promotions[int(choice)]:
+                        newClass=i
                 self.reclass(newClass)
                 self.add_skill(newClass.skill_list[0])
                 for i in newClass.weaponType:
@@ -1226,16 +1240,22 @@ class character:
         self.classType=newClass
 class enemy_char(character):
     enemy_char_list=[]
-    def __init__(self,name,classType,joinMap,inventory,level,spawn):
+    nameClass='enemy_char'
+    def __init__(self,name,classX,joinMap,inventory,level,spawn):
         self.name=name
         self.spawn=spawn
-        super().__init__(name,classType.hp,classType.hp,classType.hpG,classType.atk,classType.atkG,classType.mag,classType.magG,classType.skill,classType.skillG,classType.luck,classType.luckG,classType.defense,classType.defG,classType.res,classType.resG,classType.spd,classType.spdG,0,enemy,classType,{},joinMap,inventory,1)
+        for i in classType.class_list:
+            if i.name==classX:
+                classtype=i
+        super().__init__(name,classtype.hp,classtype.hp,classtype.hpG,classtype.atk,classtype.atkG,classtype.mag,classtype.magG,
+                         classtype.skill,classtype.skillG,classtype.luck,classtype.luckG,classtype.defense,classtype.defG,classtype.res,classtype.resG,classtype.spd,classtype.spdG,0,enemy,classX,{},joinMap,inventory,1)
         while self.level<level:
             self.level_up(1)
         if self not in self.enemy_char_list:
             self.enemy_char_list.append(self)
 class boss(character):
     boss_list=[]
+    nameClass='boss'
     def __init__(self,name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
         self.name=name
         self.spawn=spawn
@@ -1244,6 +1264,7 @@ class boss(character):
             self.boss_list.append(self)
 class recruitable(character):
     recruitable_list=[]
+    nameClass='recruitable'
     def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo):
         self.name=name
         self.support_list=support_list
@@ -1255,10 +1276,15 @@ class recruitable(character):
             self.recruitable_list.append(self)
 class player_char(character):
     player_char_list=[]
-    def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,support_list,weapon_arts):
+    nameClass='player_char'
+    def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,support_list,weaponarts):
         self.name=name
         self.support_list=support_list
-        self.weapon_arts=weapon_arts
+        self.weapon_arts=[]
+        for i in weapon_art.weapon_art_list:
+            for j in weaponarts:
+                if i.name==j:
+                    self.weapon_arts.append(i)
         super().__init__(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,player,classType,weaponType,joinMap,inventory,level)
         if self not in self.player_char_list:
             self.player_char_list.append(self)
@@ -1277,7 +1303,7 @@ class player_char(character):
     
 class classType:
     class_list=[]
-    def __init__(self,name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list):
+    def __init__(self,name,moveType,hp,hpG,atk,atkG,mag,magG,skillX,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list):
         self.name=name
         self.moveType=moveType
         self.hp=hp
@@ -1286,7 +1312,7 @@ class classType:
         self.atkG=atkG
         self.mag=mag
         self.magG=magG
-        self.skill=skill
+        self.skill=skillX
         self.skillG=skillG
         self.luck=luck
         self.luckG=luckG
@@ -1299,7 +1325,12 @@ class classType:
         self.moveRange=moveRange
         self.weaponType=weaponType
         self.promotions=promotions
-        self.skill_list=skill_list
+        self.skill_list=[]
+        for i in skill_list:
+            for j in skill.skill_list:
+                if j.name==i:
+                    self.skill_list.append(j)
+        #self.skill_list=skill_list
         self.class_list.append(self)
     def info(self):
         print(f'Name: {self.name}')
@@ -1344,8 +1375,8 @@ class weapon:
         input(self.name + " Broke!")
         char.inventory.pop(self)
         char.active_item=None
-unique_weapons=[]
 empty=weapon('Empty',0,0,'Empty',[0],0,0,'Empty',False,0,0,{})
+unique_weapons=[empty]
 class sword(weapon):
     def __init__(self,name,maxUses,dmg,dmgtype,rng,crit,hit,droppable,cost,rank,super_effective):
         super().__init__(name,maxUses,dmg,dmgtype,rng,crit,hit,'Sword',droppable,cost,rank,super_effective)
@@ -1578,8 +1609,6 @@ class alignment:
         self.convoy=[]
         self.gold=0
         self.alignment_list.append(self)
-        #this needs to be equal in size to the number of levels v
-        self.roster_roster=[[],[]]
         self.support_master={}
     def show_convoy(self):
         if len(self.convoy)==0:
@@ -1814,10 +1843,10 @@ class mapLevel:
                 for unit in player.roster:
                     for support_partner in unit.support_list:
                         if (unit.name, support_partner) in player.support_master:
-                            if int(unit.support_list[support_partner]/10)>player.support_master[unit.name, support_partner][0] and player.support_master[unit.name, support_partner][0]<len(player.support_master[unit.name, support_partner])-1 and [unit.name, support_partner] not in supportRange:
+                            if int(unit.support_list[support_partner]/10)>player.support_master[unit.name, support_partner][0] and player.support_master[unit.name, support_partner][0]<len(player.support_master[unit.name, support_partner])-1 and[unit.name, support_partner] not in supportRange:
                                 supportRange.append([unit.name, support_partner])
                         elif (support_partner,unit.name) in player.support_master:
-                            if int(unit.support_list[support_partner]/10)>player.support_master[support_partner,unit.name][0] and player.support_master[support_partner,unit.name][0]<len(player.support_master[support_partner,unit.name])-1 and [support_partner,unit.name] not in supportRange:
+                            if int(unit.support_list[support_partner]/10)>player.support_master[support_partner,unit.name][0] and player.support_master[support_partner,unit.name][0]<len(player.support_master[support_partner,unit.name])-1 and[support_partner,unit.name] not in supportRange:
                                 supportRange.append([support_partner,unit.name])
                 if len(supportRange)==0:
                     print('There are no supports available at this time')
@@ -1829,7 +1858,9 @@ class mapLevel:
                         pass
                     else:
                         try:
-                            print(player.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][player.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+1])
+                            print(player.support_master[supportRange[int(choiceSupport)][0],
+                                                        supportRange[int(choiceSupport)][1]][player.support_master[supportRange[int(choiceSupport)][0],
+                                                                                                                   supportRange[int(choiceSupport)][1]][0]+1])
                             player.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+=1
                         except Exception as e:
                             print(traceback.format_exc())
@@ -1848,6 +1879,8 @@ class mapLevel:
                     if player.roster[j].placed==False and player.roster[j].status=='Alive':
                         print(str(j)+" "+player.roster[j].name)
                         count+=1
+                    else:
+                        print(player.roster[j].placed)
                 if count==0:
                     cont=True
                     break
@@ -2123,7 +2156,7 @@ base_desert=desert(None,None)
 display_list.append(base_desert)
 class treasure_chest(mapObject):
     def __init__(self,mapLevel,location,contents):
-        self.conents=contents
+        self.contents=contents
         self.opened=False
         super().__init__('Treasure Chest',mapLevel,location,0,0,0,1,'H')
     def info(self):
@@ -2230,22 +2263,17 @@ def gameplay(align):
     if count==0:
         align.turn_end()
         return
-    for q in curMap.spaces:
-        if curMap.spaces[q][0]==False:
-            pass
-        elif curMap.spaces[q][0]==True:
-            if curMap.spaces[q][1].alignment==player:
-                print(f"Player unit {curMap.spaces[q][1].name} at {q}")
-            elif curMap.spaces[q][1].alignment==enemy:
-                print(f"Enemy unit {curMap.spaces[q][1].name} at {q}")
-        else:
-            print("Error")
-    for i in display_list:
-        print(f'{i.name} : {i.display}')
-    curMap.display('cur')
+    for i in player.roster:
+        if i.deployed==True and i.status=='Alive':
+            print(f'Player unit {i.name} at {i.location}')
+    for i in enemy.roster:
+        if i.status=='Alive':
+            print(f'Enemy unit {i.name}, level {i.level} {i.classType.name} at {i.location}')
     cont2=False
     while cont2==False:
+        curMap.display('cur')
         print(f'There are {count} units that can still move')
+        print('0: View Character Key')
         print("1: Move unit")
         print("2: View an enemies range")
         print("3: View roster")
@@ -2257,6 +2285,9 @@ def gameplay(align):
         path=input('Enter the number of the path you want to take \n')
         if path=='3':
             align.show_roster()
+        elif path=='0':
+            for i in display_list:
+                print(f'{i.name} : {i.display}')
         elif path=='7' and curMap.battle_saves<1 and saveallowed:
             curMap.battle_saves+=1
             save('_battle')
@@ -2508,20 +2539,51 @@ def save(kind=''):
             f.write(f'support\n{player.support_master}\n')
             f.write(f'turncount\n{mapLevel.map_list[mapNum].turn_count}\nbattlesaves\n{mapLevel.map_list[mapNum].battle_saves}')
         f.close()
-        with open(f'save_data_chars{kind}.txt', 'w') as f:
-            f.truncate(0)
-            for i in character.character_list:
+        with open(f'save_data_maps{kind}.txt', 'w') as f:
+            for i in mapLevel.map_list:
+                count=0
                 for attr, value in i.__dict__.items():
-                    if type(value) is list:
+                    if attr=='objectList':
                         for j in value:
-                            if attr=='inventory':
-                                f.write(f'{attr}XYZCYX{j.name}/{str(j.curUses)}/{str(j.droppable)}\n')
+                            if value[j].name=='Door':
+                                f.write(f'{attr}XYZCYX{value[j].name}/{value[j].location}/{value[j].opened}\n')
+                            elif value[j].name=='Treasure Chest':
+                                f.write(f'{attr}XYZCYX{value[j].name}/{value[j].location}/{value[j].contents.name}\n')
+                            elif value[j].name=='Shop':
+                                f.write(f'{attr}XYZCYX{value[j].name}/{value[j].location}')
+                                for k in value[j].contents:
+                                    f.write(f'/{k[0].name}/{k[1]}')
+                                f.write('\n')
                             else:
-                                try:
-                                    f.write(f'{attr}XYZCYX{j.name}\n')
-                                except Exception as e:
-                                    f.write(f'{attr}XYZCYX{value}\n')
-                                    pass
+                                f.write(f'{attr}XYZCYX{value[j].name}/{value[j].location}\n')
+                    elif attr=='spaces' or attr=='triggerList' or attr=='char_trigger_list' or attr=='player_roster' or attr=='enemy_roster':
+                        pass
+                    else:
+                        try:
+                            f.write(f'{attr}XYZCYX{value.name}\n')
+                        except:
+                            f.write(f'{attr}XYZCYX{str(value)}\n')
+                f.write('BREAK\n')
+        #Here we write the type of the character, then the name of the character, then we go through and write all their stuff
+        #Weapon arts, inventory, skills, and skills_all are broken up into multiple parts that will need to be combined later
+        with open(f'save_data_other{kind}.txt', 'w') as f:
+            f.truncate(0)
+            f.write('CHARACTERS\n')
+            f.write('BREAKX\n')
+            for i in character.character_list:
+                count=0
+                for attr, value in i.__dict__.items():
+                    if count==1:
+                        f.write(f'{i.nameClass}\n')
+                    if attr=='inventory':
+                        for j in value:
+                            if j in unique_weapons:
+                                f.write(f'{attr}XYZCYXUNIQUE{j.name}/{str(j.curUses)}/{str(j.droppable)}\n')
+                            else:
+                                f.write(f'{attr}XYZCYX{j.name}/{str(j.curUses)}/{str(j.droppable)}\n')
+                    elif attr=='weapon_arts' or attr=='skills' or attr=='skills_all':
+                        for j in value:
+                            f.write(f'{attr}XYZCYX{j.name}\n')
                     else:
                         try:
                             if attr=='active_item':
@@ -2530,19 +2592,82 @@ def save(kind=''):
                                 f.write(f'{attr}XYZCYX{value.name}\n')
                         except Exception as e:
                             f.write(f'{attr}XYZCYX{str(value)}\n')
+                    count+=1
                 f.write('BREAK\n')
+            f.write('BREAKX\n')
+            f.write('WEAPONS\n')
+            f.write('BREAKX\n')
+            for i in unique_weapons:
+                for attr, value in i.__dict__.items():
+                    f.write(f'{attr}XYZCYX{str(value)}\n')
+                f.write('BREAK\n')
+            f.write('BREAKX\n')
+            f.write('SKILLS\n')
+            f.write('BREAKX\n')
+            for i in skill.skill_list:
+                for attr, value in i.__dict__.items():
+                    try:
+                        f.write(f'{attr}XYZCYX{value.name}\n')
+                    except:
+                        f.write(f'{attr}XYZCYX{str(value)}\n')
+                f.write('BREAK\n')
+            f.write('BREAKX\n')
+            f.write('WEAPONARTS\n')
+            f.write('BREAKX\n')
+            for i in weapon_art.weapon_art_list:
+                for attr, value in i.__dict__.items():
+                    try:
+                        f.write(f'{attr}XYZCYX{value.name}\n')
+                    except:
+                        f.write(f'{attr}XYZCYX{str(value)}\n')
+                f.write('BREAK\n')
+            f.write('BREAKX\n')
+            f.write('CLASSES\n')
+            f.write('BREAKX\n')
+            for i in classType.class_list:
+                for attr, value in i.__dict__.items():
+                    if attr=='skill_list':
+                        for j in value:
+                            f.write(f'{attr}XYZCYX{j.name}\n')
+                    else:
+                        try:
+                            f.write(f'{attr}XYZCYX{value.name}\n')
+                        except:
+                            f.write(f'{attr}XYZCYX{str(value)}\n')
+                f.write('BREAK\n')
+        f.close()
         print('Save complete!')
 
 def load(kind=''):
     #needs to be completely redone to work with current implementatioon
+    """
+at end
+for i in character.character_list:
+    for j in mapLevel.map_list:
+        if i.joinmap==j.mapNum:
+            if align==player and i not in j.player_roster:
+                j.player_roster.append(i)
+            elif align==enemy and i not in j.enemy_roster:
+                j.enemy_roster.append(i)
+        else:
+            if align==player and i in j.player_roster:
+                j.player_roster.pop(i)
+            elif align==enemy and i in j.enemy_roster:
+                j.enemy_roster.pop(i)
+for i in mapLevel.map_list:
+if curMap==i:        
+for j in curMap.enemy_roster:
+    j.update_location(j.location)
+for j in curMap.player_roster:
+    j.update_location(j.location)
+DLLs
+"""
+    global curMap
     j = open(f"save_data{kind}.txt", "r")
-    listX=j.read().splitlines()
-    j.close()    
-    weapon.weapon_list=[]
-    consumable.consumable_list=[]
-    player.roster=[]
+    saveData=j.read().splitlines()
+    j.close()
     mapChoice=False
-    for i in listX:
+    for i in saveData:
         if i=='map':
             path='map'
         elif i=='time':
@@ -2561,96 +2686,522 @@ def load(kind=''):
                     global mapNum
                     mapNum=int(i)
                     mapChoice=True
-                else:
-                    for j in range(4,len(mapLevel.map_list)+3):
-                        j=int(j)
-                        mapLevel.map_list[j-4].completion_turns=listX[j]
-            elif path=='roster':
-                player.roster.append(eval(i.lower()))
-            elif path=='support':
-               player.support_master=eval(i)
-            elif path=='battlesaves':
-                mapLevel.map_list[mapNum].battle_saves=int(i)
-            elif path=='time':
-                global timemodifier
-                timemodifier+=int(i)
-            elif path=='turncount':
-                mapLevel.map_list[mapNum].turn_count=int(i)
-    j = open(f"save_data_chars{kind}.txt", "r")
-    listX=j.read().split('BREAK')
+    weapon.weapon_list=[]
+    consumable.consumable_list=[]
+    player.roster=[]
+    j = open(f"save_data_other{kind}.txt", "r")
+    listX=j.read().split('BREAKX\n')
     j.close()
     char_dict={}
+    weapon_art_dict={}
+    class_dict={}
+    weapon_dict={}
+    skill_dict={}
+    dicts_dict=[char_dict,weapon_art_dict,class_dict,weapon_dict,skill_dict]
     cur=None
     for i in listX:
+        if i=='CHARACTERS\n':
+            cur_dict=char_dict
+        elif i=='WEAPONS\n':
+            cur_dict=weapon_dict
+        elif i=='WEAPONARTS\n':
+            cur_dict=weapon_art_dict
+        elif i=='CLASSES\n':
+            cur_dict=class_dict
+        elif i=='SKILLS\n':
+            cur_dict=skill_dict
+        else:
+            i=i.split('BREAK\n')
+            for k in i:
+                k=k.split('\n')
+                for j in k:
+                    j=j.split('XYZCYX')
+                    if j[0]=='name':
+                        cur=j[1]
+                        cur_dict[cur]=[]
+                    else:
+                        try:
+                            if j[0]!='':
+                                cur_dict[cur].append(j)
+                        except Exception as e:
+                            print(traceback.format_exc()) 
+                            print(j)
+    for i in weapon_dict:
+        j=weapon(i,eval(weapon_dict[i][0][1]),eval(weapon_dict[i][2][1]),weapon_dict[i][3][1],
+               eval(weapon_dict[i][4][1]),eval(weapon_dict[i][5][1]),eval(weapon_dict[i][6][1]),weapon_dict[i][7][1],
+               eval(weapon_dict[i][8][1]),eval(weapon_dict[i][9][1]),eval(weapon_dict[i][10][1]),eval(weapon_dict[i][11][1]))
+        unique_weapons.append(j)
+        j.curUses=eval(weapon_dict[i][1][1])
+    j=open(f"save_data_maps{kind}.txt", "r")
+    listZ=j.read().split('BREAK\n')
+    j.close()
+    map_dict={}
+    for i in listZ:
         i=i.split('\n')
         for j in i:
             j=j.split('XYZCYX')
             if j[0]=='name':
                 cur=j[1]
-                char_dict[cur]=[]
+                map_dict[cur]={}
             else:
                 try:
-                    if j[0]!='':
-                        char_dict[cur].append(j)
+                    if j[0]=='objectList':
+                        if 'objectList' in map_dict[cur]:
+                            map_dict[cur]['objectList'].append(j[1])
+                        else:
+                            map_dict[cur]['objectList']=[j[1]]
+                    elif j[0]!='':
+                        map_dict[cur][j[0]]=eval(j[1])
                 except Exception as e:
                     print(j)
-    for i in char_dict:
-        equipped_count=0
-        eval(i.lower()).skills=[]
-        skills_placed=[]
-        eval(i.lower()).skills_all=[]
-        eval(i.lower()).inventory=[]
-        for j in char_dict[i]:
-            if j[0]!='alignment' and j[0]!='active_item' and j[0]!='inventory' and j[0]!='skills' and j[0]!='skills_all' and j[0]!='classType':
+    mapLevel.map_list=[]
+    mapObject.objectList=[]
+    for k in map_dict:
+        newMap=mapLevel(k,map_dict[k]['y_size'],map_dict[k]['x_size'],map_dict[k]['mapNum'],map_dict[k]['spawns'],None,None)
+        if map_dict[k]['mapNum']==mapNum:
+            curMap=newMap
+        newMap.turn_count=map_dict[k]['turn_count']
+        newMap.battle_saves=map_dict[k]['battle_saves']
+        for j in map_dict[k]['objectList']:
+            j=j.split('/')
+            j[0]=j[0].lower()
+            j[0]=j[0].replace(' ','_')
+            if j[0]!='door' and j[0]!='shop' and j[0]!='treasure_chest':
+                p=globals()[j[0]](newMap,eval(j[1]))
+            elif j[0]=='door':
+                p=globals()[j[0]](newMap,eval(j[1]))
+                p.opened==eval(j[2])
+                if p.opened:
+                    p.moveCost=1
+            elif j[0]=='treasure_chest':
+                j[2]=j[2].lower()
+                j[2]=j[2].replace(' ','_')
                 try:
-                    setattr(eval(i.lower()),j[0],eval(j[1]))
-                except Exception as e:
-                    setattr(eval(i.lower()),j[0],j[1])
-            elif j[0]=='classType' or j[0]=='alignment':
-                z=j[1]
-                z=z.replace(' ','_')
-                z=z.lower()
-                setattr(eval(i.lower()),j[0],eval(z))
-                if j[0]=='alignment' and mapLevel.map_list[mapNum].battle_saves>0 and j[1]=='Enemy' and mapNum==eval(i.lower()).joinMap:
-                    enemy.roster.append(eval(i.lower()))
-            elif j[0]=='active_item' and j[1]!='None':
-                x=j[1]
-                x=x.split('/')
-                uses=x[1]
-                z=x[0]
-                z=z.replace(' ','_')
-                z=z.lower()
-                p=globals()[z](eval(x[2]))
-                p.curUses=int(uses)
-                setattr(eval(i.lower()),j[0],p)
-                eval(i.lower()).add_item(p)
-            elif j[0]=='inventory':
-                x=j[1]
-                x=x.split('/')
-                uses=x[1]
-                z=x[0]
-                z=z.replace(' ','_')
-                z=z.lower()
-                p=globals()[z](eval(x[2]))
-                p.curUses=int(uses)
-                if eval(z)==type(eval(i.lower()).active_item) and equipped_count==0 and p.curUses==eval(i.lower()).active_item.curUses:
-                    equipped_count+=1
+                    p=globals()[j[0]](newMap,eval(j[1]),globals()[j[2]](False))
+                except:
+                    for i in unique_weapons:
+                        if i.name.lower.replace(' ',',')==j[2]:
+                            itemX=i
+                    p=globals()[j[0]](newMap,eval(j[1]),itemX)
+            elif j[0]=='shop':
+                contents=[]
+                for k in range(2,len(j)):
+                    if k%2==0:
+                        try:
+                            contents.append([eval(f'base_{j[k].lower().replace(" ","_")}'),eval(j[k+1])])
+                        except:
+                            for L in unique_weapons:
+                                if L.name==j[k]:
+                                    item=L
+                            contents.append([item,1])
+                p=globals()[j[0]](newMap,eval(j[1]),contents)
+        #newMap.display('map')
+    for i in weapon_art_dict:
+        new=True
+        for j in weapon_art.weapon_art_list:
+            if j.name==i:
+                new=False
+                exist=j
+        if new==False:
+            exist.cost=eval(weapon_art_dict[i][0][1])
+            exist.accuracy=eval(weapon_art_dict[i][1][1])
+            exist.effect_stat=weapon_art_dict[i][2][1]
+            exist.effect_change=eval(weapon_art_dict[i][3][1])
+            exist.effect_operator=weapon_art_dict[i][4][1]
+            exist.weapontype=weapon_art_dict[i][5][1]
+            exist.super_effective=eval(weapon_art_dict[i][6][1])
+            exist.range=eval(weapon_art_dict[i][7][1])
+        else:
+            weapon_art(i,eval(weapon_art_dict[i][0][1]),eval(weapon_art_dict[i][1][1]),weapon_art_dict[i][2][1],eval(weapon_art_dict[i][3][1]),
+                       weapon_art_dict[i][4][1],weapon_art_dict[i][5][1],eval(weapon_art_dict[i][6][1]),eval(weapon_art_dict[i][7][1]))
+    for i in skill_dict:
+        new=True
+        for j in skill.skill_list:
+            if j.name==i:
+                new=False
+                exist=j
+        if new==False:
+            for k in skill_dict[i]:
+                try:
+                    setattr(exist,k[0],eval(k[1]))
+                except:
+                    setattr(exist,k[0],k[1])
+        else:
+            ###Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
+            if len(skill_dict[i])==7:
+                skill(i,eval(skill_dict[i][0]),skill_dict[i][1],skill_dict[i][2],eval(skill_dict[i][3]),skill_dict[i][4],eval(skill_dict[i][6]),skill_dict[i][5])
+            else:
+                skill(i,eval(skill_dict[i][0]),skill_dict[i][1],skill_dict[i][2],eval(skill_dict[i][3]),skill_dict[i][4],eval(skill_dict[i][6]),skill_dict[i][5],skill_dict[i][7])
+    for i in class_dict:
+        new=True
+        for j in classType.class_list:
+            if j.name==i:
+                new=False
+                exist=j
+        #print(class_dict[i])
+        if new==False:
+            exist.skill_list=[]
+            for k in class_dict[i]:
+                if k[0]!='skill_list':
+                    try:
+                        setattr(exist,k[0],eval(k[1]))
+                    except:
+                        setattr(exist,k[0],k[1])
                 else:
-                    eval(i.lower()).add_item(p)
-            elif j[0]=='active_item' and j[1]=='None':
-                setattr(eval(i.lower()),j[0],None)
-            elif j[0]=='skills':
-                eval(i.lower()).add_skill(eval(j[1].lower()))
-                skills_placed.append(j[1])
-            elif j[0]=='skills_all':
-                if j[1] not in skills_placed:
-                  eval(i.lower()).skills_all.append(eval(j[1].lower()))
-        if mapLevel.map_list[mapNum].battle_saves>0:
-            for i in enemy.roster:
-                mapLevel.map_list[mapNum].spaces[i.location[0],i.location[1]]=[True,i]
-            for i in player.roster:
-                if i.deployed==True:
-                   mapLevel.map_list[mapNum].spaces[i.location[0],i.location[1]]=[True,i]
+                    for L in skill.skill_list:
+                        if L.name==k[1]:
+                            skillX=L
+                    exist.skill_list.append(skillX)
+        else:
+            #(name,moveType,hp,hpG,atk,atkG,mag,magG,skillX,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
+            skill_list=[]
+            for k in class_dict[i]:
+                if k[0]=='skill_list':
+                    skill_list.append(k[1])
+            p=classType(i,class_dict[i][0],eval(class_dict[i][1]),eval(class_dict[i][2]),eval(class_dict[i][3]),eval(class_dict[i][4]),
+                        eval(class_dict[i][5]),eval(class_dict[i][6]),eval(class_dict[i][7]),eval(class_dict[i][8]),eval(class_dict[i][9]),
+                        eval(class_dict[i][10]),eval(class_dict[i][11]),eval(class_dict[i][12]),eval(class_dict[i][13]),eval(class_dict[i][14]),
+                        eval(class_dict[i][15]),eval(class_dict[i][16]),eval(class_dict[i][17]),eval(class_dict[i][18]),eval(class_dict[i][19]),skill_list)
+    for i in char_dict:
+        new=True
+        for j in character.character_list:
+            if j.name==i:
+                new=False
+                exist=j
+        if new==False:
+            equipped_count=0
+            exist.skills=[]
+            skills_placed=[]
+            exist.skills_all=[]
+            exist.inventory=[]
+            exist.weapon_arts=[]
+            for j in char_dict[i]:
+                if len(j)>1:
+                    if j[0]!='alignment' and j[0]!='active_item' and j[0]!='inventory' and j[0]!='skills' and j[0]!='skills_all' and j[0]!='classType' and j[0]!='weapon_arts':
+                        try:
+                            setattr(exist,j[0],eval(j[1]))
+                        except Exception as e:
+                            setattr(exist,j[0],j[1])
+                    elif j[0]=='weapon_arts':
+                        for k in weapon_art.weapon_art_list:
+                            if k.name==j[1]:
+                                exist.weapon_arts.append(k)
+                    elif j[0]=='classType':
+                        for k in classType.class_list:
+                            if k.name==j[1]:
+                                exist.classType=k
+                    elif j[0]=='alignment':
+                        z=j[1]
+                        z=z.replace(' ','_')
+                        z=z.lower()
+                        setattr(exist,j[0],eval(z))
+                        if j[0]=='alignment' and mapLevel.map_list[mapNum].battle_saves>0 and j[1]=='Enemy' and mapNum==exist.joinMap:
+                            enemy.roster.append(exist)
+                    elif j[0]=='active_item' and j[1]!='None':
+                        x=j[1]
+                        x=x.split('/')
+                        uses=x[1]
+                        z=x[0]
+                        z=z.replace(' ','_')
+                        z=z.lower()
+                        try:
+                            p=globals()[z](eval(x[2]))
+                        except:
+                            for k in unique_weapons:
+                                if k.name==x[0]:
+                                    p=k
+                        p.curUses=int(uses)
+                        setattr(exist,j[0],p)
+                        exist.add_item(p)
+                    elif j[0]=='inventory':
+                        x=j[1]
+                        x=x.split('/')
+                        uses=x[1]
+                        z=x[0]
+                        z=z.replace(' ','_')
+                        z=z.lower()
+                        try:
+                            p=globals()[z](eval(x[2]))
+                        except:
+                            for k in unique_weapons:
+                                if k.name==x[0]:
+                                    p=k
+                        p.curUses=int(uses)
+                        if eval(z)==type(exist.active_item) and equipped_count==0 and p.curUses==exist.active_item.curUses:
+                            equipped_count+=1
+                        else:
+                            exist.add_item(p)
+                    elif j[0]=='active_item' and j[1]=='None':
+                        setattr(exist,j[0],None)
+                    elif j[0]=='skills':
+                        for k in skill.skill_list:
+                            if k.name==j[1]:
+                                exist.add_skill(k)
+                                skills_placed.append(j[1])
+                    elif j[0]=='skills_all':
+                        if j[1] not in skills_placed:
+                            for k in skill.skill_list:
+                                if k.name==j[1]:
+                                  exist.skills_all.append(k)
+                else:
+                    unitType=j[0]
+        elif new==True:
+            ###player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,{weaponType},joinMap,[inventory],level,{supports},[weapon_arts])
+###enemy_char(name,classType,joinMap,[inventory],level,[spawn])
+###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
+###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
+            boss_needed_fields_reg=['name','hp','atk','mag','skill','luck','defense','res','spd','movModifier','classType','weaponType','joinMap','level','spawn']
+            recruitable_needed_fields_reg=['name','curhp','hp','hpG','atk','atkG','mag','magG','skill','skillG','luck','luckG','defense','defG','res',
+                                       'resG','spd','spdG','movModifier','classType','weaponType','joinMap','level','spawn','supports','recruit_convo']
+            enemy_char_needed_fields_reg=['name','classType','joinMap','level','spawn']
+            player_char_needed_fields_reg=['name','hp','hpG','atk','atkG','mag','magG','skill','skillG','luck','luckG','defense','defG','res',
+                                       'resG','spd','spdG','movModifier','classType','weaponType','joinMap','level','supports']
+            i_dict_reg={'supports':{}}
+            i_dict_mult={'inventory':[],'weapon_arts':[]}
+            i_dict_upd={}
+            i_dict_upd_mult={'skills':[],'skills_all':[]}
+            if char_dict[i][0][0]=='enemy_char':
+                for k in char_dict[i]:
+                    if k[0] in enemy_char_needed_fields_reg:
+                        try:
+                            i_dict_reg[k[0]]=eval(k[1])
+                        except:
+                            i_dict_reg[k[0]]=k[1]
+                    elif k[0] in i_dict_mult:
+                        i_dict_mult[k[0]].append(k[1])
+                    elif k[0]!='alignment':
+                        if k[0] in i_dict_upd_mult:
+                            i_dict_upd_mult[k[0]].append(k[1])
+                        elif k[0]!='alignment' and len(k)>1:
+                            try:
+                                i_dict_upd[k[0]]=eval(k[1])
+                            except:
+                                i_dict_upd[k[0]]=k[1]
+                inventory=[]
+                for L in i_dict_mult['inventory']:
+                        x=L.split('/')
+                        uses=x[1]
+                        z=x[0]
+                        z=z.replace(' ','_')
+                        z=z.lower()
+                        try:
+                            p=globals()[z](eval(x[2]))
+                        except:
+                            for k in unique_weapons:
+                                if k.name==x[0]:
+                                    p=k
+                        p.curUses=int(uses)
+                        if eval(z)==type(exist.active_item) and equipped_count==0 and p.curUses==exist.active_item.curUses:
+                            equipped_count+=1
+                        else:
+                            inventory.append(p)                        
+                char=enemy_char(i,i_dict_reg['classType'],i_dict_reg['joinMap'],inventory,i_dict_reg['level'],i_dict_reg['spawn'])
+                                
+            ###player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,{weaponType},joinMap,[inventory],level,{supports},[weapon_arts])                    
+            elif char_dict[i][0][0]=='player_char':
+                for k in char_dict[i]:
+                    if k[0] in player_char_needed_fields_reg:
+                        try:
+                            i_dict_reg[k[0]]=eval(k[1])
+                        except:
+                            i_dict_reg[k[0]]=k[1]
+                    elif k[0] in i_dict_mult:
+                        i_dict_mult[k[0]].append(k[1])
+                    else:
+                        if k[0] in i_dict_upd_mult:
+                            i_dict_upd_mult[k[0]].append(k[1])
+                        elif k[0]!='alignment' and len(k)>1:
+                            try:
+                                i_dict_upd[k[0]]=eval(k[1])
+                            except:
+                                i_dict_upd[k[0]]=k[1]
+                                pass
+                inventory=[]
+                for L in i_dict_mult['inventory']:
+                        x=L.split('/')
+                        uses=x[1]
+                        z=x[0]
+                        z=z.replace(' ','_')
+                        z=z.lower()
+                        try:
+                            p=globals()[z](eval(x[2]))
+                        except:
+                            for k in unique_weapons:
+                                if k.name==x[0]:
+                                    p=k
+                        p.curUses=int(uses)
+                        if eval(z)==type(exist.active_item) and equipped_count==0 and p.curUses==exist.active_item.curUses:
+                            equipped_count+=1
+                        else:
+                            inventory.append(p)                        
+                char=player_char(i,i_dict_reg['hp'],i_dict_reg['hp'],i_dict_reg['hpG'],i_dict_reg['atk'],i_dict_reg['atkG'],
+                                      i_dict_reg['mag'],i_dict_reg['magG'],i_dict_reg['skill'],i_dict_reg['skillG'],i_dict_reg['luck'],i_dict_reg['luckG'],
+                                      i_dict_reg['defense'],i_dict_reg['defG'],i_dict_reg['res'],i_dict_reg['resG'],i_dict_reg['spd'],i_dict_reg['spdG'],
+                                      i_dict_reg['movModifier'],i_dict_reg['classType'],i_dict_reg['weaponType'],i_dict_reg['joinMap'],inventory,
+                                      i_dict_reg['level'],i_dict_reg['supports'],i_dict_mult['weapon_arts'])
+
+###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):                            
+            elif char_dict[i][0][0]=='boss':
+                for k in char_dict[i]:
+                    if k[0] in boss_needed_fields_reg:
+                        try:
+                            i_dict_reg[k[0]]=eval(k[1])
+                        except:
+                            i_dict_reg[k[0]]=k[1]                            
+                    elif k[0] in i_dict_mult:
+                        i_dict_mult[k[0]].append(k[1])
+                    else:
+                        if k[0] in i_dict_upd_mult:
+                            i_dict_upd_mult[k[0]].append(k[1])
+                        elif k[0]!='alignment' and len(k)>1:
+                            try:
+                                i_dict_upd[k[0]]=eval(k[1])
+                            except:
+                                i_dict_upd[k[0]]=k[1]
+                inventory=[]
+                for L in i_dict_mult['inventory']:
+                        x=L.split('/')
+                        uses=x[1]
+                        z=x[0]
+                        z=z.replace(' ','_')
+                        z=z.lower()
+                        try:
+                            p=globals()[z](eval(x[2]))
+                        except:
+                            for k in unique_weapons:
+                                if k.name==x[0]:
+                                    p=k
+                        p.curUses=int(uses)
+                        if eval(z)==type(exist.active_item) and equipped_count==0 and p.curUses==exist.active_item.curUses:
+                            equipped_count+=1
+                        else:
+                            inventory.append(p)                        
+                char=boss(i,i_dict_reg['hp'],i_dict_reg['hp'],i_dict_reg['atk'],i_dict_reg['mag'],i_dict_reg['skill'],
+                               i_dict_reg['luck'],i_dict_reg['defense'],i_dict_reg['res'],i_dict_reg['spd'],i_dict_reg['movModifier'],
+                               i_dict_reg['classType'],i_dict_reg['weaponType'],i_dict_reg['joinMap'],inventory,i_dict_reg['level'],i_dict_reg['spawn'])
+                
+###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)                            
+            elif char_dict[i][0][0]=='recruitable':
+                for k in char_dict[i]:
+                    if k[0] in recruitable_needed_fields_reg:
+                        try:
+                            i_dict_reg[k[0]]=eval(k[1])
+                        except:
+                            i_dict_reg[k[0]]=k[1]
+                    elif k[0] in i_dict_mult:
+                        i_dict_mult[k[0]].append(k[1])
+                    else:
+                        if k[0] in i_dict_upd_mult:
+                            i_dict_upd_mult[k[0]].append(k[1])
+                        elif k[0]!='alignment' and len(k)>1:
+                            try:
+                                i_dict_upd[k[0]]=eval(k[1])
+                            except:
+                                i_dict_upd[k[0]]=k[1]
+                inventory=[]
+                for L in i_dict_mult['inventory']:
+                        x=L.split('/')
+                        uses=x[1]
+                        z=x[0]
+                        z=z.replace(' ','_')
+                        z=z.lower()
+                        try:
+                            p=globals()[z](eval(x[2]))
+                        except:
+                            for k in unique_weapons:
+                                if k.name==x[0]:
+                                    p=k
+                        p.curUses=int(uses)
+                        if eval(z)==type(exist.active_item) and equipped_count==0 and p.curUses==exist.active_item.curUses:
+                            equipped_count+=1
+                        else:
+                            inventory.append(p)                        
+                char=recruitable(i,i_dict_reg['hp'],i_dict_reg['hp'],i_dict_reg['hpG'],i_dict_reg['atk'],i_dict_reg['atkG'],
+                      i_dict_reg['mag'],i_dict_reg['magG'],i_dict_reg['skill'],i_dict_reg['skillG'],i_dict_reg['luck'],i_dict_reg['luckG'],
+                      i_dict_reg['defense'],i_dict_reg['defG'],i_dict_reg['res'],i_dict_reg['resG'],i_dict_reg['spd'],i_dict_reg['spdG'],
+                      i_dict_reg['movModifier'],i_dict_reg['classType'],i_dict_reg['weaponType'],i_dict_reg['joinMap'],inventory,
+                      i_dict_reg['level'],i_dict_reg['spawn'],i_dict_reg['supports'],i_dict_mult['weapon_arts'],i_dict_reg['recruit_convo'])
+            else:
+                print('Illegal')
+                
+            for M in i_dict_upd:
+                setattr(char,M,i_dict_upd[M])
+            non_equipped_skills=[]
+            for N in i_dict_upd_mult['skills_all']:
+                if N not in i_dict_upd_mult['skills']:
+                    non_equipped_skills.append(N)
+            for O in i_dict_upd_mult['skills']:
+                for P in skill.skill_list:
+                    if P.name==O:
+                        if P not in char.skills:
+                            char.add_skill(P)
+            for Q in non_equipped_skills:
+                for R in skill.skill_list:
+                    if R.name==Q:
+                        if R not in char.skills_all:
+                            char.skills_all.append(R)
+            #print(char.alignment.name)
+    for i in character.character_list:
+        for j in mapLevel.map_list:
+            if i.joinMap==j.mapNum:
+                if i.alignment==player and i not in j.player_roster:
+                    if i.name=='jack':
+                        print('yeah')
+                    j.player_roster.append(i)
+                elif i.alignment==enemy and i not in j.enemy_roster:
+                    j.enemy_roster.append(i)
+            else:
+                if i.alignment==player and i in j.player_roster:
+                    if i.name=='jack':
+                        print('yeah')
+                    j.player_roster.pop(i)
+                elif i.alignment==enemy and i in j.enemy_roster:
+                    j.enemy_roster.pop(i)
+    j = open(f"save_data{kind}.txt", "r")
+    saveData=j.read().splitlines()
+    j.close()
+    for i in saveData:
+        if i=='map':
+            path='map'
+        elif i=='time':
+            path='time'
+        elif i=='roster':
+            path='roster'
+        elif i=='support':
+            path='support'
+        elif i=='battlesaves':
+            path='battlesaves'
+        elif i=='turncount':
+            path='turncount'
+        else:
+            if path=='map':
+                if mapChoice==False:
+                    pass
+                else:
+                    for j in range(4,len(mapLevel.map_list)+3):
+                        j=int(j)
+                        for k in mapLevel.map_list:
+                            if k.mapNum==j-4:
+                                k.completion_turns=saveData[j]
+            elif path=='roster':
+                for j in character.character_list:
+                    if j.name==i:
+                        player.roster.append(j)
+            elif path=='support':
+               player.support_master=eval(i)
+            elif path=='time':
+                global timemodifier
+                timemodifier+=int(i)
+    if curMap.battle_saves>0:
+        for i in curMap.enemy_roster:
+            if i.status=='Alive':
+                enemy.roster.append(i)
+        for i in enemy.roster:
+            i.update_location(i.location)
+        for i in player.roster:
+            if i.deployed==True:
+               i.update_location(i.location) 
+
                    
 def edit_shop(*shop):
     if shop:
@@ -2889,6 +3440,7 @@ def create_character():
             end_class=input(f'Input Y to confirm you wish {name} to be a {classType.class_list[int(class_choice)].name}, and anything else to cancel\n')
             if end_class.lower()=='y':
                 class_type=classType.class_list[int(class_choice)]
+                class_name=classType.class_list[int(class_choice)].name
                 cont=True
             else:
                 pass
@@ -2965,7 +3517,7 @@ def create_character():
                 if (inventory[i].weapontype in class_type.weaponType and inventory[i].weaponlevel>=class_type.weaponType[inventory[i].weapontype]) or (inventory[i].weapontype in weapon_type and inventory[i].weaponlevel>=weapon_type[inventory[i].weapontype]):
                     possible_active_items[i]=inventory[i]
         if len(possible_active_items)==0:
-            pass
+            cont=True
         else:
             for i in possible_active_items:
                 print(f'{i} : {possible_active_items[i].name}')
@@ -3164,13 +3716,14 @@ def create_character():
 #recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
 #boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn)
         if unit_type=='Player':
-            player_char(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,class_type,weapon_type,join_map,inventory,level,supports,weapon_arts)
+            player_char(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,class_name,weapon_type,join_map,inventory,level,supports,weapon_arts)
         elif unit_type=='Unique':
-            boss(name,hp,hp,atk,mag,skill,luck,defense,res,spd,mov,class_type,weapon_type,join_map,inventory,level,spawn)
+            boss(name,hp,hp,atk,mag,skill,luck,defense,res,spd,mov,class_name,weapon_type,join_map,inventory,level,spawn)
         elif unit_type=='Recruitable':
-            recruitable(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,class_type,weapon_type,join_map,inventory,level,spawn,supports,weapon_arts,recruit_convo)
+            recruitable(name,hp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,class_name,weapon_type,join_map,inventory,level,spawn,supports,weapon_arts,recruit_convo)
     elif unit_type=='Generic':
-        enemy_char(name,class_type,join_map,inventory,level,spawn)
+        enemy_char(name,class_name,join_map,inventory,level,spawn)
+    print('Character created!')
         
 def map_ordering(name,map_num,*map_lev):
     delete=None
@@ -4161,33 +4714,36 @@ mag_up=skill('Mag Up',100,'skill','atk',5,'+',True,'self')
 mag_up_2=skill('Mag Up 2',100,'skill','atk',5,'+',True,'self')
 armsthrift=skill('Armsthrift',500,'luck','curUses',1,'+',False,'weapon')
 placeholder=skill('Placeholder',0,'luck','atk',0,'+',True,'self')
+paragon=skill('Paragon',0,'luck','atk',0,'+',False,'self')
 ###Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
 grounder=weapon_art('Grounder',3,10,'atk',2,'*','Sword',[],[1,2,3,4])
 ###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
-wyvern=classType('Wyvern','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Axe':0,'Lance':0},[],[luna,placeholder,placeholder])
-swordmaster=classType('Swordmaster','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],[sol,placeholder,placeholder])
-hero=classType('Hero','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0,'Axe':0},[],[placeholder,placeholder,placeholder])
-paladin=classType('Paladin','Horse',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0,'Lance':0,'Sword':0},[],[placeholder,placeholder,placeholder])
-sage=classType('Sage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Tome':0},[],[mag_up_2,placeholder,placeholder])
-myrmidom=classType('Myrmidom','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0},[swordmaster],[astra,placeholder,placeholder])
-mercenary=classType('Mercenary','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0,'Fist':0},[hero],[armsthrift,placeholder,placeholder])
-mage=classType('Mage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Tome':0},[],[mag_up,placeholder,placeholder])
-pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],[placeholder,placeholder,placeholder])
-lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],[placeholder,placeholder,placeholder])
+wyvern=classType('Wyvern','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Axe':0,'Lance':0},[],['Luna','Placeholder','Placeholder'])
+swordmaster=classType('Swordmaster','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],['Sol','Placeholder','Placeholder'])
+hero=classType('Hero','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0,'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
+paladin=classType('Paladin','Horse',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
+sage=classType('Sage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Tome':0},[],['Mag Up 2','Placeholder','Placeholder'])
+myrmidom=classType('Myrmidom','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0},['Swordmaster'],['Astra','Placeholder','Placeholder'])
+mercenary=classType('Mercenary','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0,'Fist':0},['Hero'],['Armsthrift','Placeholder','Placeholder'])
+mage=classType('Mage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Tome':0},[],['Mag Up','Placeholder','Placeholder'])
+pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
+lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
 ###player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,{weaponType},joinMap,[inventory],level,{supports},[weapon_arts])
 ###enemy_char(name,classType,joinMap,[inventory],level,[spawn])
 ###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
 ###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
-garou=enemy_char('Garou',wyvern,1,[javelin(False),iron_axe(True)],1,[1,1])
-hao=enemy_char('Hao',pirate,1,[iron_axe(False)],1,[1,0])
-mumen=enemy_char('Mumen',pirate,1,[iron_axe(False)],1,[1,2])
-ash=enemy_char('Ash',pirate,1,[silver_axe(False)],1,[9,1])
-yuffie=enemy_char('Yuffie',wyvern,2,[javelin(False)],2,[9,1])
-saitama=player_char('Saitama',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,swordmaster,{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{'King':0},[grounder])
+garou=enemy_char('Garou','Wyvern',1,[javelin(False),iron_axe(True)],1,[1,1])
+boss=boss('Boss',25,25,13,1,12,4,8,7,10,0,'Hero',{},1,[iron_axe(True)],10,[5,8])
+judas=recruitable('Judas',25,25,.5,13,.7,1,.1,12,.4,4,0,8,.2,7,.4,10,.25,0,'Hero',{},1,[iron_axe(True)],10,[5,8],{},[],'Hey')
+hao=enemy_char('Hao','Pirate',1,[iron_axe(False)],1,[1,0])
+mumen=enemy_char('Mumen','Pirate',1,[iron_axe(False)],1,[1,2])
+ash=enemy_char('Ash','Pirate',1,[silver_axe(False)],1,[9,1])
+yuffie=enemy_char('Yuffie','Wyvern',2,[javelin(False)],2,[9,1])
+saitama=player_char('Saitama',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{'King':0},['Grounder'])
 saitama.add_skill(luna)
 saitama.add_skill(armsthrift)
-king=player_char('King',3,3,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,lord,{},1,[iron_sword(False),key(False)],1,{'Saitama':0,'Zatch':0},[])
-zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,mercenary,{},2,[iron_sword(False)],1,{'King':0},[])
+king=player_char('King',3,3,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,'Lord',{},1,[iron_sword(False),key(False)],1,{'Saitama':0,'Zatch':0},[])
+zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Mercenary',{},2,[iron_sword(False)],1,{'King':0},[])
 ###Creative mode
 zerogrowth=False
 neggrowth=False
@@ -4318,10 +4874,16 @@ if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
         elif loadX.lower()=='n':
             load()
         elif loadX.lower()=='x':
-            os.remove('save_data.txt')
-            os.remove('save_data_chars.txt')
-            os.remove('save_data_battle.txt')
-            os.remove('save_data_chars_battle.txt')
+            try:
+                os.remove('save_data.txt')
+                os.remove('save_data_other.txt')
+                os.remove('save_data_maps.txt')
+                os.remove('save_data_maps_battle.txt')
+                os.remove('save_data_battle.txt')
+                os.remove('save_data_other_battle.txt')
+            except:
+                print(traceback.format_exc())
+                pass
             print('Save file deleted')
     elif os.path.exists('save_data_battle.txt') and not os.path.exists('save_data.txt'):
         loadX=input('Would you like to load? Press Y to load or X to delete your save file \n')
@@ -4329,16 +4891,26 @@ if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
             load('_battle')
             print('Data loaded')
         elif loadX.lower()=='x':
-            os.remove('save_data_battle.txt')
-            os.remove('save_data_chars_battle.txt')
+            try:
+                os.remove('save_data_battle.txt')
+                os.remove('save_data_maps_battle.txt')
+                os.remove('save_data_other_battle.txt')
+            except:
+                print(traceback.format_exc())
+                pass
             print('Save file deleted')
     elif os.path.exists('save_data.txt') and not os.path.exists('save_data_battle.txt'):
         loadX=input('Would you like to load? Press Y to load or X to delete your save file \n')
         if loadX.lower()=='y':
             load()
         elif loadX.lower()=='x':
-            os.remove('save_data.txt')
-            os.remove('save_data_chars.txt')
+            try:
+                os.remove('save_data.txt')
+                os.remove('save_data_other.txt')
+                os.remove('save_data_maps.txt')
+            except:
+                print(traceback.format_exc())
+                pass
             print('Save file deleted')
 #Gameplay loop
 tic = time.perf_counter()
@@ -4383,7 +4955,7 @@ while mapNum<len(mapLevel.map_list):
                 save()
                 if os.path.exists('save_data_battle.txt'):
                     os.remove('save_data_battle.txt')
-                    os.remove('save_data_chars_battle.txt')
+                    os.remove('save_data_other_battle.txt')
 #Ending
 print("You beat the game!")
 total_turns=0

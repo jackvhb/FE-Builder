@@ -1,13 +1,13 @@
 time
-9
+1
 map
 1
 0
 0
 roster
-jack
 Saitama
 King
+jack
 support
 {('Saitama', 'King'): [0, 'Hi', 'Yo', 'Final'], ('King', 'Zatch'): [0, 'Hello', 'No Way']}
 turncount

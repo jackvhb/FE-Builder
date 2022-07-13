@@ -1,0 +1,25 @@
+nameXYZCYXTutorial
+objectListXYZCYXFort/[0, 0]
+objectListXYZCYXThrone/[0, 1]
+objectListXYZCYXVoid/[8, 0]
+objectListXYZCYXVoid/[8, 1]
+objectListXYZCYXShop/[3, 2]/Silver Axe/1/Shield/1
+objectListXYZCYXTreasure Chest/[5, 4]/Shield
+spawnsXYZCYX[[0, 0], [0, 1]]
+mapNumXYZCYX1
+turn_countXYZCYX1
+battle_savesXYZCYX1
+y_sizeXYZCYX11
+x_sizeXYZCYX15
+completion_turnsXYZCYX0
+BREAK
+nameXYZCYXMap 2
+objectListXYZCYXThrone/[0, 1]
+spawnsXYZCYX[[0, 0], [0, 1], [0, 2]]
+mapNumXYZCYX2
+turn_countXYZCYX1
+battle_savesXYZCYX0
+y_sizeXYZCYX11
+x_sizeXYZCYX10
+completion_turnsXYZCYX0
+BREAK
