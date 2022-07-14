@@ -112,7 +112,8 @@ def init_battle(char1,char2,dist,*weaponX):
     if paragon in player_unit.skill_list:
         expGain*=2
     if char1.status!='Dead':
-        char1.moved=True
+        if galeforce not in char1.skills:
+            char1.moved=True
     if player_unit.status!='Dead':
         if player_unit.level<20:
             player_unit.exp+=expGain
@@ -157,7 +158,7 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,*active_art):
         return("Continue")
     if randocrit <= truecrit:
         crit=True
-    player_dict,enemy_dict=char1.skill_roll(char2)
+    player_dict,enemy_dict,weapon_dict=char1.skill_roll(char2)
     if weapon1.dmgtype=='Phys':
         for i in char2.inventory:
             if isinstance(i,armor):
@@ -179,27 +180,22 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,*active_art):
     if crit==True:
         damage*=3
         input("Critical hit!")
+    weapon1.curUses-=1
+    if weapon1.curUses<=0:
+        weapon1.breakX(char1)
+    for i in player_dict:
+        setattr(char1,i,player_dict[i])
+    for j in enemy_dict:
+        setattr(char2,j,enemy_dict[j])
+    for k in weapon_dict:
+        setattr(weapon1,k,weapon_dict[k])
     if char2.curhp-damage>0:
         char2.curhp=char2.curhp-damage
         input(f"{char1.name} attacked {char2.name} and did {damage} damage \n")
-        weapon1.curUses-=1
-        if weapon1.curUses<=0:
-            weapon1.breakX(char1)
-        for i in player_dict:
-            setattr(char1,i,player_dict[i])
-        for j in enemy_dict:
-            setattr(char2,j,enemy_dict[j])
         return("Continue")
     else:
         char2.die(char1)
-        weapon1.curUses-=1
-        if weapon1.curUses<=0:
-            weapon1.breakX(char1)
-        for i in player_dict:
-            setattr(char1,i,player_dict[i])
-        for j in enemy_dict:
-            setattr(char2,j,enemy_dict[j])
-            return("End")
+        return("End")
 
 def menu(self):
     atkRange=[0]
@@ -789,6 +785,7 @@ class character:
     def skill_roll(self,enemy):
         changed_stats_player={}
         changed_stats_enemy={}
+        changed_stats_weapon={}
         for i in self.skills:
             roll=rand.randrange(0,100)
             stat=getattr(self,i.trigger_stat)
@@ -810,9 +807,11 @@ class character:
                 elif i.effect_target=='weapon':
                     weap=self.active_item
                     cur=getattr(weap,i.effect_stat)
+                    if i.effect_temp==True:
+                        changed_stats_weapon[i.effect_stat]=cur
                     final_num=round(eval(f'{cur}{i.effect_operator}{i.effect_change}'))
                     setattr(weap,i.effect_stat,final_num)                    
-        return changed_stats_player,changed_stats_enemy
+        return changed_stats_player,changed_stats_enemy,changed_stats_weapon
     def show_inventory(self):
         print(self.name + "'s inventory: ")
         for i in self.inventory:
@@ -856,7 +855,7 @@ class character:
             cont=False
             while cont==False:
                 try:
-                    loc=input(f'{self.name} has been wrongly placed, please enter a new location for them to be in x,y form')
+                    loc=input(f'{self.name} has been wrongly placed, please enter a new location for them to be in x,y form\n')
                     loc=loc.split(',')
                     loc[0]=int(loc[0])
                     loc[1]=int(loc[1])
@@ -932,14 +931,8 @@ class character:
     def check_stats(self):
         print('\n')
         print("Name: " + self.name)
-        print("HP: "+str(self.curhp)+"/"+str(self.hp))
-        print("Attack: "+str(self.atk))
-        print("Magic: "+str(self.mag))
-        print("Skill: "+str(self.skill))
-        print("Luck: "+str(self.luck))
-        print("Defense: "+str(self.defense))
-        print("Resistance: "+str(self.res))
-        print("Speed: "+str(self.spd))
+        for i in self.stats:
+            print(f'{i.capitalize()}: {getattr(self,i)}')
         print("Move: "+str(self.mov))
         print("Moved: "+str(self.moved))
         print("Class: "+self.classType.name)
@@ -1092,9 +1085,8 @@ class classType:
         self.skill_list=[]
         for i in skill_list:
             for j in skill.skill_list:
-                if j.name==i:
+                if j.name==i or j==i:
                     self.skill_list.append(j)
-        #self.skill_list=skill_list
         self.class_list.append(self)
     def info(self):
         print(f'Name: {self.name}')
@@ -2419,6 +2411,55 @@ def stock_inventory(name,*inventory):
             inventory.append(append_stock_inventory(base_misc))
     return inventory
 
+        
+def map_ordering(name,map_num,*map_lev):
+    delete=None
+    for i in mapLevel.map_list:
+        if i.mapNum==map_num:
+            cont=False
+            while cont==False:
+                new=input(f'Map {i.name} has the same map number as {name}. Input X to delete {i.name}, Y to renumber {i.name}, or Z to renumber {name}\n')
+                if new.lower()=='x':
+                    confirm=input(f'You are about to delete {i.name}, input Y to confirm or anything else to cancel\n')
+                    if confirm.lower()=='y':
+                        mapLevel.map_list.pop(i)
+                elif new.lower()=='y':
+                    taken_nums=[]
+                    if not map_lev:
+                        taken_nums.append(tempMap(name,map_num))
+                    for j in mapLevel.map_list:
+                        if j!=i:
+                            taken_nums.append(j.mapNum)
+                    print(f'The currently taken map numbers are {taken_nums}')
+                    new_num=input(f'Input the new number that you want {i.name} to be\n')
+                    new_num=int(new_num)
+                    if new_num>0:
+                        if new_num not in taken_nums:
+                            i.map_num=new_num
+                            return map_num
+                        else:
+                            i.map_num=map_ordering(i.name,new_num,i)
+                    else:
+                        print('Invalid input, try again')
+                elif new.lower()=='z':
+                    taken_nums=[]
+                    for j in mapLevel.map_list:
+                        if j.name!=name:
+                            taken_nums.append(j.mapNum)
+                    print(f'The currently taken map numbers are {taken_nums}')
+                    new_num=input('Input the new number that you want {name} to be\n')
+                    new_num=int(new_num)
+                    if new_num>0:
+                        if new_num not in taken_nums:
+                            return new_num
+                        else:
+                            if map_lev:
+                                map_lev[0].mapNum=map_ordering(name,new_num,map_lev[0])
+                            else:
+                                return map_ordering(name,new_num)
+                    else:
+                        print('Invalid input, try again')
+
 def save(kind=''):
     #weapon arts, unique weapons, skills, classes, units, player roster, maps, supports list
     if saveallowed:
@@ -3065,6 +3106,7 @@ def load(kind=''):
 
 def create_character():
     #Choosing alignment
+    print('Welcome to the character creator')
     cont=False
     while cont==False:        
         align_input=input('Input P to make this a player unit, E to make this a generic enemy unit with autoleveled stats, B to make this a unique enemy unit with set stats, or R to make this a recruitable enemy unit\n')
@@ -3427,56 +3469,10 @@ def create_character():
     elif unit_type=='Generic':
         enemy_char(name,class_name,join_map,inventory,level,spawn)
     print('Character created!')
-        
-def map_ordering(name,map_num,*map_lev):
-    delete=None
-    for i in mapLevel.map_list:
-        if i.mapNum==map_num:
-            cont=False
-            while cont==False:
-                new=input(f'Map {i.name} has the same map number as {name}. Input X to delete {i.name}, Y to renumber {i.name}, or Z to renumber {name}\n')
-                if new.lower()=='x':
-                    confirm=input(f'You are about to delete {i.name}, input Y to confirm or anything else to cancel\n')
-                    if confirm.lower()=='y':
-                        mapLevel.map_list.pop(i)
-                elif new.lower()=='y':
-                    taken_nums=[]
-                    if not map_lev:
-                        taken_nums.append(tempMap(name,map_num))
-                    for j in mapLevel.map_list:
-                        if j!=i:
-                            taken_nums.append(j.mapNum)
-                    print(f'The currently taken map numbers are {taken_nums}')
-                    new_num=input(f'Input the new number that you want {i.name} to be\n')
-                    new_num=int(new_num)
-                    if new_num>0:
-                        if new_num not in taken_nums:
-                            i.map_num=new_num
-                            return map_num
-                        else:
-                            i.map_num=map_ordering(i.name,new_num,i)
-                    else:
-                        print('Invalid input, try again')
-                elif new.lower()=='z':
-                    taken_nums=[]
-                    for j in mapLevel.map_list:
-                        if j.name!=name:
-                            taken_nums.append(j.mapNum)
-                    print(f'The currently taken map numbers are {taken_nums}')
-                    new_num=input('Input the new number that you want {name} to be\n')
-                    new_num=int(new_num)
-                    if new_num>0:
-                        if new_num not in taken_nums:
-                            return new_num
-                        else:
-                            if map_lev:
-                                map_lev[0].mapNum=map_ordering(name,new_num,map_lev[0])
-                            else:
-                                return map_ordering(name,new_num)
-                    else:
-                        print('Invalid input, try again')
+
 
 def create_map():
+    print('Welcome to the map creator')
     #naming the map
     cont=False
     while cont==False:
@@ -3568,6 +3564,7 @@ def create_map():
                                 
 def create_unique_weapon():
     #(name,maxUses,dmg,dmgtype,rng,crit,hit,weapontype,droppable,cost,rank,super_effective):
+    print('Welcome to the weapon creator')
     #Name
     cont=True
     while cont==True:
@@ -3756,18 +3753,118 @@ def create_unique_weapon():
                         
 def create_skill():
     #Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
-    pass
+    print('Welcome to the skill creator')
+    #Name
+    cont=False
+    while cont==False:
+        name=input('Enter the name for this skill\n')
+        confirm=input(f'Input y to confirm that you want this skill to be called {name} or anything else to cancel\n')
+        if confirm.lower()=='y':
+            cont=True
+    #Trigger chance
+    #Trigger stat
+    #effect stat
+    #Effect change
+    #Effect operator
+    #effect temp
+    #effect target
+    #relative stat
 
 def create_weapon_art():
     #Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
-    pass
+    print('Welcome to the weapon art creator')
+    #Name
+    cont=False
+    while cont==False:
+        name=input('Enter the name for this weapon art\n')
+        confirm=input(f'Input y to confirm that you want this weapon art to be called {name} or anything else to cancel\n')
+        if confirm.lower()=='y':
+            cont=True
+    #cost,accuracy,effect_change
+    #effect_stat
+    #effect_operator
+    #super effective
+    #weapontype
+    #range
 
 def create_class():
     #Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
+    print('Welcome to the class creator')
+    #Name
+    cont=False
+    while cont==False:
+        name=input('Enter the name for this class\n')
+        confirm=input(f'Input y to confirm that you want this class to be called {name} or anything else to cancel\n')
+        if confirm.lower()=='y':
+            cont=True
+    #move type
+    cont=False
+    print('Here you will set the move type for this class. Move range and move type are completely seperate, all move type effects is the movement cost for certain tile types')
+    while cont==False:
+        print(f'0: Foot, the default move type. No strengths or weaknesses')
+        print(f'1: Flying, nearly every tile type only costs one move')
+        print(f'2: Horse, generally poor at moving through many tile types')
+        print(f'3: Mage, foot but good at moving through deserts')
+        print(f'4: Pirate, foot but good at moving through water')
+        route=input('Enter the number of the movement type you want\n')
+        if route=='0':
+            moveType='Foot'
+            cont=True
+        elif route=='1':
+            moveType='Flying'
+            cont=True
+        elif route=='2':
+            moveType='Horse'
+            cont=True
+        elif route=='3':
+            moveType='Mage'
+            cont=True
+        elif route=='4':
+            moveType='Pirate'
+            cont=True
+        else:
+            print('Invalid input, try again')
+    #Bases and growths
+    bases={}
+    growths={}
+    for i in character.stats:
+        pass
+    for i in character.growths:
+        pass
+    #Weapon type
+    #promotions
+    #skill_list
     pass
 
 def write_support():
-    pass
+    print('Welcome to the support writer')
+    cont=False
+    while cont==False:
+        character1=input('Enter the name of the first character for this support\n')
+        character2=input('Enter the name of the second character for this support\n')
+        confirm=input(f'Input Y to confirm that you want this support to be between {character1} and {character2} or anything else to cancel\n')
+        if confirm.lower()=='y':
+            cont=True
+    cont=False
+    while cont==False:
+        num_levels=input('Enter how many support conversations you want there to be for this support chain\n')
+        if num_levels.isdigit():
+            confirm=input(f'Input y to confirm that you want {num_levels} support conversations or anything else to cancel\n')
+            if confirm.lower()=='y':
+                num_levels=int(num_levels)
+                cont=True
+    support_convos=[0]
+    j=1
+    while num_levels>0:
+        convo=input(f'Write the conversation you would like to play at level {j}. Use \\n to insert a newline.\n')
+        confirm=input(f'Input y to confirm that you want that to be support level {j}\n')
+        if confirm.lower()=='y':
+            j+=1
+            support_convos.appens(convo)
+            num_levels-=1
+    player.support_master[character1,character2]=support_convos
+    print('Support created!')
+            
 
 def edit_map():
     cont=True
@@ -4223,13 +4320,14 @@ player=alignment('Player')
 player.support_master={('Saitama','King'):[0,'Hi','Yo','Final'],('King','Zatch'):[0,'Hello','No Way']}
 ###Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
 luna=skill('Luna',9,'skill','defense',.5,'*',True,'enemy')
-sol=skill('Sol',5,'skill','curhp',10,'+',False,'self')
+sol=skill('Sol',5,'skill','curhp',10,'+',False,'self','atk')
 astra=skill('Astra',5,'skill','atk',2.5,'*',True,'self')
 mag_up=skill('Mag Up',100,'skill','atk',5,'+',True,'self')
 mag_up_2=skill('Mag Up 2',100,'skill','atk',5,'+',True,'self')
-armsthrift=skill('Armsthrift',500,'luck','curUses',1,'+',False,'weapon')
+armsthrift=skill('Armsthrift',5,'luck','curUses',1,'+',False,'weapon')
 placeholder=skill('Placeholder',0,'luck','atk',0,'+',True,'self')
 paragon=skill('Paragon',0,'luck','atk',0,'+',False,'self')
+galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')
 ###Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
 grounder=weapon_art('Grounder',3,10,'atk',2,'*','Sword',[],[1,2,3,4])
 ###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
