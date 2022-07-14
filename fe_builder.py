@@ -465,7 +465,7 @@ def menu(self):
 class character:
     character_list=[]    
     stats=['hp','atk','mag','skill','luck','defense','res','spd','movModifier']
-    growths=['hpG','atkG','magG','skillG','luckG','defG','resG','spdG']
+    growths={'hpG':'hp','atkG':'atk','magG':'mag','skillG':'skill','luckG':'luck','defG':'defense','resG':'res','spdG':'spd'}
     def __init__(self,name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,alignment,classtype,weaponType,joinMap,inventory,level):
         self.name=name
         self.curhp=curhp
@@ -492,11 +492,14 @@ class character:
         self.battles=0
         self.status='Alive'
         self.joinMap=joinMap
-        self.alignment=alignment
+        if isinstance(alignment,str):
+            self.alignment=eval(alignment.lower())
+        else:
+            self.alignment=alignment
         self.inventory=inventory
         self.classType=None
         for i in classType.class_list:
-            if i.name==classtype:
+            if i.name==classtype or i==classtype:
                 self.classType=i
         if self.classType.skill_list[0]!=placeholder:
             self.skills=[self.classType.skill_list[0]]
@@ -525,24 +528,12 @@ class character:
         self.moved=False
         self.placed=False
         self.deployed=False
-        cont=False
-        while cont==False:
-            try:
-                count=0
-                for i in mapLevel.map_list:
-                    if i.mapNum==joinMap:
-                        if alignment==player:
-                            i.player_roster.append(self)
-                        else:
-                            i.enemy_roster.append(self)
-                        count+=1
-                if count!=1:
-                    warnings.warn('Error with roster appending')
-                #self.alignment.roster_roster[joinMap-1].append(self)
-                cont=True
-            except:
-                print(traceback.format_exc())
-                #self.alignment.roster_roster.append([])
+        for i in mapLevel.map_list:
+            if i.mapNum==joinMap:
+                if alignment==player:
+                    i.player_roster.append(self)
+                else:
+                    i.enemy_roster.append(self)
         self.character_list.append(self)        
     def add_item(self,item):
         if len(self.inventory)<5:
@@ -636,7 +627,10 @@ class character:
                         z=shop.contents[int(buy)][0].name
                         z=z.replace(' ','_')
                         z=z.lower()
-                        p=globals()[z](False)
+                        try:
+                            p=globals()[z](False)
+                        except:
+                            p=shop.contents[int(buy)][0]
                         self.add_item(p)
                         shop.contents[int(buy)][1]-=1
                         if shop.contents[int(buy)][1]<=0:
@@ -822,118 +816,22 @@ class character:
             self.add_skill(skillY)
         if not silent:
             print('Current level: '+str(self.level))
-        if self.hpG>=1:
-            self.hp+=int(self.hpG)
-            if not silent:
-                print(f"+{int(hpG)} HP {self.hp}")
-        if rand.random()<=self.hpG-int(self.hpG) and self.hpG>=0:
-            self.hp+=1
-            if not silent:
-                print("+1 HP " + str(self.hp))
-        elif self.hpG<0:
-            if -rand.random()>=self.hpG:
-                if self.hp>1:
-                    self.hp-=1
+        for i in self.growths:
+            if getattr(self,i)>=1 or getattr(self,i)<=-1:
+                if getattr(self,self.growths[i])+int(getattr(self,i))>=0:
+                    setattr(self,i,getattr(self,self.growths[i])+int(getattr(self,i)))
                     if not silent:
-                        print(f"-1 HP {self.hp}")
-        if self.atkG>=1:
-            self.atk+=int(self.atkG)
-            if not silent:
-                print(f"+{int(atkG)} ATK {self.atk}")
-        if rand.random()<=self.atkG and self.atkG>=0:
-            self.atk+=1
-            if not silent:
-                print("+1 ATK " + str(self.atk))
-        elif self.atkG<0:
-            if -rand.random()>=self.atkG:
-                if self.atk>0:
-                    self.atk-=1
-                    if not silent:
-                        print(f"-1 ATK {self.atk}")
-        if self.magG>=1:
-            self.mag+=int(self.magG)
-            if not silent:
-                print(f"+{int(magG)} MAG {self.mag}")
-        if rand.random()<=self.magG and self.magG>=0:
-            self.mag+=1
-            if not silent:
-                print("+1 MAG " + str(self.mag))
-        elif self.magG<0:
-            if -rand.random()>=self.magG:
-                if self.mag>0:
-                    self.mag-=1
-                    if not silent:
-                        print(f"-1 MAG {self.mag}")
-        if self.skillG>=1:
-            self.skill+=int(self.skillG)
-            if not silent:
-                print(f"+{int(skillG)} SKILL {self.skill}")
-        if rand.random()<=self.skillG and self.skillG>=0:
-            self.skill+=1
-            if not silent:
-                print("+1 SKILL " + str(self.skill))
-        elif self.skillG<0:
-            if -rand.random()>=self.skillG:
-                if self.skill>0:
-                    self.skill-=1
-                    if not silent:
-                        print(f"-1 SKILL {self.skill}")
-        if self.luckG>=1:
-            self.luck+=int(self.luckG)
-            if not silent:
-                print(f"+{int(luckG)} LUCK {self.luck}")
-        if rand.random()<=self.luckG and self.luckG>=0:
-            self.luck+=1
-            if not silent:
-                print("+1 LUCK " + str(self.luck))
-        elif self.luckG<0:
-            if -rand.random()>=self.luckG:
-                if self.luck>0:
-                    self.luck-=1
-                    if not silent:
-                        print(f"-1 LUCK {self.luck}")
-        if self.defG>=1:
-            self.defense+=int(self.defG)
-            if not silent:
-                print(f"+{int(defG)} DEFENSE {self.defense}")
-        if rand.random()<=self.defG and self.defG>=0:
-            self.defense+=1
-            if not silent:
-                print("+1 DEF " + str(self.defense))
-        elif self.defG<0:
-            if -rand.random()>=self.defG:
-                if self.defense>0:
-                    self.defense-=1
-                    if not silent:
-                        print(f"-1 DEFENSE {self.defense}")
-        if self.resG>=1:
-            self.res+=int(self.resG)
-            if not silent:
-                print(f"+{int(resG)} RES {self.res}")
-        if rand.random()<=self.resG and self.resG>=0:
-            self.res+=1
-            if not silent:
-                print("+1 RES " + str(self.res))
-        elif self.resG<0:
-            if -rand.random()>=self.resG:
-                if self.res>0:
-                    self.res-=1
-                    if not silent:
-                        print(f"-1 RES {self.res}")
-        if self.spdG>=1:
-            self.spd+=int(self.spdG)
-            if not silent:
-                print(f"+{int(spdG)} SPD {self.spd}")
-        if rand.random()<=self.spdG and self.spdG>=0:
-            self.spd+=1
-            if not silent:
-                print("+1 SPD " + str(self.spd))
-        elif self.spdG<0:
-            if -rand.random()>=self.spdG:
-                if self.spd>0:
-                    self.spd-=1
-                    if not silent:
-                        print(f"-1 SPEED{self.spd}")
+                        print(f'+{int(i)} {self.growths[i]} {getattr(self,i)}')
+            if rand.random()<=getattr(self,i) and getattr(self,i)>=0:
+                setattr(self,i,getattr(self,self.growths[i])+1)
+                if not silent:
+                    print(f'+1 {self.growths[i]} {getattr(self,i)}')
+            elif getattr(self,i)<0:
+                if -rand.random()>=getattr(self,i):
+                    if getattr(self,self.growths[i])>1:
+                        setattr(self,i,getattr(self,self.growths[i])-1)
+                        if not silent:
+                            print(f'-1 {self.growths[i]} {getattr(self,i)}')                
     def skill_roll(self,enemy):
         changed_stats_player={}
         changed_stats_enemy={}
@@ -997,7 +895,6 @@ class character:
                 if curMap.spaces[self.location[0],self.location[1]][1]==self:
                     curMap.spaces[self.location[0],self.location[1]]=[False]
         except Exception as e:
-            #print(traceback.format_exc())
             pass
         if (location[0],location[1]) in curMap.spaces:
             self.location=location
@@ -2517,7 +2414,6 @@ def djikstra(self):
     return shortest_path
 
 def save(kind=''):
-    #needs to be completely redone
     #weapon arts, unique weapons, skills, classes, units, player roster, maps, supports list
     if saveallowed:
         print("Saving data, please don't turn off the power")
@@ -2529,15 +2425,11 @@ def save(kind=''):
             playtime=int(toc-tic)
             playtime+=timemodifier
             f.write(f'time\n{playtime}\nmap\n{mapNum}\n')
-            for i in mapLevel.map_list:
-                f.write(str(i.completion_turns))
-                f.write('\n')
             f.write('roster\n')
             for i in player.roster:
                 f.write(i.name)
                 f.write('\n')
-            f.write(f'support\n{player.support_master}\n')
-            f.write(f'turncount\n{mapLevel.map_list[mapNum].turn_count}\nbattlesaves\n{mapLevel.map_list[mapNum].battle_saves}')
+            f.write(f'support\n{player.support_master}')
         f.close()
         with open(f'save_data_maps{kind}.txt', 'w') as f:
             for i in mapLevel.map_list:
@@ -2639,29 +2531,6 @@ def save(kind=''):
         print('Save complete!')
 
 def load(kind=''):
-    #needs to be completely redone to work with current implementatioon
-    """
-at end
-for i in character.character_list:
-    for j in mapLevel.map_list:
-        if i.joinmap==j.mapNum:
-            if align==player and i not in j.player_roster:
-                j.player_roster.append(i)
-            elif align==enemy and i not in j.enemy_roster:
-                j.enemy_roster.append(i)
-        else:
-            if align==player and i in j.player_roster:
-                j.player_roster.pop(i)
-            elif align==enemy and i in j.enemy_roster:
-                j.enemy_roster.pop(i)
-for i in mapLevel.map_list:
-if curMap==i:        
-for j in curMap.enemy_roster:
-    j.update_location(j.location)
-for j in curMap.player_roster:
-    j.update_location(j.location)
-DLLs
-"""
     global curMap
     j = open(f"save_data{kind}.txt", "r")
     saveData=j.read().splitlines()
@@ -2895,8 +2764,6 @@ DLLs
                         z=z.replace(' ','_')
                         z=z.lower()
                         setattr(exist,j[0],eval(z))
-                        if j[0]=='alignment' and mapLevel.map_list[mapNum].battle_saves>0 and j[1]=='Enemy' and mapNum==exist.joinMap:
-                            enemy.roster.append(exist)
                     elif j[0]=='active_item' and j[1]!='None':
                         x=j[1]
                         x=x.split('/')
@@ -3140,20 +3007,15 @@ DLLs
                     if R.name==Q:
                         if R not in char.skills_all:
                             char.skills_all.append(R)
-            #print(char.alignment.name)
     for i in character.character_list:
         for j in mapLevel.map_list:
             if i.joinMap==j.mapNum:
                 if i.alignment==player and i not in j.player_roster:
-                    if i.name=='jack':
-                        print('yeah')
                     j.player_roster.append(i)
                 elif i.alignment==enemy and i not in j.enemy_roster:
                     j.enemy_roster.append(i)
             else:
                 if i.alignment==player and i in j.player_roster:
-                    if i.name=='jack':
-                        print('yeah')
                     j.player_roster.pop(i)
                 elif i.alignment==enemy and i in j.enemy_roster:
                     j.enemy_roster.pop(i)
@@ -3174,16 +3036,7 @@ DLLs
         elif i=='turncount':
             path='turncount'
         else:
-            if path=='map':
-                if mapChoice==False:
-                    pass
-                else:
-                    for j in range(4,len(mapLevel.map_list)+3):
-                        j=int(j)
-                        for k in mapLevel.map_list:
-                            if k.mapNum==j-4:
-                                k.completion_turns=saveData[j]
-            elif path=='roster':
+            if path=='roster':
                 for j in character.character_list:
                     if j.name==i:
                         player.roster.append(j)
@@ -3860,6 +3713,7 @@ def create_map():
     mapCreated=mapLevel(name,y_size,x_size,map_num,spawns,[],[])
     #Adding objects to the map
     add_map_objects()
+    print('Map Created!')
 
                                 
 def create_unique_weapon():
@@ -4670,13 +4524,6 @@ def edit_char():
             cont=False
         else:
             print('Invalid input, try again')
-
-def next_map():
-    global curMap
-    map_list=[]
-    for i in mapLevel.map_list:
-        if i.mapNum==mapNum:
-            curMap=i
                             
 """
 water's movecost is 998, void is 9999, enemy is 999
@@ -4744,6 +4591,66 @@ saitama.add_skill(luna)
 saitama.add_skill(armsthrift)
 king=player_char('King',3,3,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,'Lord',{},1,[iron_sword(False),key(False)],1,{'Saitama':0,'Zatch':0},[])
 zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Mercenary',{},2,[iron_sword(False)],1,{'King':0},[])
+###Loading
+print('Welcome to FE Builder, created by Schwa')
+loadX='placeholder'
+tic = time.perf_counter()
+if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
+    if os.path.exists('save_data_battle.txt'):
+        j = open("save_data_battle.txt", "r")
+        listY=j.read().splitlines()
+        j.close()
+        print(f'Battlesave: Chapter {int(listY[3])} Playtime {datetime.timedelta(seconds=float(listY[1]))}')
+    if os.path.exists('save_data.txt'):
+        j = open("save_data.txt", "r")
+        listX=j.read().splitlines()
+        j.close()
+        print(f'File 1: Chapter {int(listX[3])} Playtime {datetime.timedelta(seconds=float(listX[1]))}')
+    if os.path.exists('save_data_battle.txt') and os.path.exists('save_data.txt'):
+        loadX=input('Would you like to load? Press Y to load, N to start the map over, or X to delete your save file \n')
+        if loadX.lower()=='y':
+            load('_battle')
+        elif loadX.lower()=='n':
+            load()
+        elif loadX.lower()=='x':
+            try:
+                os.remove('save_data.txt')
+                os.remove('save_data_other.txt')
+                os.remove('save_data_maps.txt')
+                os.remove('save_data_maps_battle.txt')
+                os.remove('save_data_battle.txt')
+                os.remove('save_data_other_battle.txt')
+            except:
+                print(traceback.format_exc())
+                pass
+            print('Save file deleted')
+    elif os.path.exists('save_data_battle.txt') and not os.path.exists('save_data.txt'):
+        loadX=input('Would you like to load? Press Y to load or X to delete your save file \n')
+        if loadX.lower()=='y':
+            load('_battle')
+            print('Data loaded')
+        elif loadX.lower()=='x':
+            try:
+                os.remove('save_data_battle.txt')
+                os.remove('save_data_maps_battle.txt')
+                os.remove('save_data_other_battle.txt')
+            except:
+                print(traceback.format_exc())
+                pass
+            print('Save file deleted')
+    elif os.path.exists('save_data.txt') and not os.path.exists('save_data_battle.txt'):
+        loadX=input('Would you like to load? Press Y to load or X to delete your save file \n')
+        if loadX.lower()=='y':
+            load()
+        elif loadX.lower()=='x':
+            try:
+                os.remove('save_data.txt')
+                os.remove('save_data_other.txt')
+                os.remove('save_data_maps.txt')
+            except:
+                print(traceback.format_exc())
+                pass
+            print('Save file deleted')
 ###Creative mode
 zerogrowth=False
 neggrowth=False
@@ -4758,7 +4665,6 @@ saveallowed=True
 cheatallowed=True
 bighead=False
 cheat_codes=['uuddlrlrab','630660714755868972','nobitches','superjack','oldschool','bestboy','ultimatelifeform','edgelord','galaxybrain','gettinghead','alphamale']
-print('Welcome to FE Builder, created by Schwa')
 print('In this there are 2 main modes, creative and survival.\nIn creative mode you can create maps, edit characters, write supports, whatever you like.\nIn survival mode you can use your creations, or just use premade ones if you just want to get into the action.\n')
 debug=input('Input Y for creative mode or anything else for survival\n')
 while debug.lower()=='y':
@@ -4834,98 +4740,40 @@ while debug.lower()=='y':
         print("No weapon triangle mode has been activated. Rock paper scisors waifu chess has been reduced to just chess at this point!")
     elif path.lower()=='bestboy' and cheatallowed:
         #unlock laslow
-        pass
+        laslow=player_char('Laslow',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Hero',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'])
     elif path.lower()=='ultimatelifeform' and cheatallowed:
         #unlock shadow
-        pass
+        shadow=player_char('Shadow',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'])
     elif path.lower()=='edgelord' and cheatallowed:
         #unlock schwa
-        pass
+        schwa=player_char('Schwa',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'])
     elif path.lower()=='galaxybrain' and cheatallowed:
         #unlock kie
-        pass
+        kie=player_char('Kie',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'])
     elif path.lower()=='gettinghead' and cheatallowed:
         #unlock big head mode
         bighead=True
-        pass
     elif path.lower()=='alphamale' and cheatallowed:
         #unlock all the alpha characters
-        pass
+        saitama=player_char('Saitama',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'])
+        saitama.add_skill(luna)
+        saitama.add_skill(armsthrift)
+        king=player_char('King',3,3,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,'Lord',{},1,[iron_sword(False),key(False)],1,{},[])
+        zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Mercenary',{},2,[iron_sword(False)],1,{},[])
     else:
         pass
-###Loading
-#Probably need to move this before the creative mode
-loadX='placeholder'    
-if os.path.exists('save_data.txt') or os.path.exists('save_data_battle.txt'):
-    if os.path.exists('save_data_battle.txt'):
-        j = open("save_data_battle.txt", "r")
-        listY=j.read().splitlines()
-        j.close()
-        print(f'Battlesave: Chapter {int(listY[3])+1} {mapLevel.map_list[int(listY[3])].name} Playtime {datetime.timedelta(seconds=float(listY[1]))}')
-    if os.path.exists('save_data.txt'):
-        j = open("save_data.txt", "r")
-        listX=j.read().splitlines()
-        j.close()
-        print(f'File 1: Chapter {int(listX[3])+1} {mapLevel.map_list[int(listX[3])].name} Playtime {datetime.timedelta(seconds=float(listX[1]))}')
-    if os.path.exists('save_data_battle.txt') and os.path.exists('save_data.txt'):
-        loadX=input('Would you like to load? Press Y to load, N to start the map over, or X to delete your save file \n')
-        if loadX.lower()=='y':
-            load('_battle')
-        elif loadX.lower()=='n':
-            load()
-        elif loadX.lower()=='x':
-            try:
-                os.remove('save_data.txt')
-                os.remove('save_data_other.txt')
-                os.remove('save_data_maps.txt')
-                os.remove('save_data_maps_battle.txt')
-                os.remove('save_data_battle.txt')
-                os.remove('save_data_other_battle.txt')
-            except:
-                print(traceback.format_exc())
-                pass
-            print('Save file deleted')
-    elif os.path.exists('save_data_battle.txt') and not os.path.exists('save_data.txt'):
-        loadX=input('Would you like to load? Press Y to load or X to delete your save file \n')
-        if loadX.lower()=='y':
-            load('_battle')
-            print('Data loaded')
-        elif loadX.lower()=='x':
-            try:
-                os.remove('save_data_battle.txt')
-                os.remove('save_data_maps_battle.txt')
-                os.remove('save_data_other_battle.txt')
-            except:
-                print(traceback.format_exc())
-                pass
-            print('Save file deleted')
-    elif os.path.exists('save_data.txt') and not os.path.exists('save_data_battle.txt'):
-        loadX=input('Would you like to load? Press Y to load or X to delete your save file \n')
-        if loadX.lower()=='y':
-            load()
-        elif loadX.lower()=='x':
-            try:
-                os.remove('save_data.txt')
-                os.remove('save_data_other.txt')
-                os.remove('save_data_maps.txt')
-            except:
-                print(traceback.format_exc())
-                pass
-            print('Save file deleted')
 #Gameplay loop
-tic = time.perf_counter()
-next_map()
 if zerogrowth or neggrowth or fullgrowth:
     for char in characters.character_list:
         for growth in characters.growths:
             if zerogrowth:
                 setattr(char,growth,0)
-                pass
             elif neggrowth:
-                pass
+                if getattr(char,growth)>=0:
+                    setattr(char,growth,-getattr(char,growth))
             elif fullgrowth:
                 setattr(char,growth,1)
-while mapNum<len(mapLevel.map_list):
+while mapNum<=len(mapLevel.map_list):
     for i in mapLevel.map_list:
         if mapNum==i.mapNum:
             curMap=i
@@ -4948,14 +4796,17 @@ while mapNum<len(mapLevel.map_list):
         print("You beat the level!")
         curMap.completion_turns=curMap.turn_count
         mapNum+=1
-        next_map()
         if saveallowed:
             saveX=input('Would you like to save the game? Input Y to save. \n')
             if saveX.lower()=='y':
                 save()
                 if os.path.exists('save_data_battle.txt'):
-                    os.remove('save_data_battle.txt')
-                    os.remove('save_data_other_battle.txt')
+                    listBS=['save_data_battle.txt','save_data_other_battle.txt','save_data_maps_battle.txt']
+                    for i in listBS:
+                        try:
+                            os.remove(i)
+                        except:
+                            pass
 #Ending
 print("You beat the game!")
 total_turns=0
@@ -4969,9 +4820,10 @@ for i in player_char.player_char_list:
     print(f"{i.name}: {i.kills} kills in {i.battles} battles, {i.status}")
     total_kills+=i.kills
     total_battles+=i.battles
-for i in player_char.player_char_list:
-    print(f"{i.name}: {i.kills} kills in {i.battles} battles, {i.status}")
-    total_kills+=i.kills
-    total_battles+=i.battles
+for i in recruitable.recruitable_list:
+    print(f"{i.name}: {i.kills} kills in {i.battles} battles, {i.status}, {i.alignment.name}")
+    if i.alignment==player:
+        total_kills+=i.kills
+        total_battles+=i.battles    
 print(f'Total battles: {total_battles}')
 print(f'Total kills: {total_kills}')
