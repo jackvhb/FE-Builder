@@ -1012,11 +1012,6 @@ class character:
                     if i.name==self.classType.promotions[int(choice)]:
                         newClass=i
                 self.reclass(newClass)
-                self.add_skill(newClass.skill_list[0])
-                for i in newClass.weaponType:
-                    if i in self.weaponType:
-                        if newClass.weaponType[i]>self.weaponType[i]:
-                            self.weaponType[i]=newClass.weaponType[i]
                 self.level=1
                 self.exp=0
                 return
@@ -1031,104 +1026,26 @@ class character:
         if self.mov<1:
             self.mov=1
         print(f'MOV +{mov_change}')
-        hp_change=newClass.hp-self.classType.hp
-        self.hp+=hp_change
-        if self.hp<=0:
-            self.hp=1
-        if self.curhp>self.hp:
-            self.curhp=self.hp
-        print(f'HP +{hp_change}')
-        hpG_change=newClass.hpG-self.classType.hpG
-        if self.hpG<0:
-            allow=True
-        self.hpG+=hpG_change
-        if self.hpG<0 and allow==False:
-            self.hpG=0
-        print(f'HP Growth +{hpG_change}')
-        atk_change=newClass.atk-self.classType.atk
-        self.atk+=atk_change
-        if self.atk<0:
-            self.atk=0
-        print(f'ATK +{atk_change}')
-        atkG_change=newClass.atkG-self.classType.atkG
-        if self.atkG<0:
-            allow=True
-        self.atkG+=atkG_change
-        if self.atkG<0 and allow==False:
-            self.atkG=0
-        print(f'ATK Growth +{atkG_change}')
-        mag_change=newClass.mag-self.classType.mag
-        self.mag+=mag_change
-        if self.mag<0:
-            self.mag=0
-        print(f'MAG +{mag_change}')
-        magG_change=newClass.magG-self.classType.magG
-        self.magG+=magG_change
-        if self.magG<0:
-            allow=True
-        if self.magG<0 and allow==False:
-            self.magG=0
-        print(f'MAG Growth +{magG_change}')
-        skill_change=newClass.skill-self.classType.skill
-        self.skill+=skill_change
-        if self.skill<0:
-            self.skill=0
-        print(f'SKILL +{skill_change}')
-        skillG_change=newClass.skillG-self.classType.skill
-        if self.skillG<0:
-            allow=True
-        self.skillG+=skillG_change
-        if self.skillG<0 and allow==False:
-            self.skillG=0
-        print(f'SKILL Growth +{skillG_change}')
-        luck_change=newClass.luck-self.classType.luck
-        self.luck+=luck_change
-        if self.luck<0:
-            self.luck=0
-        print(f'LUCK +{luck_change}')
-        luckG_change=newClass.luckG-self.classType.luck
-        if self.luckG<0:
-            allow=True
-        self.luckG+=luckG_change
-        if self.luckG<0 and allow==False:
-            self.luckG=0
-        print(f'LUCK Growth +{luckG_change}')
-        def_change=newClass.defense-self.classType.defense
-        self.defense+=def_change
-        if self.defense<0:
-            self.defense=0
-        print(f'DEF +{def_change}')
-        defG_change=newClass.defG-self.classType.defG
-        if self.defG<0:
-            allow=True
-        self.defG+=defG_change
-        if self.defG<0 and allow==False:
-            self.defG=0
-        print(f'DEF Growth +{defG_change}')
-        res_change=newClass.res-self.classType.res
-        self.res+=res_change
-        if self.res<0:
-            self.res=0
-        print(f'RES +{res_change}')
-        resG_change=newClass.resG-self.classType.resG
-        if self.resG<0:
-            allow=True
-        self.resG+=resG_change
-        if self.resG<0 and allow==False:
-            self.resG=0
-        print(f'RES Growth +{resG_change}')
-        spd_change=newClass.spd-self.classType.spd
-        self.spd+=spd_change
-        if self.spd<0:
-            self.spd=0
-        print(f'SPEED +{spd_change}')
-        spdG_change=newClass.spdG-self.classType.spdG
-        if self.spdG<0:
-            allow=True
-        self.spdG+=spdG_change
-        if self.spdG<0 and allow==False:
-            self.spdG=0
-        print(f'SPEED Growth +{spdG_change}')
+        for i in self.stats:
+            stat_change=getattr(newClass,i)-getattr(self.classType,i)
+            setattr(self,i,getattr(self,i)+stat_change)
+            print(f'{i} +{stat_change}')
+            if i=='hp':
+                if self.hp==0:
+                    self.hp=1
+                if self.curhp>self.hp:
+                    self.curhp=self.hp
+            else:
+                if getattr(self,i)<0:
+                    setattr(self,i,0)
+        for j in self.growths:
+            if getattr(self,j)<0:
+                allow=True
+            growth_change=getattr(newClass,j)-getattr(self.classType,j)
+            setattr(self,j,getattr(self,j)+growth_change)
+            print(f'{j} +{growth_change}')
+            if getattr(self,j)<0 and allow==False:
+                setattr(self,j,0)
         self.add_skill(newClass.skill_list[0])
         print(f'Learned {newClass.skill_list[0].name}')
         for i in newClass.weaponType:
@@ -2428,7 +2345,7 @@ def append_shop(base_class,*weapon):
         count=input('Input how many of this item you want this shop to have\n')
         if int(count)>0:
             try:
-                return [base_class[weapon[0]][int(inventoryX)]],int(count)]
+                return [base_class[weapon[0]][int(inventoryX)],int(count)]
             except:
                 print(traceback.format_exc())
     else:
@@ -2477,17 +2394,17 @@ def edit_shop(*shop):
         elif item_inventory=='1':
             weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
             if weapon_inventory=='1':
-                inventory.append(append_shop(base_weapon_dict,'sword')
+                inventory.append(append_shop(base_weapon_dict,'sword'))                                
             elif weapon_inventory=='2':
-                inventory.append(append_shop(base_weapon_dict,'lance')
+                inventory.append(append_shop(base_weapon_dict,'lance'))
             elif weapon_inventory=='3':
-                inventory.append(append_shop(base_weapon_dict,'axe')
+                inventory.append(append_shop(base_weapon_dict,'axe'))
             elif weapon_inventory=='4':
-                inventory.append(append_shop(base_weapon_dict,'bow')
+                inventory.append(append_shop(base_weapon_dict,'bow'))
             elif weapon_inventory=='5':
-                inventory.append(append_shop(base_weapon_dict,'tome')
+                inventory.append(append_shop(base_weapon_dict,'tome'))
             elif weapon_inventory=='6':
-                inventory.append(append_shop(base_weapon_dict,'fist')
+                inventory.append(append_shop(base_weapon_dict,'fist'))
             elif weapon_inventory=='7':
                 for i in range(0,len(unique_weapons)):
                     print(f'{i}: {unique_weapons[i].name}')
@@ -2505,9 +2422,9 @@ def edit_shop(*shop):
                     else:
                         print('Invalid input, returning to menu')
         elif item_inventory=='2':
-            inventory.append(append_shop(base_armor)
+            inventory.append(append_shop(base_armor))
         elif item_inventory=='3':
-            inventory.append(append_shop(base_misc)
+            inventory.append(append_shop(base_misc))
 
 def append_stock_inventory(base_class,*weapon):
     if base_class==base_weapon_dict:
@@ -2517,7 +2434,7 @@ def append_stock_inventory(base_class,*weapon):
         inventoryX=input(f'Input the number of the {weapon[0]} you wish to add.\n')
         droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
         try:
-            x=base_class[weapon[0]][int(inventoryX)]].name
+            x=base_class[weapon[0]][int(inventoryX)].name
         except:
             print(traceback.format_exc())
     else:
@@ -2527,7 +2444,7 @@ def append_stock_inventory(base_class,*weapon):
         droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
         try:
             consumable_inventory=int(consumable_inventory)
-            x=base_class[int(inventoryX)]].name
+            x=base_class[int(inventoryX)].name
         except:
             print(traceback.format_exc())
     z=x.replace(' ','_')
@@ -2560,17 +2477,17 @@ def stock_inventory(name,*inventory):
         elif item_inventory=='1':
             weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
             if weapon_inventory=='1':
-                inventory.append(append_stock_inventory(base_weapon_dict,'sword')
+                inventory.append(append_stock_inventory(base_weapon_dict,'sword'))
             elif weapon_inventory=='2':
-                inventory.append(append_stock_inventory(base_weapon_dict,'lance')
+                inventory.append(append_stock_inventory(base_weapon_dict,'lance'))
             elif weapon_inventory=='3':
-                inventory.append(append_stock_inventory(base_weapon_dict,'axe')
+                inventory.append(append_stock_inventory(base_weapon_dict,'axe'))
             elif weapon_inventory=='4':
-                inventory.append(append_stock_inventory(base_weapon_dict,'bow')
+                inventory.append(append_stock_inventory(base_weapon_dict,'bow'))
             elif weapon_inventory=='5':
-                inventory.append(append_stock_inventory(base_weapon_dict,'tome')
+                inventory.append(append_stock_inventory(base_weapon_dict,'tome'))
             elif weapon_inventory=='6':
-                inventory.append(append_stock_inventory(base_weapon_dict,'fist')
+                inventory.append(append_stock_inventory(base_weapon_dict,'fist'))
             elif weapon_inventory=='7':
                 for i in range(0,len(unique_weapons)):
                     print(f'{i}:{unique_weapons[i].name}')
@@ -2586,9 +2503,9 @@ def stock_inventory(name,*inventory):
                        print(traceback.format_exc())
                        print('Invalid input, try again')
         elif item_inventory=='2':
-            inventory.append(append_stock_inventory(base_armor)
+            inventory.append(append_stock_inventory(base_armor))
         elif item_inventory=='3':
-            inventory.append(append_stock_inventory(base_misc)
+            inventory.append(append_stock_inventory(base_misc))
     return inventory
 
 def save(kind=''):
