@@ -73,24 +73,12 @@ def init_battle(char1,char2,dist,*weaponX):
             hitMod+=char1.check_support_bonus()
         elif isinstance(char2,player_char):
             hitMod-=char2.check_support_bonus()
-    if weapon1.weapontype=='Sword' and weapon2.weapontype=='Lance':
+    if (weapon1.weapontype=='Sword' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Sword') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Axe'):
         dmgMod+=-1
         hitMod+=-10
-    elif weapon1.weapontype=='Sword' and weapon2.weapontype=='Axe':
+    elif (weapon1.weapontype=='Sword' and weapon2.weapontype=='Axe') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Sword'):
         dmgMod+=1
         hitMod+=10
-    elif weapon1.weapontype=='Axe' and weapon2.weapontype=='Lance':
-        dmgMod+=1
-        hitMod+=10
-    elif weapon1.weapontype=='Axe' and weapon2.weapontype=='Sword':
-        dmgMod+=-1
-        hitMod+=-10
-    elif weapon1.weapontype=='Lance' and weapon2.weapontype=='Sword':
-        dmgMod+=1
-        hitMod+=10
-    elif weapon1.weapontype=='Lance' and weapon2.weapontype=='Axe':
-        dmgMod1=-1
-        hitMod1=-10
     if battle(char1,weapon1,char2,dmgMod,hitMod,active_art)=='Continue':
         if weapon2!=None and dist in weapon2.rng:
             z=battle(char2,weapon2,char1,-dmgMod,-hitMod)
@@ -108,36 +96,29 @@ def init_battle(char1,char2,dist,*weaponX):
     char1.battles+=1
     char2.battles+=1
     if weaponX:
-        if char1.status=='Dead':
-            char2.weaponType[weapon2.weapontype]+=10
-            expGain=30+char1.hp
-        else:
-            char2.weaponType[weapon2.weapontype]+=1
-            expGain=startHP-char1.curhp
-        if paragon in char2.skill_list:
-            expGain*=2
-        if char1.status!='Dead':
-            char1.moved=True
-        if char2.status!='Dead':
-            if char2.level<20:
-                char2.exp+=expGain
-            if char2.exp>=100:
-                char2.level_up()
+        player_unit=char2
+        player_weapon=weapon2
+        enemy_unit=char1
     else:
-        if char2.status=='Dead':
-            char1.weaponType[weapon1.weapontype]+=10
-            expGain=30+char2.hp
-        else:
-            char1.weaponType[weapon1.weapontype]+=1
-            expGain=startHP-char2.curhp
-        if paragon in char1.skill_list:
-            expGain*=2
-        if char1.status!='Dead':
-            char1.moved=True
-            if char1.level<20:
-                char1.exp+=expGain
-            if char1.exp>=100:
-                char1.level_up()
+        player_unit=char1
+        enemy_unit=char2
+        player_weapon=weapon1
+    if enemy_unit.status=='Dead':
+        player_unit.weaponType[player_weapon.weapontype]+=10
+        expGain=30+enemy_unit.hp
+    else:
+        player_unit.weaponType[player_weapon.weapontype]+=1
+        expGain=startHP-enemy_unit.curhp
+    if paragon in player_unit.skill_list:
+        expGain*=2
+    if char1.status!='Dead':
+        char1.moved=True
+    if player_unit.status!='Dead':
+        if player_unit.level<20:
+            player_unit.exp+=expGain
+        if player_unit.exp>=100:
+            player_unit.level_up()
+            
 def battle(char1,weapon1,char2,dmgMod,hitMod,*active_art):
     input(f'{char1.name} attacked {char2.name} with a {weapon1.name} \n')
     try:
@@ -187,64 +168,39 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,*active_art):
         except Exception as e:
             pass
         damage=char1.atk+weapon1.dmg+dmgMod-char2.defense
-        if damage<0:
-            damage=0
-        if crit==True:
-            damage*=3
-            input("Critical hit!")
-        if char2.curhp-damage>0:
-            char2.curhp=char2.curhp-damage
-            input(f"{char1.name} attacked {char2.name} and did {damage} damage \n")
-            weapon1.curUses-=1
-            if weapon1.curUses<=0:
-                weapon1.breakX(char1)
-            for i in player_dict:
-                setattr(char1,i,player_dict[i])
-            for j in enemy_dict:
-                setattr(char2,j,enemy_dict[j])
-            return("Continue")
-        else:
-            char2.die(char1)
-            weapon1.curUses-=1
-            if weapon1.curUses<=0:
-                weapon1.breakX(char1)
-            for i in player_dict:
-                setattr(char1,i,player_dict[i])
-            for j in enemy_dict:
-                setattr(char2,j,enemy_dict[j])
-            return("End")
-    if weapon1.dmgtype=='Magic':
+    elif weapon1.dmgtype=='Magic':
         for i in char2.inventory:
             if isinstance(i,armor):
                 if i.stat=='res':
                     dmgMod-=i.effect
         damage=char1.mag+weapon1.dmg+dmgMod-char2.res
-        if damage<0:
-            damage=0
-        if crit==True:
-            damage*=3
-            input("Critical hit!")
-        if char2.curhp-damage>0:
-            char2.curhp=char2.curhp-damage
-            input(f"{char1.name} attacked {char2.name} and did {damage} damage \n")
-            weapon1.curUses-=1
-            if weapon1.curUses<=0:
-                weapon1.breakX(char1)
-            for i in player_dict:
-                setattr(char1,i,player_dict[i])
-            for j in enemy_dict:
-                setattr(char2,j,enemy_dict[j])
-            return("Continue")
-        else:
-            char2.die(char1)
-            weapon1.curUses-=1
-            if weapon1.curUses<=0:
-                weapon1.breakX(char1)
-            for i in player_dict:
-                setattr(char1,i,player_dict[i])
-            for j in enemy_dict:
-                setattr(char2,j,enemy_dict[j])
+    if damage<0:
+        damage=0
+    if crit==True:
+        damage*=3
+        input("Critical hit!")
+    if char2.curhp-damage>0:
+        char2.curhp=char2.curhp-damage
+        input(f"{char1.name} attacked {char2.name} and did {damage} damage \n")
+        weapon1.curUses-=1
+        if weapon1.curUses<=0:
+            weapon1.breakX(char1)
+        for i in player_dict:
+            setattr(char1,i,player_dict[i])
+        for j in enemy_dict:
+            setattr(char2,j,enemy_dict[j])
+        return("Continue")
+    else:
+        char2.die(char1)
+        weapon1.curUses-=1
+        if weapon1.curUses<=0:
+            weapon1.breakX(char1)
+        for i in player_dict:
+            setattr(char1,i,player_dict[i])
+        for j in enemy_dict:
+            setattr(char2,j,enemy_dict[j])
             return("End")
+
 def menu(self):
     atkRange=[0]
     targetRange=[]
@@ -804,16 +760,14 @@ class character:
             return
         if not silent:
             print('Level up!')
-        if self.level==10:
-            skillX=self.classType.skill_list[1]
+        if self.level==10 or self.level==20:
+            if self.level==10:
+                skillX=self.classType.skill_list[1]
+            else:
+                skillX=self.classType.skill_list[2]
             if not silent:
                 print(f'You have unlocked the skill {skillX.name}')
             self.add_skill(skillX)
-        if self.level==20:
-            skillY=self.classType.skill_list[2]
-            if not silent:
-                print(f'You have unlocked the skill {skillY.name}')
-            self.add_skill(skillY)
         if not silent:
             print('Current level: '+str(self.level))
         for i in self.growths:
@@ -891,9 +845,8 @@ class character:
             self.move([int(dest[0]),int(dest[1])])
     def update_location(self,location):
         try:
-            if self.location[0]!=-1:
-                if curMap.spaces[self.location[0],self.location[1]][1]==self:
-                    curMap.spaces[self.location[0],self.location[1]]=[False]
+            if curMap.spaces[self.location[0],self.location[1]][1]==self:
+                curMap.spaces[self.location[0],self.location[1]]=[False]
         except Exception as e:
             pass
         if (location[0],location[1]) in curMap.spaces:
@@ -934,9 +887,7 @@ class character:
                        if self.inventory[int(path)].curUses<=0:
                            self.inventory[int(path)].breakX(self)
                        return
-                statO=getattr(self,self.inventory[int(path)].stat)
-                update=statO+self.inventory[int(path)].effect
-                setattr(self,self.inventory[int(path)].stat,update)
+                setattr(self,self.inventory[int(path)].stat,getattr(self,self.inventory[int(path)].stat)+self.inventory[int(path)].effect)
                 print(getattr(self,self.inventory[int(path)].stat))
                 if self.inventory[int(path)].curUses<=0:
                    self.inventory[int(path)].breakX(self)
@@ -950,9 +901,7 @@ class character:
             consumable.curdur-=1
             return
         elif consumable.active==True and consumable.curdur==1:
-            statO=getattr(self,consumable.stat)
-            update=statO-consumable.effect
-            setattr(self,consumable.stat,update)
+            setattr(self,consumable.stat,getattr(self,consumable.stat)-consumable.effect)
             consumable.curdur=consumable.dur
             consumable.active=False
     def equip_weapon(self):
@@ -1052,6 +1001,7 @@ class character:
             if i not in self.weaponType:
                 self.weaponType[i]=newClass.weaponType[i]
         self.classType=newClass
+        
 class enemy_char(character):
     enemy_char_list=[]
     nameClass='enemy_char'
@@ -1727,12 +1677,9 @@ class mapLevel:
             for i in self.spaces:
                 if i[1]==0:
                     if i[0]==0:
-                        cur=[0]                  
-                        cur.append(str(i[0]))
-                        prev=i[1]
-                    else:                   
-                        cur.append(str(i[0]))
-                        prev=i[1]
+                        cur=[0]           
+                    cur.append(str(i[0]))
+                    prev=i[1]
             cont=True
         rows.append(cur)
         prev=-1
@@ -1749,43 +1696,24 @@ class mapLevel:
                 if prev!=-1:
                     rows.append(cur)
                 cur=[i[1]]
-                if char==None:                    
-                    char=" "
-                if self.spaces[i][0]==True:
-                    if mode.lower()=='cur' or mode.lower()=='djik':
-                        if self.spaces[i][1].alignment==enemy:
-                            char="E"
-                        elif self.spaces[i][1].alignment==player:
-                            char="P"
-                if mode.lower()=='base':
-                    for j in self.enemy_roster:
-                        if [i[0],i[1]]==j.spawn:
-                            char='E'
-                    if [i[0],i[1]] in self.spawns:
-                        char='P'
-                if i[0]>=10:
-                    char+=' '
-                cur.append(char)
-                prev=i[1]
-            else:
-                if char==None:                    
-                    char=" "
-                if self.spaces[i][0]==True:
-                    if mode.lower()=='cur' or mode.lower()=='djik':
-                        if self.spaces[i][1].alignment==enemy:
-                            char="E"
-                        elif self.spaces[i][1].alignment==player:
-                            char="P"
-                if mode.lower()=='base':
-                    for j in self.enemy_roster:
-                        if [i[0],i[1]]==j.spawn:
-                            char='E'
-                    if [i[0],i[1]] in self.spawns:
-                        char='P'
-                if i[0]>=10:
-                    char+=' '
-                cur.append(char)
-                prev=i[1]
+            if char==None:                    
+                char=" "
+            if self.spaces[i][0]==True:
+                if mode.lower()=='cur' or mode.lower()=='djik':
+                    if self.spaces[i][1].alignment==enemy:
+                        char="E"
+                    elif self.spaces[i][1].alignment==player:
+                        char="P"
+            if mode.lower()=='base':
+                for j in self.enemy_roster:
+                    if [i[0],i[1]]==j.spawn:
+                        char='E'
+                if [i[0],i[1]] in self.spawns:
+                    char='P'
+            if i[0]>=10:
+                char+=' '
+            cur.append(char)
+            prev=i[1]
         rows.append(cur)
         for j in rows:
             print(j)            
@@ -1983,7 +1911,7 @@ class treasure_chest(mapObject):
         super().info()
         print('Can be opened by a key to gain the treasure inside')
     def edit_contents(self):
-        print(f'The current item in this chest is {contents.name}')
+        print(f'The current item in this chest is {self.contents.name}')
         print('Choose the new item for this chest')
         new_item=stock_inventory('chest')
         if len(new_item)>0:
@@ -2273,26 +2201,14 @@ def djikstra(self):
             elif shortest_path[node[0],node[1]] < shortest_path[cur_min[0],cur_min[1]]:
                 cur_min=node
         neighbors=[]
-        try:
-            curMap.spaces[cur_min[0]-1,cur_min[1]]
-            neighbors.append([cur_min[0]-1,cur_min[1]])
-        except Exception as e:
-            pass
-        try:
-            curMap.spaces[cur_min[0]+1,cur_min[1]]
-            neighbors.append([cur_min[0]+1,cur_min[1]])
-        except Exception as e:
-            pass
-        try:
-            curMap.spaces[cur_min[0],cur_min[1]+1]
-            neighbors.append([cur_min[0],cur_min[1]+1])
-        except Exception as e:
-            pass
-        try:
-            curMap.spaces[cur_min[0],cur_min[1]-1]
-            neighbors.append([cur_min[0],cur_min[1]-1])
-        except Exception as e:
-            pass
+        for i in range(-1,2):
+            for j in range(-1,2):
+                if abs(i+j)==1:
+                    try:
+                        curMap.spaces[cur_min[0]+i,cur_min[1]+j]
+                        neighbors.append([cur_min[0]+i,cur_min[1]]+j)
+                    except Exception as e:
+                        pass
         for neighbor in neighbors:
             tenative_value = shortest_path[cur_min[0],cur_min[1]]
             moveCost=1
@@ -2392,20 +2308,10 @@ def edit_shop(*shop):
                     print(traceback.format_exc())
                     print('Invalid input, returning to menu')
         elif item_inventory=='1':
-            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
-            if weapon_inventory=='1':
-                inventory.append(append_shop(base_weapon_dict,'sword'))                                
-            elif weapon_inventory=='2':
-                inventory.append(append_shop(base_weapon_dict,'lance'))
-            elif weapon_inventory=='3':
-                inventory.append(append_shop(base_weapon_dict,'axe'))
-            elif weapon_inventory=='4':
-                inventory.append(append_shop(base_weapon_dict,'bow'))
-            elif weapon_inventory=='5':
-                inventory.append(append_shop(base_weapon_dict,'tome'))
-            elif weapon_inventory=='6':
-                inventory.append(append_shop(base_weapon_dict,'fist'))
-            elif weapon_inventory=='7':
+            for i in base_weapon_dict:
+                print(f'Category {i}: {base_weapon_dict[i].name}')
+            weapon_inventory=input('Input the name of the weapon category that you want to add or Unique to add a unique weapon\n')
+            if weapon_inventory.lower()=='unique':
                 for i in range(0,len(unique_weapons)):
                     print(f'{i}: {unique_weapons[i].name}')
                 unique_inventory=input('Input the number of the unique item you wish to add to this shop or X to cancel\n')
@@ -2421,6 +2327,11 @@ def edit_shop(*shop):
                             print('That number doesnt exist')
                     else:
                         print('Invalid input, returning to menu')
+            else:
+                try:
+                    inventory.append(append_shop(base_weapon_dict,weapon_inventory.lower()))
+                except:
+                    print(traceback.format_exc())
         elif item_inventory=='2':
             inventory.append(append_shop(base_armor))
         elif item_inventory=='3':
@@ -3879,7 +3790,7 @@ def edit_map():
             #edit objects
             mapX.display('base')
             #add,delete, edit
-            object_path=input('Input 1 to add objects, 2 to delete objects, 3 to edit the contents of chests, or X to exit/shops\n')
+            object_path=input('Input 1 to add objects, 2 to delete objects, 3 to edit the contents of chests/shops, or X to exit\n')
             if object_path=='1':
                 mapX.add_map_objects()
             elif object_path=='2':
@@ -3887,8 +3798,8 @@ def edit_map():
             elif object_path=='3':
                 #edit shop/chest contents
                 count=0
-                for i in range(0,len(mapX.objectList)):
-                    if isinstance(mapX.objectList[i],shop) or isinstance(mapX.objectList[i],shop):
+                for i in mapX.objectList:
+                    if isinstance(mapX.objectList[i],treasure_chest) or isinstance(mapX.objectList[i],shop):
                         print(f'{i}: {mapX.objectList[i].name}')
                         count+=1
                 if count>0:
