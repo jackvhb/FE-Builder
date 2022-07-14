@@ -1274,6 +1274,7 @@ class weapon:
         char.active_item=None
 empty=weapon('Empty',0,0,'Empty',[0],0,0,'Empty',False,0,0,{})
 unique_weapons=[empty]
+base_misc=[]
 class sword(weapon):
     def __init__(self,name,maxUses,dmg,dmgtype,rng,crit,hit,droppable,cost,rank,super_effective):
         super().__init__(name,maxUses,dmg,dmgtype,rng,crit,hit,'Sword',droppable,cost,rank,super_effective)
@@ -1371,6 +1372,7 @@ class gauntlet(fist):
         super().__init__('Gauntlet',100,2,20,100,droppable,250,0,{})
 base_gauntlet=gauntlet(False)
 base_fist.append(base_gauntlet)
+base_weapon_dict={'sword':base_sword,'lance':base_lance,'axe':base_axe,'tome':base_tome,'fist':base_fist}
 
 class key:
     key_list=[]
@@ -1391,7 +1393,8 @@ class key:
         print(self.name + " Broke!")
         char.inventory.remove(self)
 base_key=key(False)
-        
+base_misc.append(base_key)
+       
 class consumable:
     consumable_list=[]
     def __init__(self,name,maxUses,itemType,effect,stat,droppable,cost,*dur):
@@ -1426,10 +1429,12 @@ class vulnary(consumable):
     def __init__(self,droppable):
         super().__init__('Vulnary',3,'Healing',10,'curhp',droppable,100)
 base_vulnary=vulnary(False)
+base_misc.append(base_vulnary)
 class mystic_water(consumable):
     def __init__(self,droppable):
         super().__init__('Mystic Water',5,'Buff',7,'res',5,droppable,250)
 base_mystic_water=mystic_water(False)
+base_misc.append(base_mystic_water)
 
 class promotion_item:
     promotion_item_list=[]
@@ -1449,6 +1454,7 @@ class master_seal(promotion_item):
     def __init__(self,droppable):
         super().__init__('Master Seal',['All'],droppable,10000)
 base_master_seal=master_seal(False)
+base_misc.append(base_master_seal)
 
 class armor:
     armor_list=[]
@@ -2413,6 +2419,178 @@ def djikstra(self):
                 shortest_path.pop(i)
     return shortest_path
 
+def append_shop(base_class,*weapon):
+    if base_class==base_weapon_dict:
+        for i in range(0,len(base_class[weapon[0]])):
+            print(f'{i} {base_class[weapon[0]][i].name}')
+            i.info()
+        inventoryX=input(f'Input the number of the {weapon} you wish to add.\n')
+        count=input('Input how many of this item you want this shop to have\n')
+        if int(count)>0:
+            try:
+                return [base_class[weapon[0]][int(inventoryX)]],int(count)]
+            except:
+                print(traceback.format_exc())
+    else:
+        for i in range(0,len(base_class)):
+            print(f'{i} {base_class[i].name}')
+            i.info()
+        inventoryX=input('Input the number of the item you wish to add.\n')
+        count=input('Input how many of this item you want this shop to have\n')
+        if int(count)>0:
+            try:
+                return [base_class[int(inventoryX)],int(count)]
+            except:
+                print(traceback.format_exc())
+                   
+def edit_shop(*shop):
+    if shop:
+        inventory=shop[0].contents
+    else:
+        inventory=[]
+    contI=True
+    while contI==True:
+        if len(inventory)>0:
+            print('Current inventory:')
+            for i in range(0,len(inventory)):
+                print(f'{i}: {inventory[i][0].name}')
+        item_inventory=input(f'Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, 4 to remove items, or x to finish.\n')
+        if item_inventory.lower()=='x':
+            return(inventory)
+        elif item_inventory=='4' and len(inventory)>0:
+            for i in range(0,len(inventory)):
+                print(f'{i}: {inventory[i][0].name}')
+            path=input(f'Input the item number that you would like to drop or X to cancel\n')
+            if path.lower()=='x':
+                pass
+            else:
+                try:
+                    confirm=input(f'Input Y to confirm that you would like to remove {inventory[int(path)][0].name} or anything else to cancel\n')
+                    if confirm.lower()=='y':
+                        inventory.pop(int(path))
+                        print('Item removed')
+                    else:
+                        print("Removal canceled")
+                except:
+                    print(traceback.format_exc())
+                    print('Invalid input, returning to menu')
+        elif item_inventory=='1':
+            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
+            if weapon_inventory=='1':
+                inventory.append(append_shop(base_weapon_dict,'sword')
+            elif weapon_inventory=='2':
+                inventory.append(append_shop(base_weapon_dict,'lance')
+            elif weapon_inventory=='3':
+                inventory.append(append_shop(base_weapon_dict,'axe')
+            elif weapon_inventory=='4':
+                inventory.append(append_shop(base_weapon_dict,'bow')
+            elif weapon_inventory=='5':
+                inventory.append(append_shop(base_weapon_dict,'tome')
+            elif weapon_inventory=='6':
+                inventory.append(append_shop(base_weapon_dict,'fist')
+            elif weapon_inventory=='7':
+                for i in range(0,len(unique_weapons)):
+                    print(f'{i}: {unique_weapons[i].name}')
+                unique_inventory=input('Input the number of the unique item you wish to add to this shop or X to cancel\n')
+                if unique_inventory.lower()=='x':
+                    pass
+                else:
+                    if unique_inventory.isdigit():
+                        if int(unique_inventory) in range(0,len(unique_weapons)):
+                            confirm=input(f'Input Y to confirm that you wish to add {unique_weapons[int(unique_inventory)]} to the shop or anything else to cancel\n')
+                            if confirm.lower()=='y':
+                                inventory.append([unique_weapons.pop(int(unique_inventory)),1])
+                        else:
+                            print('That number doesnt exist')
+                    else:
+                        print('Invalid input, returning to menu')
+        elif item_inventory=='2':
+            inventory.append(append_shop(base_armor)
+        elif item_inventory=='3':
+            inventory.append(append_shop(base_misc)
+
+def append_stock_inventory(base_class,*weapon):
+    if base_class==base_weapon_dict:
+        for i in range(0,len(base_class[weapon[0]])):
+            print(f'{i} {base_class[weapon[0]][i].name}')
+            i.info()
+        inventoryX=input(f'Input the number of the {weapon[0]} you wish to add.\n')
+        droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+        try:
+            x=base_class[weapon[0]][int(inventoryX)]].name
+        except:
+            print(traceback.format_exc())
+    else:
+        for i in range(0,len(base_class)):
+            print(f'{i}: {base_class[i].name}')
+        inventoryX=input('Input the number of the item you wish to add\n')
+        droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
+        try:
+            consumable_inventory=int(consumable_inventory)
+            x=base_class[int(inventoryX)]].name
+        except:
+            print(traceback.format_exc())
+    z=x.replace(' ','_')
+    z=z.lower()
+    if droppable.lower()=='y':
+        return globals()[z](True)
+    else:
+        return globals()[z](False)
+
+def stock_inventory(name,*inventory):
+    contI=True
+    if not inventory:
+        inventory=[]
+    else:
+        inventory=inventory[0]
+    while contI==True:                                
+        if name.lower()=='chest':
+            if len(inventory)==1:
+                contI=False
+        elif name.lower()=='inventory':
+            if len(inventory)==5:
+                print(f"The {name} is full")
+                contI=False
+        print('Current inventory:')
+        for i in inventory:
+            print(i.name)
+        item_inventory=input(f'Press 1 to add a weapon to this {name}, 2 to add armor, 3 to add misc, or x to finish.\n')
+        if item_inventory.lower()=='x':
+            contI=False
+        elif item_inventory=='1':
+            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
+            if weapon_inventory=='1':
+                inventory.append(append_stock_inventory(base_weapon_dict,'sword')
+            elif weapon_inventory=='2':
+                inventory.append(append_stock_inventory(base_weapon_dict,'lance')
+            elif weapon_inventory=='3':
+                inventory.append(append_stock_inventory(base_weapon_dict,'axe')
+            elif weapon_inventory=='4':
+                inventory.append(append_stock_inventory(base_weapon_dict,'bow')
+            elif weapon_inventory=='5':
+                inventory.append(append_stock_inventory(base_weapon_dict,'tome')
+            elif weapon_inventory=='6':
+                inventory.append(append_stock_inventory(base_weapon_dict,'fist')
+            elif weapon_inventory=='7':
+                for i in range(0,len(unique_weapons)):
+                    print(f'{i}:{unique_weapons[i].name}')
+                    unique_weapons[i].info()
+                unique_inventory=input('Input the number of the item you wish to add or x to cancel.\n')
+                if unique_inventory.lower()=='x':
+                    pass
+                else:
+                    try:
+                        inventory.append(unique_weapons.pop(int(unique_inventory)))
+                        print('Item added')
+                    except:
+                       print(traceback.format_exc())
+                       print('Invalid input, try again')
+        elif item_inventory=='2':
+            inventory.append(append_stock_inventory(base_armor)
+        elif item_inventory=='3':
+            inventory.append(append_stock_inventory(base_misc)
+    return inventory
+
 def save(kind=''):
     #weapon arts, unique weapons, skills, classes, units, player roster, maps, supports list
     if saveallowed:
@@ -3055,163 +3233,7 @@ def load(kind=''):
             if i.deployed==True:
                i.update_location(i.location) 
 
-                   
-def edit_shop(*shop):
-    if shop:
-        inventory=shop[0].contents
-    else:
-        inventory=[]
-    contI=True
-    while contI==True:
-        if len(inventory)>0:
-            print('Current inventory:')
-            for i in range(0,len(inventory)):
-                print(f'{i}: {inventory[i][0].name}')
-        item_inventory=input(f'Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, 4 to remove items, or x to finish.\n')
-        if item_inventory.lower()=='x':
-            return(inventory)
-        elif item_inventory=='4' and len(inventory)>0:
-            for i in range(0,len(inventory)):
-                print(f'{i}: {inventory[i][0].name}')
-            path=input(f'Input the item number that you would like to drop or X to cancel\n')
-            if path.lower()=='x':
-                pass
-            else:
-                try:
-                    confirm=input(f'Input Y to confirm that you would like to remove {inventory[int(path)][0].name} or anything else to cancel\n')
-                    if confirm.lower()=='y':
-                        inventory.pop(int(path))
-                        print('Item removed')
-                    else:
-                        print("Removal canceled")
-                except:
-                    print(traceback.format_exc())
-                    print('Invalid input, returning to menu')
-        elif item_inventory=='1':
-            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
-            if weapon_inventory=='1':
-                for i in base_sword:
-                    i.info()
-                sword_inventory=input('Press 1 to add an iron sword, 2 to add a silver sword, 3 to add a levin sword, or anything else to cancel.\n')
-                if sword_inventory=='1':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_iron_sword,int(count)])
-                if sword_inventory=='2':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_silver_sword,int(count)])
-                if sword_inventory=='3':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_levin_sword,int(count)])
-            elif weapon_inventory=='2':
-                print(base_lance)
-                for i in base_lance:
-                    i.info()
-                lance_inventory=input('Press 1 to add an iron lance, 2 to add a silver lance, 3 to add a javelin, or anything else to cancel.\n')
-                if lance_inventory=='1':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_iron_lance,int(count)])
-                if lance_inventory=='2':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_silver_lance,int(count)])
-                if lance_inventory=='3':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_javelin,int(count)])
-            elif weapon_inventory=='3':
-                for i in base_axe:
-                    i.info()
-                axe_inventory=input('Press 1 to add an iron axe, 2 to add a silver axe, 3 to add a hand axe, or anything else to cancel.\n')
-                if axe_inventory=='1':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_iron_axe,int(count)])
-                if axe_inventory=='2':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_silver_axe,int(count)])
-                if axe_inventory=='3':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_hand_axe,int(count)])
-            elif weapon_inventory=='4':
-                for i in base_bow:
-                    i.info()
-                bow_inventory=input('Press 1 to add an iron bow, 2 to add a silver bow, or anything else to cancel.\n')
-                if bow_inventory=='1':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_iron_bow,int(count)])
-                if bow_inventory=='2':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_silver_bow,int(count)])
-            elif weapon_inventory=='5':
-                for i in base_tome:
-                    i.info()
-                tome_inventory=input('Press 1 to add a fire, 2 to add a forsetti, or anything else to cancel.\n')
-                if tome_inventory=='1':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_fire,int(count)])
-                if tome_inventory=='2':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_forsetti,int(count)])
-            elif weapon_inventory=='6':
-                for i in base_fist:
-                    i.info()
-                fist_inventory=input('Press 1 to add a gauntlet or anything else to cancel.\n')
-                if fist_inventory=='1':
-                    count=input('Input how many of this item you want this shop to have\n')
-                    if int(count)>0:
-                        inventory.append([base_gauntlet,int(count)])
-            elif weapon_inventory=='7':
-                for i in range(0,len(unique_weapons)):
-                    print(f'{i}: {unique_weapons[i].name}')
-                unique_inventory=input('Input the number of the unique item you wish to add to this shop or X to cancel\n')
-                if unique_inventory.lower()=='x':
-                    pass
-                else:
-                    if unique_inventory.isdigit():
-                        if int(unique_inventory) in range(0,len(unique_weapons)):
-                            confirm=input(f'Input Y to confirm that you wish to add {unique_weapons[int(unique_inventory)]} to the shop or anything else to cancel\n')
-                            if confirm.lower()=='y':
-                                inventory.append([unique_weapons.pop(int(unique_inventory)),1])
-                        else:
-                            print('That number doesnt exist')
-                    else:
-                        print('Invalid input, returning to menu')
-        elif item_inventory=='2':
-            for i in base_armor:
-                i.info()
-            armor_inventory=input('Input 1 to add a shield to this shop or anything else to cancel\n')
-            if armor_inventory=='1':
-                count=input('Input how many of this item you want this shop to have\n')
-                if int(count)>0:
-                    inventory.append([base_shield,int(count)])
-        elif item_inventory=='3':
-            consumable_inventory=input('Input 1 to add a master seal, 2 to add a vulnary, 3 to add a mystic water, 4 to add a key, or anything else to cancel\n')
-            if consumable_inventory=='1':
-                count=input('Input how many of this item you want this shop to have\n')
-                if int(count)>0:
-                    inventory.append([base_master_seal,int(count)])
-            elif consumable_inventory=='2':
-                count=input('Input how many of this item you want this shop to have\n')
-                if int(count)>0:
-                    inventory.append([base_vulnary,int(count)])
-            elif consumable_inventory=='3':
-                count=input('Input how many of this item you want this shop to have\n')
-                if int(count)>0:
-                    inventory.append([base_mystic_water,int(count)])
-            elif consumable_inventory=='4':
-                count=input('Input how many of this item you want this shop to have\n')
-                if int(count)>0:
-                    inventory.append([base_key,int(count)])
+
 
 def create_character():
     #Choosing alignment
@@ -3918,188 +3940,6 @@ def create_class():
 
 def write_support():
     pass
-
-def stock_inventory(name,*inventory):
-    contI=True
-    if not inventory:
-        inventory=[]
-    else:
-        inventory=inventory[0]
-    while contI==True:                                
-        if name.lower()=='chest':
-            if len(inventory)==1:
-                contI=False
-        elif name.lower()=='inventory':
-            if len(inventory)==5:
-                print(f"The {name} is full")
-                contI=False
-        print('Current inventory:')
-        for i in inventory:
-            print(i.name)
-        item_inventory=input(f'Press 1 to add a weapon to this {name}, 2 to add armor, 3 to add misc, or x to finish.\n')
-        if item_inventory.lower()=='x':
-            contI=False
-        elif item_inventory=='1':
-            weapon_inventory=input('Press 1 to view the swords, 2 to view the lances, 3 to view the axes, 4 to view the bows, 5 to view the tomes, 6 to view the fists, 7 to view the unique weapons, or anything else to cancel\n')
-            if weapon_inventory=='1':
-                for i in base_sword:
-                    i.info()
-                sword_inventory=input('Press 1 to add an iron sword, 2 to add a silver sword, 3 to add a levin sword, or anything else to cancel.\n')
-                if sword_inventory=='1':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(iron_sword(True))
-                    else:
-                        inventory.append(iron_sword(False))
-                if sword_inventory=='2':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(silver_sword(True))
-                    else:
-                        inventory.append(silver_sword(False))
-                if sword_inventory=='3':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(levin_sword(True))
-                    else:
-                        inventory.append(levin_sword(False))
-            elif weapon_inventory=='2':
-                for i in base_lance:
-                    i.info()
-                lance_inventory=input('Press 1 to add an iron lance, 2 to add a silver lance, 3 to add a javelin, or anything else to cancel.\n')
-                if lance_inventory=='1':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(iron_lance(True))
-                    else:
-                        inventory.append(iron_lance(False))
-                if lance_inventory=='2':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(silver_lance(True))
-                    else:
-                        inventory.append(silver_lance(False))
-                if lance_inventory=='3':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(javelin(True))
-                    else:
-                        inventory.append(javelin(False))
-            elif weapon_inventory=='3':
-                for i in base_axe:
-                    i.info()
-                axe_inventory=input('Press 1 to add an iron axe, 2 to add a silver axe, 3 to add a hand axe, or anything else to cancel.\n')
-                if axe_inventory=='1':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(iron_axe(True))
-                    else:
-                        inventory.append(iron_axe(False))
-                if axe_inventory=='2':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(silver_axe(True))
-                    else:
-                        inventory.append(silver_axe(False))
-                if axe_inventory=='3':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(hand_axe(True))
-                    else:
-                        inventory.append(hand_axe(False))
-            elif weapon_inventory=='4':
-                for i in base_bow:
-                    i.info()
-                bow_inventory=input('Press 1 to add an iron bow, 2 to add a silver bow, or anything else to cancel.\n')
-                if bow_inventory=='1':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(iron_bow(True))
-                    else:
-                        inventory.append(iron_bow(False))
-                if bow_inventory=='2':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(silver_bow(True))
-                    else:
-                        inventory.append(silver_bow(False))
-            elif weapon_inventory=='5':
-                for i in base_tome:
-                    i.info()
-                tome_inventory=input('Press 1 to add a fire, 2 to add a forsetti, or anything else to cancel.\n')
-                if tome_inventory=='1':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(fire(True))
-                    else:
-                        inventory.append(fire(False))
-                if tome_inventory=='2':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(forsetti(True))
-                    else:
-                        inventory.append(forsetti(False))
-            elif weapon_inventory=='6':
-                for i in base_fist:
-                    i.info()
-                fist_inventory=input('Press 1 to add a gauntlet or anything else to cancel.\n')
-                if fist_inventory=='1':
-                    droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                    if droppable.lower()=='y':
-                        inventory.append(gauntlet(True))
-                    else:
-                        inventory.append(gauntlet(False))
-            elif weapon_inventory=='7':
-                for i in range(0,len(unique_weapons)):
-                    print(f'{i}:{unique_weapons[i].name}')
-                    unique_weapons[i].info()
-                unique_inventory=input('Input the number of the item you wish to add or x to cancel.\n')
-                if unique_inventory.lower()=='x':
-                    pass
-                else:
-                    try:
-                        inventory.append(unique_weapons.pop(int(unique_inventory)))
-                        print('Item added')
-                    except:
-                       print(traceback.format_exc())
-                       print('Invalid input, try again')
-        elif item_inventory=='2':
-            for i in base_armor:
-                i.info()
-            armor_inventory=input('Input 1 to add a shield to this characters inventory or anything else to cancel\n')
-            if armor_inventory=='1':
-                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                if droppable.lower()=='y':
-                    inventory.append(shield(True))
-                else:
-                    inventory.append(shield(False))
-        elif item_inventory=='3':
-            consumable_inventory=input('Input 1 to add a master seal, 2 to add a vulnary, 3 to add a mystic water, 4 to add a key, or anything else to cancel\n')
-            if consumable_inventory=='1':
-                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                if droppable.lower()=='y':
-                    inventory.append(master_seal(True))
-                else:
-                    inventory.append(master_seal(False))
-            elif consumable_inventory=='2':
-                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                if droppable.lower()=='y':
-                    inventory.append(vulnary(True))
-                else:
-                    inventory.append(vulnary(False))
-            elif consumable_inventory=='3':
-                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                if droppable.lower()=='y':
-                    inventory.append(mystic_water(True))
-                else:
-                    inventory.append(mystic_water(False))
-            elif consumable_inventory=='4':
-                droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
-                if droppable.lower()=='y':
-                    inventory.append(key(True))
-                else:
-                    inventory.append(key(False))
-    return inventory
 
 def edit_map():
     cont=True
