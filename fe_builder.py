@@ -3,6 +3,12 @@ import time
 import os
 import datetime
 import traceback
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
 def init_battle(char1,char2,dist,*weaponX):
     expGain=0
     dmgMod=0
@@ -3761,14 +3767,130 @@ def create_skill():
         confirm=input(f'Input y to confirm that you want this skill to be called {name} or anything else to cancel\n')
         if confirm.lower()=='y':
             cont=True
-    #Trigger chance
-    #Trigger stat
-    #effect stat
-    #Effect change
-    #Effect operator
-    #effect temp
     #effect target
+    cont=False
+    while cont==False:
+        print('Here you will set the target for this skill')
+        print('For example Sol restores the triggering units HP, so that would affect the triggering unit\nLuna halves the enemies defense, so that would affect the enemy unit\nArmsthrift prevents a weapons durability from being used up, so that would affect the triggering units weapon')
+        effect_target=input('Input 1 to make this skill affect the triggering unit, 2 to make it affect the enemy unit, or 3 to make it affect the triggering units weapon\n')
+        if effect_target=='1':
+            effect_target='self'
+            cont=True
+        elif effect_target=='2':
+            effect_target='enemy'
+            cont=True
+        elif effect_target=='3':
+            effect_target='weapon'
+            cont=True
+        else:
+            print('Invalid input, try again')            
+    #Trigger stat
+    cont=False
+    while cont==False:
+        print('Here you will set what stat you want this skill to trigger based off of')
+        for i in character.bases:
+            print(i)
+        trigger_stat=input(f'Input the stat name that you want this skill to trigger based off of\n')
+        if trigger_stat in character.bases:
+            cont=True
+        else:
+            print('Invalid input, try again')
+    #Trigger chance
+    cont=False
+    while cont==False:
+        print(f'Here you will choose the multiplier that will be applied to the characters {trigger_stat} when determining whether this skill triggers')
+        print(f'This is out of 100. For example if this trigger chance is set to 10 and the characters {trigger_stat} is 6 there would be a 60% chance of this skill triggering during any given round of combat')
+        trigger_chance=input('Input the trigger chance now\n')
+        if isfloat(trigger_chance):
+            if float(trigger_chance)>0:
+                trigger_chance=float(trigger_chance)
+                cont=True
+            else:
+                print('This must be a positive number')
+        else:
+            print('This must be a number')
+    #effect stat
+    cont=False
+    while cont==False:
+        print('Here you will set the stat that this skill will affect and change')
+        if effect_target!='weapon':
+            for i in character.bases:
+                print(i)
+            effect_stat=input(f'Input the stat that you want this skill to affect\n')
+            if effect_stat in character.bases:
+                cont=True
+            else:
+                print('Invalid input, try again')
+        else:
+            effect_stat=input(f'Input 1 to make this affect the weapons attack strength or 2 to make it affect the durability\n')
+            if effect_stat=='1':
+                effect_stat='dmg'
+                cont=True
+            elif effect_stat=='2':
+                effect_stat='curUses'
+                cont=True
+            else:
+                print('Invalid input, try again')
+    #Effect operator
+    cont=False
+    while cont==False:
+        print('Here you will set how this skill will affect the {effect_target} {effect_stat}')
+        print('The possible options are * if you want this to multiply the {effect_stat}, / if you want it to divide, + if you want it to add, or - if you want it to subtract')
+        effect_operator=input('Input the operator you want now\n')
+        if effect_operator=='*' or effect_operator=='+' or effect_operator=='-' or effect_operator=='/':
+            cont=True
+        else:
+            print('Invalid input, try again')
+    #Effect change
+    cont=False
+    print('Here you will set by how much this skill will affect the target stat\nFor example if you set the effect operator to *, the effect stat to atk, and the effect change to 5, whenever this skill triggers it would multiply atk by 5')
+    while cont==False:
+        effect_change=input('Input the effect change now\n')
+        if isfloat(effect_change):
+            if float(effect_change)>0:
+                effect_change=float(effect_change)
+                cont=true
+            else:
+                print('The effect change must be an integer or floating point number above 0')
+        else:
+            print('The effect change must be an integer or floating point number above 0')
+    #effect temp
+    cont=False
+    print('Skill effects can be temperary or permanent.\nFor example when armsthrift activates the durability not being taken away is permanent, but with Luna the enemys defense being halved goes away after the battle')
+    while cont==False:
+        temp=input('Input 1 to make the effects of this skill temporary or 2 to make them permament\n')
+        if temp=='1':
+            effect_temp=True
+            cont=True
+        elif temp=='2':
+            effect_temp=False
+            cont=true
+        else:
+            print('Invalid input, try again')
     #relative stat
+    cont=False
+    print('Some skills bring in other stats for their calculations other than just the stat that is being affected, like how Ignis adds half of the users magic stat to their strength\nHere you can choose whether or not you want a relative stat, and if so what')
+    relative_stat=False
+    while cont==False:
+        contX=input('Input 1 to add a relative stat or anything else to move on\n')
+        if contX=='1':
+            for i in character.bases:
+                print(i)
+            relative_stat=input('Input the stat that you want the effect change to be relative to\n')
+            if relative_stat in character.bases:
+                cont=True
+            else:
+                print('Invalid input, try again')
+                relative_stat=False
+        else:
+            cont=False
+    #Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
+    if relative_stat:
+        skill(name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,relative_stat)
+    else:
+        skill(name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target)
+    print('Skill created!')
+    
 
 def create_weapon_art():
     #Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
@@ -3780,11 +3902,35 @@ def create_weapon_art():
         confirm=input(f'Input y to confirm that you want this weapon art to be called {name} or anything else to cancel\n')
         if confirm.lower()=='y':
             cont=True
+    #weapontype
+    cont=False
+    print('In this step you will set what weapon type can use this weapon art')
+    while cont==False:
+        weapontype=input('Input 1 to make this usable by swords, 2 for lances, 3 axes, 4 bows, 5 tomes, or 6 for fists\n')
+        if weapontype=='1':
+            weapontype='Sword'
+            cont=True
+        elif weapontype=='2':
+            weapontype='Lance'
+            cont=True
+        elif weapontype=='3':
+            weapontype='Axe'
+            cont=True
+        elif weapontype=='4':
+            weapontype='Bow'
+            cont=True
+        elif weapontype=='5':
+            weapontype='Tome'
+            cont=True
+        elif weapontype=='6':
+            weapontype='Fist'
+            cont=True
+        else:
+            print('Invalid input, try again')
     #cost,accuracy,effect_change
     #effect_stat
     #effect_operator
     #super effective
-    #weapontype
     #range
 
 def create_class():
@@ -3796,7 +3942,14 @@ def create_class():
         name=input('Enter the name for this class\n')
         confirm=input(f'Input y to confirm that you want this class to be called {name} or anything else to cancel\n')
         if confirm.lower()=='y':
-            cont=True
+            cont2=True
+            for i in classType.class_list:
+                if name==i.name:
+                    cont2=False
+            if cont2:
+                cont=True
+            else:
+                print('There is already a class with this name, choose a different one')
     #move type
     cont=False
     print('Here you will set the move type for this class. Move range and move type are completely seperate, all move type effects is the movement cost for certain tile types')
@@ -3824,17 +3977,174 @@ def create_class():
             cont=True
         else:
             print('Invalid input, try again')
+    cont=False
+    while cont==False:
+        moveRange=input('Input the move range for this class\n')
+        if moveRange.isdigit():
+            if int(moveRange)>0:
+                moveRange=int(moveRange)
+                cont=True
+            else:
+                print('Move range must be greater than 0')
+        else:
+            print('Invalid input, try again')
     #Bases and growths
     bases={}
     growths={}
     for i in character.stats:
-        pass
+        cont=False
+        while cont==False:
+            stat=input(f'Input what you want the starting level 1 {i} stat for this class to be\n')
+            if stat.isdigit():
+                if int(stat)<0 or (i=='hp' and int(stat)<1) :
+                  print('This must be a number, and is the default level 1 stat for this class. It must be a positive number, and above 0 for hp')
+                else:
+                    bases[i]=int(stat)
+                    print(f'{i} set')
+                    cont=True
+            else:
+                print('This must be a number, and is the default level 1 stat for this class. It must be a positive number, and above 0 for hp')
     for i in character.growths:
-        pass
+        print('Growths are the likelihood of a character gaining a stat on levelup, and are generally decimals between 0 and 1')
+        print('For example a .65 hp growth would make it so that there is a 65 percent chance for a character to gain 1 hp point when leveling up')
+        cont=False
+        while cont==False:
+            stat=input(f'Input what you want the {i} growth for this class to be\n')
+            if isfloat(stat):
+                growths[i]=float(stat)
+                print(f'{i} set')
+                cont=True
+            else:
+                print('Invalid input, try again')
     #Weapon type
+    print('In this step we will set the usable weapon types and their weapon level for this class')
+    print('Weapon level determines what weapons a character is able to use, as they cant use weapons whose level are higher than their weapon level for that type of weapon')
+    print('Weapon levels range from 0 to 100')
+    weaponType={}
+    cont=False
+    def set_wep_level(wepType):
+        cont=False
+        if wepType not in weaponType:
+            cont=True
+        else:
+            confirm=input(f'There is already a weapon level set for {wepType}, input Y to confirm that you want to overwrite it or anything else to cancel\n')
+            if confirm.lower()=='y':
+                cont=True
+            else:
+                print('Addition canceled')
+        while cont=True:
+            st=input(f'Input the weapon level you want for {wepType} or X to cancel\n')
+            if st.lower()=='x':
+                print('Addition canceled')
+                cont=False
+            elif st.isdigit():
+                if int(st)>=0:
+                    confirm=input(f'Input y to confirm that you want {wepType} weapon level to be {st} for this class or anything else to cancel\n')
+                    if confirm.lower()=='y':
+                        weaponType[wepType]=int(st)
+                        cont=False
+                        print('Weapon level set')
+                    else:
+                        print('Addition canceled')
+                else:
+                    print('Weapon levels must be 0 or above')
+    while cont==False:
+        if len(weaponType)>0:
+            print('The current weapon levels for this class are:')
+            for i in weaponType:
+                print(f'{i} weaponType[i]}')
+        wep=input('Input 1 to let this class use swords, 2 for lances, 3 for axes, 4 for bows, 5 for tomes, 6 for fists, or x to finish\n')
+        if wep.lower()=='x':
+            print('The current weapon levels for this class are:')
+            for i in weaponType:
+                print(f'{i} weaponType[i]}')
+            confirm=input('Input Y to confirm that you are done adding usable weapons for this class\n')
+            if confirm.lower()=='y':
+                cont=True
+        elif wep=='1':
+            set_wep_level('Sword')
+        elif wep=='2':
+            set_wep_level('Lance')
+        elif wep=='3':
+            set_wep_level('Axe')
+        elif wep=='4':
+            set_wep_level('Bow')
+        elif wep=='5':
+            set_wep_level('Tome')
+        elif wep=='6':
+            set_wep_level('Fist')
+        else:
+            print('Invalid input, try again')        
     #promotions
+    promotions=[]
+    cont=False
+    while cont==False:
+        if len promotions>0:
+            print('Current promotions for this class:')
+            print(promotions)
+        print('Possible promotions:')
+        possible_promotions=[]
+        for i in classType.class_list:
+            if i.name not in promotions:
+                print(i.name)
+                possible_promotions.append(i.name)
+        print('Here you will enter the names of the classes you want this to promote into')
+        print('Its ok if the class you want to promote to isnt listed, just input it exactly as it will be named')
+        promo=input('Enter the class name or x to finish adding classes to promote to\n')
+        if promo.lower()=='x':
+            print(f'Promotions:{promotions}')
+            confirm=input('Input y to confirm that you are done adding classes or anything else to cancel\n')
+            if confirm.lower()=='y':
+                cont=True
+        else:
+            if promo not in promotions:
+                if promo not in possible_promotions:
+                    confirm=input(f'{promo} is not a currently existing class, input Y to confirm that you are sure that this class will be added or anything else to cancel\n')
+                else:
+                    confirm=input(f'Input Y to confirm that you wish to add {promo} as a class to promote to or anything else to cancel\n')
+                if confirm.lower()=='y':
+                    promotions.append(promo)
+            else:
+                print('This class can already promote into {promo}')                                        
     #skill_list
-    pass
+    skill_list=[]
+    cont=False
+    count=0
+    print('Each class has 3 skills: a skill that is unlocked at level 1, a skill that is unlocked at level 10, and a skill that is unlocked at level 20')
+    print('Here you will set the skills for this class')
+    while cont==False:
+        if count!=3:
+            if len(skill_list)>0:
+                print('Current Skills:')
+                print(skill_list)
+            print('Possible skills:')
+            possible_skills=[]
+            for i in range(0,len(skill.skill_list)):
+                if skill.skill_list[i].name not in skill_list and skill.skill_list[i].name!='Placeholder':
+                    print(f'{i}: {skill.skill_list[i].name}')
+                    possible_skills.append(i)
+            if count==0:
+                skillX=input('Input the number of the skill that you want to be the level 1 skill of this class\n')
+            elif count==1:
+                skillX=input('Input the number of the skill that you want to be the level 10 skill of this class or X to just use placeholders for the remaining skills\n')
+            elif count==2:
+                skillX=input('Input the number of the skill that you want to be the level 20 skill of this class or X to just use placeholder\n')
+            if skillX.lower()=='x':
+                while len(skill_list)<3:
+                    skill_list.append('Placeholder')
+                count=3
+            elif skillX.isdigit():
+                if int(skillX) is in possible_skills:
+                    skill_list.append(skill.skill_list[int(skillX)]
+                    print(f'{skill.skill_list[int(skillX)]} added')
+            else:
+                print('Invalid input, try again')
+        else:
+            cont=True
+    #Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
+    classType(name,moveType,bases['hp'],growths['hpG'],bases['atk'],growths['atkG'],bases['mag'],growths['magG'],bases['skill'],growths['skillG'],
+              bases['luck'],growths['luckG'],bases['defense'],growths['defG'],bases['res'],growths['resG'],bases['spd'],growths['spdG'],moveRange,weaponType,promotions,skill_list)
+    print('Class created!')
 
 def write_support():
     print('Welcome to the support writer')
@@ -4328,8 +4638,8 @@ armsthrift=skill('Armsthrift',5,'luck','curUses',1,'+',False,'weapon')
 placeholder=skill('Placeholder',0,'luck','atk',0,'+',True,'self')
 paragon=skill('Paragon',0,'luck','atk',0,'+',False,'self')
 galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')
-###Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng):
-grounder=weapon_art('Grounder',3,10,'atk',2,'*','Sword',[],[1,2,3,4])
+###Weapon Arts (name,cost,accuracy,effect_stat,effect_change,effect_operator,weapontype,super_effective,rng,target):
+grounder=weapon_art('Grounder',3,10,'atk',2,'*','Sword',[],[1,2,3,4],'weapon')
 ###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
 wyvern=classType('Wyvern','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Axe':0,'Lance':0},[],['Luna','Placeholder','Placeholder'])
 swordmaster=classType('Swordmaster','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],['Sol','Placeholder','Placeholder'])
@@ -4528,7 +4838,7 @@ while debug.lower()=='y':
         zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Mercenary',{},2,[iron_sword(False)],1,{},[])
     else:
         pass
-#Gameplay loop
+#Cheat setting
 if zerogrowth or neggrowth or fullgrowth:
     for char in characters.character_list:
         for growth in characters.growths:
@@ -4539,6 +4849,70 @@ if zerogrowth or neggrowth or fullgrowth:
                     setattr(char,growth,-getattr(char,growth))
             elif fullgrowth:
                 setattr(char,growth,1)
+#making sure everything is good
+missing_support={}
+missing_classes={}
+for i in player.support_master:
+    #make sure all the chars exist
+    exist1=False
+    exist2=False
+    for j in character.character_list:
+        if j.name==i[0]:
+            exist1=True
+        elif j.name==i[1]:
+            exist2=True
+    if exist1==False and i[0] not in missing_support:
+        missing_support[i[0]]=[i]
+    elif exist1==False and i[0] in missing_support:
+        missing_support[i[0]].append(i)
+    if exist2==False and i[1] not in missing_support:
+        missing_support[i[1]]=[i]
+    elif exist2==False and i[1] in missing_support:
+        missing_support[i[1]].append(i)
+for i in classType.class_list:
+    #making sure all the promotions exist
+    for j in i.promotions:
+        exist=False
+        for k in classType.class_list:
+            if j==k.name:
+                exist=True
+        if exist==False and j not in missing_classes:
+            missing_classes[j]=[i]
+        elif exist==False and j in missing_classes:
+            missing_classes[j].append(i)      
+for i in player_char.player_char_list:
+    #making sure all the support partners exist
+    for j in i.support_list:
+        exist=False
+        for k in character.character_list:
+            if k.name==j:
+                exist=True
+        if exist==False and j not in missing_support:
+            missing_support[j]=[i]
+        elif exist==False and j in missing_support:
+            missing_support[j].append(i)
+for i in recruitable.recruitable_list:
+    for j in i.support_list:
+        exist=False
+        for k in character.character_list:
+            if k.name==j:
+                exist=True
+        if exist==False and j not in missing_support:
+            missing_support[j]=[i]
+        elif exist==False and j in missing_support:
+            missing_support[j].append(i)
+##while len(missing_support)>0:
+##    print(f'{missing_support[0]} does not exist, input 1 to make this class or 2 to delete it')
+##    pass
+##while len(missing_classes)>0:
+##    route=input(f'{missing_classes[0]} does not exist, input 1 to make this class or 2 to delete it')
+##    if route=='1':
+##        pass
+##    elif route=='2':
+##        for i in missing_classes[0]:
+##            pass
+##    pass
+#Gameplay loop
 while mapNum<=len(mapLevel.map_list):
     for i in mapLevel.map_list:
         if mapNum==i.mapNum:
