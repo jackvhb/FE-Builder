@@ -5117,7 +5117,6 @@ while mapNum<=len(mapLevel.map_list):
 #Ending
 print("You beat the game!")
 total_turns=0
-curNum=1
 ordered_maps=[]
 for i in range(1,len(mapLevel.map_list)+1):
     for j in mapLevel.map_list:
