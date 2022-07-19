@@ -48,34 +48,41 @@ def init_battle(char1,char2,dist,*weaponX):
                             viable_weapons.append(char1.inventory[i])
     while cont==False:
         selection=input('Choose a weapon to use \n')
-        try:
-            if char1.inventory[int(selection)] in viable_weapons:                
-                weapon1=char1.inventory[int(selection)]
-                char1.active_item=weapon1
-            possible_arts=[]
-            for i in viable_arts:
-                if i.weapontype==weapon1.weapontype and i.cost<=weapon1.curUses:
-                    possible_arts.append(i)
-            if len(possible_arts)>0:
-                ###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):
-                cont2=False
-                while cont2==False:
-                    art=input('Input Y to use a weapon art or anything else to skip\n')
-                    if art.lower()=='y':
-                        for i in range(0,len(possible_arts)):
-                            print(f'{i} {possible_arts[i].name}, {possible_arts[i].cost} cost, +{possible_arts[i].damage} damage, +{possible_arts[i].accuracy} accuracy, +{possible_arts[i].crit} crit, +{possible_arts[i].avoid} avoid')
-                        choice=input('Choose the weapon art to use \n')
-                        try:
-                            active_art=possible_arts[int(choice)]
-                            cont2=True
-                        except Exception as e:
-                            print(traceback.format_exc())
-                            print('Invalid input, try again')
-                    else:
-                        cont2=True
-            cont=True
-        except Exception as e:
-            print(traceback.format_exc())        
+        if selection.isdigit():
+            if int(selection)>=0 and int(selection)<len(inventory):
+                if char1.inventory[int(selection)] in viable_weapons:                
+                    weapon1=char1.inventory[int(selection)]
+                    char1.active_item=weapon1
+                    possible_arts=[]
+                    for i in viable_arts:
+                        if i.weapontype==weapon1.weapontype and i.cost<=weapon1.curUses:
+                            possible_arts.append(i)
+                    if len(possible_arts)>0:
+                        ###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):
+                        cont2=False
+                        while cont2==False:
+                            art=input('Input Y to use a weapon art or anything else to skip\n')
+                            if art.lower()=='y':
+                                for i in range(0,len(possible_arts)):
+                                    print(f'{i} {possible_arts[i].name}, {possible_arts[i].cost} cost, +{possible_arts[i].damage} damage, +{possible_arts[i].accuracy} accuracy, +{possible_arts[i].crit} crit, +{possible_arts[i].avoid} avoid')
+                                choice=input('Choose the weapon art to use \n')
+                                if choice.isdigit():
+                                    if int(choice)>=0 and int(choice)<len(possible_arts):
+                                        active_art=possible_arts[int(choice)]
+                                        cont2=True
+                                    else:
+                                        print('Invalid input, try again')
+                                else:
+                                    print('Invalid input, try again')
+                            else:
+                                cont2=True
+                    cont=True
+                else:
+                    print('Invalid input, try again')
+            else:
+                print('Invalid input, try again')
+        else:
+            print('Invalid input, try again')  
     if char2.active_item==None:
         weapon2=empty
     else:
@@ -151,10 +158,8 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art):
     ###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):        
     input(f'{char1.name} attacked {char2.name} with a {weapon1.name} \n')
     critMod=0
-    try:
+    if (char2.location[0],char2.location[1]) in curMap.objectList:
         hitMod-=curMap.objectList[char2.location[0],char2.location[1]].avoidBonus
-    except Exception as e:
-        pass
     if char1.alignment==player:
         player_unit=char1
     else:
@@ -307,7 +312,7 @@ def menu(self):
         print("4 : Check Stats")
         print("5 : End Turn")
         print("6 : Exit Menu")
-        try:
+        if (self.location[0],self.location[1]) in curMap.objectList:
             if isinstance(curMap.objectList[self.location[0],self.location[1]],throne):
                 print("7 : Sieze Throne")
             elif isinstance(curMap.objectList[self.location[0],self.location[1]],shop):
@@ -321,8 +326,6 @@ def menu(self):
                     openable==False
                 if openable==True:
                     print("Z : Open Chest")
-        except Exception as e:
-            pass
         if len(doors)>0:
             for i in self.inventory:
                 if isinstance(i,key):
@@ -337,17 +340,14 @@ def menu(self):
             choiceSupport=input("Press the number of the support you wish to view or x to cancel \n")
             if choiceSupport=='x':
                 print('Returning to menu')
-            else:
-                try:
+            elif choiceSupport.isdigit():
+                if int(choiceSupport)>=0 and int(choiceSupport)<len(supportRange):
                     print(self.alignment.support_master[supportRange[int(choiceSupport)][0],
                                                         supportRange[int(choiceSupport)][1]][self.alignment.support_master[supportRange[int(choiceSupport)][0],
                                                                                                                            supportRange[int(choiceSupport)][1]][0]+1])
                     self.alignment.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+=1
                     self.moved=True
                     end=True
-                except Exception as e:
-                    print(traceback.format_exc())
-                    print('Invalid input, returning to menu')
         elif v.lower()=='e' and triggerRange==True:
             print(curMap.triggerList[self.location[0],self.location[1]].event)
             curMap.triggerList[self.location[0],self.location[1]].triggered=True
@@ -361,61 +361,57 @@ def menu(self):
             for i in range(0,len(doors)):
                 print(f'{i} : {doors[i][0]}')
             doorChoice=input('Input the door you would like to open or X to cancel \n')
-            try:
-                if choiceChar=='x':
-                    pass
-                elif doors[int(doorChoice)]:
+            if doorChoice.lower()=='x':
+                pass
+            elif doorChoice.isdigit():
+                if int(doorChoice)>=0 and int(doorChoice)<len(doors):
                     doors[int(doorChoice)].opened=True
                     keyY.use(self)
                     self.moved=True
                     end=True
-            except Exception as e:
-                print(traceback.format_exc())
-                print('Invalid input, returning to menu')
+            else:
+                print('Invalid input, try again')
         elif v.lower()=='c' and len(charTriggerRange)>0:
             contChar=True
             while contChar==True:
                 for j in range(0,len(charTriggerRange)):
                     print(f'{j} : {curMap.char_trigger_list[charTriggerRange[j][0],charTriggerRange[j][1]].name}')
                 choiceChar=input("Input the event you wish to view or x to cancel \n")
-                try:
-                    if choiceChar=='x':
-                        contChar=False
-                    elif charTriggerRange[int(choiceChar)]:
+                if choiceChar.lower()=='x':
+                    contChar=False
+                elif choiceChar.isdigit():
+                    if int(choiceChar)>=0 and int(choiceChar)<len(charTriggerRange):
                         print(f'{curMap.char_trigger_list[charTriggerRange[int(choiceChar)][0],charTriggerRange[int(choiceChar)][1]].event}')
                         contChar=False
-                except Exception as e:
-                    print(traceback.format_exc())
-                    print('Invalid input, try again')            
+                else:
+                    print('Invalid input, try again')
         elif v=='0' and len(targetRange)>0:
             contBattle=True
             while contBattle==True:
                 for j in range(0,len(targetRange)):
-                    print(str(j)+": "+targetRange[j][1].name+" at "+str(targetRange[j][0]))
+                    print(f"{j} {targetRange[j][1].name} at {targetRange[j][0]}")
                 choiceBattle=input("Input the enemy you wish to fight or x to cancel \n")
-                try:
-                    if choiceBattle=='x':
-                        contBattle=False
-                    elif targetRange[int(choiceBattle)][1]:
+                if choiceBattle=='x':
+                    contBattle=False
+                elif choiceBattle.isdigit():
+                    if int(choiceBattle)>=0 and int(choiceBattle)<len(targetRange):
                         dis=abs(self.location[0]-targetRange[int(choiceBattle)][1].location[0])+abs(self.location[1]-targetRange[int(choiceBattle)][1].location[1])
                         init_battle(self,targetRange[int(choiceBattle)][1],dis)
                         end=True
                         contBattle=False
-                except Exception as e:
-                    print(traceback.format_exc())
+                else:
                     print('Invalid input, try again')
         elif v.lower()=='t' and len(tradeRange)>0:
             for i in range(0,len(tradeRange)):
-                print(i,' ',tradeRange[i][1].name)
+                print(f'{i} {tradeRange[i][1].name}')
             choiceTrade=input("Input the unit you wish to trade with or x to cancel \n")
             if choiceTrade.lower=='x':
                 break
-            else:
-                try:
+            elif choiceTrade.isdigit():
+                if int(choiceTrade)>=0 and int(choiceTrade)<len(tradeRange):
                     self.trade_items(tradeRange[int(choiceTrade)][1])
-                except:
-                    print(traceback.format_exc())
-                    print('Invalid input, returning to menu')
+            else:
+                print('Invalid input, try again')
         elif v.lower()=='s':
             if (self.location[0],self.location[1]) in curMap.objectList:
                 if isinstance(curMap.objectList[self.location[0],self.location[1]],shop):
@@ -441,15 +437,12 @@ def menu(self):
         elif v=='4':
             self.check_stats()
         elif v=='7':
-            try:
+            if (self.location[0],self.location[1]) in curMap.objectList:
                 if isinstance(curMap.objectList[self.location[0],self.location[1]],throne):
                     global levelComplete
                     levelComplete=True
                     end=True
                     return
-            except:
-                print(traceback.format_exc())
-                print('Invalid input, try again')
         else:
             print(traceback.format_exc())
             print("Invalid input, try again")
@@ -563,12 +556,13 @@ class character:
             if dropY.lower()=='x':
                 end=True
                 return
-            else:
-                try:
+            elif dropY.isdigit():
+                if int(dropY)>=1 and int(dropY)<=len(self.inventory):
                     item=self.drop_item(self.inventory[int(dropY)-1])
                     self.alignment.convoy.append(item)
-                except Exception as e:
-                    print('Invalid input, try again')
+                    print('Item stored')
+            else:
+                print('Invalid input, try again')
         return
     def enter_shop(self,shop):
         end=False
@@ -592,15 +586,17 @@ class character:
             sell=input('Input the number of the item you would like to sell or x to exit \n')
             if sell.lower()=='x':
                 return
-            try:
-                confirm=input(f"Would you like to sell the {self.inventory[int(sell)].name} for {(self.inventory[int(sell)].cost/2)*(self.inventory[int(sell)].curUses/self.inventory[int(sell)].maxUses)} gold? Input Y to confirm, anything else to cancel \n")
-                if confirm.lower()=='y':
-                    print(f"Sold {self.inventory[int(sell)].name} for {(self.inventory[int(sell)].cost/2)*(self.inventory[int(sell)].curUses/self.inventory[int(sell)].maxUses)} gold")
-                    item=self.drop_item(self.inventory[int(sell)])
-                    self.alignment.gold+=(item.cost/2)*(item.curUses/item.maxUses)
-            except Exception as e:
-                print(traceback.format_exc())
-                print('Invalid input, please try again')
+            elif sell.isdigit():
+                if int(sell)>=0 and int(sell)<len(self.inventory):
+                    confirm=input(f"Would you like to sell the {self.inventory[int(sell)].name} for {(self.inventory[int(sell)].cost/2)*(self.inventory[int(sell)].curUses/self.inventory[int(sell)].maxUses)} gold? Input Y to confirm, anything else to cancel \n")
+                    if confirm.lower()=='y':
+                        print(f"Sold {self.inventory[int(sell)].name} for {(self.inventory[int(sell)].cost/2)*(self.inventory[int(sell)].curUses/self.inventory[int(sell)].maxUses)} gold")
+                        item=self.drop_item(self.inventory[int(sell)])
+                        self.alignment.gold+=(item.cost/2)*(item.curUses/item.maxUses)
+                    else:
+                        print('Sale canceled')
+            else:
+                print('Invalid input, try again')
     def buy_item(self,shop):
         end=False
         while end==False:
@@ -613,27 +609,25 @@ class character:
             buy=input('Input the number of the item you would like to buy or x to exit \n')
             if buy.lower()=='x':
                 return
-            try:
-                if shop.contents[int(buy)][0].cost<=self.alignment.gold:
-                    confirm=input(f"Would you like to buy the {shop.contents[int(buy)][0].name} for {shop.contents[int(buy)][0].cost} gold? Input Y to confirm, anything else to cancel \n")
-                    if confirm.lower()=='y':
-                        print(f"{shop.contents[int(buy)][0].name} bought!")
-                        z=shop.contents[int(buy)][0].name
-                        z=z.replace(' ','_')
-                        z=z.lower()
-                        try:
-                            p=globals()[z](False)
-                        except:
-                            p=shop.contents[int(buy)][0]
-                        self.add_item(p)
-                        shop.contents[int(buy)][1]-=1
-                        if shop.contents[int(buy)][1]<=0:
-                            shop.contents.pop(int(buy))
-                        self.alignment.gold-=p.cost
-                else:
-                    print("That item is too expensive for you! Buy something else, will ya?")
-            except Exception as e:
-                print(traceback.format_exc())
+            elif buy.isdigit():
+                if int(buy)>=0 and int(buy)<len(shop.contents):
+                    if shop.contents[int(buy)][0].cost<=self.alignment.gold:
+                        confirm=input(f"Would you like to buy the {shop.contents[int(buy)][0].name} for {shop.contents[int(buy)][0].cost} gold? Input Y to confirm, anything else to cancel \n")
+                        if confirm.lower()=='y':
+                            print(f"{shop.contents[int(buy)][0].name} bought!")
+                            if shop.contents[int(buy)] in unique_weapons:
+                                p=shop.contents[int(buy)][0]
+                            else:
+                                z=shop.contents[int(buy)][0].name.replace(' ','_').lower()
+                                p=globals()[z](False)
+                            self.add_item(p)
+                            shop.contents[int(buy)][1]-=1
+                            if shop.contents[int(buy)][1]<=0:
+                                shop.contents.pop(int(buy))
+                            self.alignment.gold-=p.cost
+                    else:
+                        print("That item is too expensive for you! Buy something else, will ya?")
+            else:
                 print('Invalid input, try again')
     def trade_items(self,trade_partner):
         cont=False
@@ -697,19 +691,21 @@ class character:
                                 for i in range(0,len(self.inventory)):
                                     print(f"{i} {self.inventory.name}")
                                 routeConvoyFix=input(f"Input the item to store \n")
-                                try:
-                                    itemX=self.drop_item(self.inventory[int(routeConvoyFix)])
-                                    self.alignment.convoy.append(itemX)
-                                except Exception as e:
+                                if routeConvoyFix.isdigit():
+                                    if int(routeConvoyFix)>=0 and int(routeConvoyFix)<len(self.inventory):
+                                        itemX=self.drop_item(self.inventory[int(routeConvoyFix)])
+                                        self.alignment.convoy.append(itemX)
+                                else:
                                     print('Invalid input, try again')
                             elif routeFix=='1':
                                 for i in range(0,len(self.inventory)):
                                     print(f"{i} {self.inventory.name}")
                                 routeTradeFix=input(f"Input the item to trade \n")
-                                try:
-                                    itemX=self.drop_item(self.inventory[int(routeTradeFix)])
-                                    trade_partner.inventory.append(itemX)
-                                except Exception as e:
+                                if routeTradeFix.isdigit():
+                                    if int(routeTradeFix)>=0 and int(routeTradeFix)<len(self.inventory):
+                                        itemX=self.drop_item(self.inventory[int(routeTradeFix)])
+                                        trade_partner.inventory.append(itemX)
+                                else:
                                     print('Invalid input, try again')
                             else:
                                 print('Invalid input, try again')
@@ -731,8 +727,8 @@ class character:
                 if item.lower()=='x':
                     end=True
                     return
-                else:
-                    try:
+                elif item.isdigit():
+                    if int(item)>=0 and int(item)<len(self.alignment.convoy):
                         self.alignment.convoy[int(item)].info()
                         confirm=input(f"Input Y to confirm that you want to add this item to {self.name}'s inventory \n")
                         if confirm.lower()=='y':
@@ -740,9 +736,9 @@ class character:
                             self.inventory.append(addition)
                             print(f"{addition.name} added to {self.name}'s inventory")
                         else:
-                            pass
-                    except Exception as e:
-                        print('Invalid input, try again')
+                            print('Addition canceled')
+                else:
+                    print('Invalid input, try again')
             else:
                 print(f"{self.name}'s inventory is full, returning to menu")
                 end=True
@@ -778,12 +774,11 @@ class character:
             add=input(f"Input the number of the skill you want to add or x to cancel")
             if add.lower()=='x':
                 return
-            else:
-                try:
+            elif add.isdigit():
+                if int(add)>=0 and int(add)<len(self.skills_all):
                     self.add_skill(self.skills_all[int(add)])
-                except Exception as e:
-                    print(traceback.format_exc())
-                    print('Invalid input, try again')
+            else:
+                print('Invalid input, try again')
     def level_up(self,*silent):
         self.exp-=100
         self.level+=1
@@ -891,56 +886,65 @@ class character:
                 else:
                     print('Invalid input, you must only input 2 numbers')                             
     def update_location(self,location):
-        try:
-            if curMap.spaces[self.location[0],self.location[1]][1]==self:
-                curMap.spaces[self.location[0],self.location[1]]=[False]
-        except Exception as e:
-            pass
+        if (self.location[0],self.location[1]) in curMap.spaces:
+            if curMap.spaces[self.location[0],self.location[1]][0]==True:
+                if curMap.spaces[self.location[0],self.location[1]][1]==self:
+                    curMap.spaces[self.location[0],self.location[1]]=[False]
         if (location[0],location[1]) in curMap.spaces:
             self.location=location
             curMap.spaces[location[0],location[1]]=[True,self]
         else:
             cont=False
             while cont==False:
-                try:
-                    loc=input(f'{self.name} has been wrongly placed, please enter a new location for them to be in x,y form\n')
-                    loc=loc.split(',')
-                    loc[0]=int(loc[0])
-                    loc[1]=int(loc[1])
-                    self.update_location(loc)
-                    return
-                except:
-                   print(traceback.format_exc())
-                   print('Invalid input, please try again')
+                loc=input(f'{self.name} has been wrongly placed, please enter a new location for them to be in x,y form\n')
+                loc=loc.split(',')
+                if len(loc)==2:
+                    if loc[0].isdigit() and loc[1].isdigit():
+                        loc[0]=int(loc[0])
+                        loc[1]=int(loc[1])
+                        self.update_location(loc)
+                        return
+                    else:
+                        print('Invalid input, try again')
+                else:
+                    print('Invalid input, try again')
     def use_consumable(self):
+        count=[]
         for i in range(0,len(self.inventory)):
             if isinstance(self.inventory[i],consumable):
                 print(i)
                 self.inventory[i].info()
+                count.append(i)
             elif isinstance(self.inventory[i],promotion_item):
                 if self.level>=10 and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
                     print(i)
                     self.inventory[i].info()
+                    count.append(i)
         path=input('Choose a item to use with their number, or input X to cancel \n')
         if path.lower()=='x':
             return
+        elif path.isdigit():
+            if int(path) in count:
+                if isinstance(self.inventory[int(path)],consumable):
+                    self.inventory[int(path)].active=True
+                    self.inventory[int(path)].curUses-=1
+                    if self.inventory[int(path)].stat=='curhp':
+                       if self.curhp+self.inventory[int(path)].effect>self.hp:
+                           self.curhp=self.hp
+                           if self.inventory[int(path)].curUses<=0:
+                               self.inventory[int(path)].breakX(self)
+                           return
+                    setattr(self,self.inventory[int(path)].stat,getattr(self,self.inventory[int(path)].stat)+self.inventory[int(path)].effect)
+                    print(getattr(self,self.inventory[int(path)].stat))
+                    if self.inventory[int(path)].curUses<=0:
+                       self.inventory[int(path)].breakX(self)
+                elif isinstance(self.inventory[i],promotion_item):
+                    if self.level>=10 and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
+                        self.promote()
+            else:
+                print('Invalid input')
         else:
-            if isinstance(self.inventory[int(path)],consumable):
-                self.inventory[int(path)].active=True
-                self.inventory[int(path)].curUses-=1
-                if self.inventory[int(path)].stat=='curhp':
-                   if self.curhp+self.inventory[int(path)].effect>self.hp:
-                       self.curhp=self.hp
-                       if self.inventory[int(path)].curUses<=0:
-                           self.inventory[int(path)].breakX(self)
-                       return
-                setattr(self,self.inventory[int(path)].stat,getattr(self,self.inventory[int(path)].stat)+self.inventory[int(path)].effect)
-                print(getattr(self,self.inventory[int(path)].stat))
-                if self.inventory[int(path)].curUses<=0:
-                   self.inventory[int(path)].breakX(self)
-            elif isinstance(self.inventory[i],promotion_item):
-                if self.level>=10 and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
-                    self.promote()
+            print('Invalid input')
     def consumable_turn(self,consumable):
         if consumable.active==False or consumable.dur<0:
             return
@@ -959,9 +963,16 @@ class character:
         path=input('Choose a item to use with their number, or input X to cancel \n')
         if path.lower()=='x':
             return
+        elif path.isdigit():
+            if int(path)>=0 and int(path)<len(self.inventory):
+                if isinstance(self.inventory[int(path)],weapon):
+                    self.active_item=self.inventory[int(path)]
+                else:
+                    print('Thats not a weapon!')
+            else:
+                print('Invalid input, try again')
         else:
-           if isinstance(self.inventory[int(path)],weapon):
-               self.active_item=self.inventory[int(path)]
+            print('Invalid input, try again')
     def die(self,killer):
         self.status='Dead'
         self.alignment.roster.remove(self)
@@ -995,19 +1006,20 @@ class character:
     def promote(self):
         cont=False
         while cont==False:
-            try:
-                for i in range(0,len(self.classType.promotions)):
-                    print(f'{i}: {self.classType.promotions[i]}')
-                choice=input('Choose the class to promote to\n')
-                for i in classType.class_list:
-                    if i.name==self.classType.promotions[int(choice)]:
-                        newClass=i
-                self.reclass(newClass)
-                self.level=1
-                self.exp=0
-                return
-            except Exception as e:
-                print(traceback.format_exc())
+            for i in range(0,len(self.classType.promotions)):
+                print(f'{i}: {self.classType.promotions[i]}')
+            choice=input('Choose the class to promote to\n')
+            if choice.isdigit():
+                if int(choice)>=0 and int(choice)<len(self.classType.promotions):
+                    for i in classType.class_list:
+                        if i.name==self.classType.promotions[int(choice)]:
+                            newClass=i
+                    self.reclass(newClass)
+                    self.level=1
+                    self.exp=0
+                    return
+            else:
+                print('Invalid input')
     def reclass(self,newClass):
         allow=False
         if neggrowth:
@@ -1101,12 +1113,10 @@ class player_char(character):
         for i in range(-1,2):
             for j in range(-1,2):
                 if abs(i+j)==1:
-                    try:
+                    if (self.location[0]+i,self.location[1]+j) in curMap.spaces:
                         if curMap.spaces[self.location[0]+i,self.location[1]+j][0]==True:
                             if curMap.spaces[self.location[0]+i,self.location[1]+j][1].name in self.support_list:
                                 support_bonus+=self.support_list[curMap.spaces[self.location[0]+i,self.location[1]+j][1].name]
-                    except Exception as e:
-                        pass
         return support_bonus
     
 class classType:
@@ -1168,15 +1178,15 @@ class weapon:
         self.weaponlevel=rank
         self.weapon_list.append(self)
     def info(self):
-        print("Name: " +self.name)
-        print("Weapon Type: "+self.weapontype)
-        print("Current durability: "+str(self.curUses))
-        print("Max durability: " +str(self.maxUses))
+        print(f"Name: {self.name}")
+        print(f"Weapon Type: {self.weapontype}")
+        print(f"Current durability: {self.curUses}")
+        print(f"Max durability: {self.maxUses}")
         print(f"Weapon level: {self.weaponlevel}")
-        print("Power: "+str(self.dmg))
-        print("Hit: "+str(self.hit))
-        print("Crit: "+str(self.crit))
-        print("Range: "+str(self.rng))
+        print(f"Power: {self.dmg}")
+        print(f"Hit: {self.hit}")
+        print(f"Crit: {self.crit}")
+        print(f"Range: {self.rng}")
         print('\n')
     def breakX(self,char):        
         input(self.name + " Broke!")
@@ -1292,15 +1302,15 @@ class key:
         self.maxUses=5
         self.droppable=droppable
     def info(self):
-        print("Name: "+self.name)
-        print("Current durability: "+str(self.curUses))
-        print("Max durability: " +str(self.maxUses))
+        print(f"Name: {self.name}")
+        print(f"Current durability: {self.curUses}")
+        print(f"Max durability: {self.maxUses}")
     def use(self,char):
         self.curUses-=1
         if curUses<=0:
             self.breakX(char)
     def breakX(self,char):        
-        print(self.name + " Broke!")
+        print(f"{self.name} Broke!")
         char.inventory.remove(self)
 base_key=key(False)
 base_misc.append(base_key)
@@ -1325,15 +1335,15 @@ class consumable:
             self.curdur=-1
         self.consumable_list.append(self)
     def info(self):
-        print("Name: "+self.name)
-        print("Current durability: "+str(self.curUses))
-        print("Max durability: " +str(self.maxUses))
-        print("Item type: "+self.itemType)
-        print("Amount of change: "+str(self.effect))
-        print("Stat to change: "+self.stat)
+        print(f"Name: {self.name}")
+        print(f"Current durability: {self.curUses}")
+        print(f"Max durability: {self.maxUses}")
+        print(f"Item type: {self.itemType}")
+        print(f"Amount of change: {self.effect}")
+        print(f"Stat to change: {self.stat}")
         print('\n')
     def breakX(self,char):        
-        print(self.name + " Broke!")
+        print(f"{self.name} Broke!")
         char.inventory.remove(self)
 class vulnary(consumable):
     def __init__(self,droppable):
@@ -1356,7 +1366,7 @@ class promotion_item:
         self.cost=cost
         self.promotion_item_list.append(self)
     def info(self):
-        print('Name: ',self.name)
+        print(f'Name: {self.name}')
         print('Classes this item promotes: /n')
         for i in self.classType:
             print(i.name)
@@ -1377,8 +1387,8 @@ class armor:
         self.armor_list.append(self)
         self.curUses=0
     def info(self):
-        print("Name: "+self.name)
-        print("Stat bonus of "+str(self.effect)+" in "+self.stat)
+        print(f"Name: {self.name}")
+        print(f"Stat bonus of {self.effect} in {self.stat}")
         print('\n')
 base_armor=[]
 class shield(armor):
@@ -1419,6 +1429,17 @@ class weapon_art:
         else:
             self.bonus=None
         self.weapon_art_list.append(self)
+    def info(self):
+        print(f"Name: {self.name}")
+        print(f"Weapon Type: {self.weapontype}")
+        print(f"Durability cost: {self.cost}")
+        print(f"Damage: {self.damage}")
+        print(f"Accuracy: {self.accuracy}")
+        print(f"Crit: {self.crit}")
+        print(f"Avoid: {self.avoid}")
+        print(f"Super Effective: {self.super_effective}")
+        print(f"Range: {self.range}")
+        print(f"Damage Type: {self.damage_type}\n")
                                     
 class alignment:
     alignment_list=[]
@@ -1444,24 +1465,24 @@ class alignment:
             buy=input('Input the number of the item you would like to buy or x to exit \n')
             if buy.lower()=='x':
                 return
-            try:
-                if shop.contents[int(buy)][0].cost<=self.gold:
-                    confirm=input(f"Would you like to buy the {shop.contents[int(buy)][0].name} for {shop.contents[int(buy)][0].cost} gold? Input Y to confirm, anything else to cancel \n")
-                    if confirm.lower()=='y':
-                        print(f"{shop.contents[int(buy)][0].name} bought!")
-                        z=shop.contents[int(buy)][0].name
-                        z=z.replace(' ','_')
-                        z=z.lower()
-                        p=globals()[z](False)
-                        self.convoy.append(p)
-                        shop.contents[int(buy)][1]-=1
-                        if shop.contents[int(buy)][1]<=0:
-                            shop.contents.pop(int(buy))
-                        self.gold-=p.cost
-                else:
-                    print("That item is too expensive for you! Buy something else, will ya?")
-            except Exception as e:
-                print(traceback.format_exc())
+            elif buy.isdigit():
+                if int(buy)>=0 and int(buy)<len(shop.contents):
+                    if shop.contents[int(buy)][0].cost<=self.gold:
+                        confirm=input(f"Would you like to buy the {shop.contents[int(buy)][0].name} for {shop.contents[int(buy)][0].cost} gold? Input Y to confirm, anything else to cancel \n")
+                        if confirm.lower()=='y':
+                            print(f"{shop.contents[int(buy)][0].name} bought!")
+                            z=shop.contents[int(buy)][0].name
+                            z=z.replace(' ','_')
+                            z=z.lower()
+                            p=globals()[z](False)
+                            self.convoy.append(p)
+                            shop.contents[int(buy)][1]-=1
+                            if shop.contents[int(buy)][1]<=0:
+                                shop.contents.pop(int(buy))
+                            self.gold-=p.cost
+                    else:
+                        print("That item is too expensive for you! Buy something else, will ya?")
+            else:
                 print('Invalid input, try again')
     def sell_item(self):
         end=False
@@ -1472,14 +1493,17 @@ class alignment:
             sell=input('Input the number of the item you would like to sell or x to exit \n')
             if sell.lower()=='x':
                 return
-            try:
-                confirm=input(f"Would you like to sell the {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost/2)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold? Input Y to confirm, anything else to cancel \n")
-                if confirm.lower()=='y':
-                    print(f"Sold {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost/2)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold")
-                    item=self.convoy.pop(int(sell))
-                    self.gold+=(item.cost/2)*(item.curUses/item.maxUses)
-            except Exception as e:
-                print(traceback.format_exc())
+            elif sell.isdigit():
+                if int(sell)>=0 and int(sell)<len(self.convoy):
+                    confirm=input(f"Would you like to sell the {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost/2)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold? Input Y to confirm, anything else to cancel \n")
+                    if confirm.lower()=='y':
+                        print(f"Sold {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost/2)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold")
+                        item=self.convoy.pop(int(sell))
+                        self.gold+=(item.cost/2)*(item.curUses/item.maxUses)
+                        print('Item sold')
+                    else:
+                        print('Sale canceled')
+            else:
                 print('Invalid input, please try again')
     def show_roster(self):
         for i in self.roster:
@@ -1502,7 +1526,6 @@ class alignment:
                     if curMap.spaces[j][0]==True:
                         if abs(j[0]-i.location[0])+abs(j[1]-i.location[1])==1 and curMap.spaces[j][1].alignment==i.alignment and curMap.spaces[j][1].name in i.support_list:
                             i.support_list[curMap.spaces[j][1].name]+=1
-                print(i.name,i.support_list)
             
 class mapLevel:
     map_list=[]
@@ -1553,107 +1576,118 @@ class mapLevel:
             print('9 Place Units And Start Map')
             inventory_input=input('Input the number key of the path you want to take or input x to exit \n')
             if inventory_input=='0':
+                possibilities=[]
                 for j in range(0,len(player.roster)):
                     if player.roster[j].status=='Alive':
                         print(f'{j} {player.roster[j].name}')
+                        possibilities.append(j)
                 p1=input('Enter the number of the first unit you want to participate in the trade or x to cancel \n')
                 p2=input('Enter the number of the second unit you want to participate in the trade or x to cancel \n')
                 if p1.lower()=='x' or p2.lower=='x':
                     pass
-                else:
-                    try:
+                elif p1.isdigit() and p2.isdigit():
+                    if int(p1) in possibilities and int(p2) in possibilities and int(p1)!=int(p2):
                       player.roster[int(p1)].trade_items(player.roster[int(p2)])
-                    except:
-                        print('Invalid input, returning to menu')
+                else:
+                    print('Invalid input, returning to menu')
             elif inventory_input=='5':
+                possibilities=[]
                 for j in range(0,len(player.roster)):
                     if player.roster[j].status=='Alive':
                         print(f'{j} {player.roster[j].name}')
-                choice=input(f"Enter the number of the unit you want to store items or x to cancel \n")
+                        possibilities.append(j)
+                choice=input(f"Enter the number of the unit you want to use items or x to cancel \n")
                 if choice.lower()=='x':
                     pass
-                else:
-                    try:
+                elif choice.isdigit():
+                    if int(choice) in possibilities:
                         player.roster[int(choice)].use_consumable()
-                    except Exception as e:
-                        print('Invalid input, returning to menu')
+                else:
+                    print('Invalid input, returning to menu')
             elif inventory_input=='1':
+                possibilities=[]
                 for j in range(0,len(player.roster)):
                     if player.roster[j].status=='Alive':
                         print(f'{j} {player.roster[j].name}')
+                        possibilities.append(j)
                 choice=input(f"Enter the number of the unit you want to store items or x to cancel \n")
                 if choice.lower()=='x':
                     pass
-                else:
-                    try:
+                elif choice.isdigit():
+                    if int(choice) in possibilities:
                         player.roster[int(choice)].store_item()
-                    except Exception as e:
-                        print('Invalid input, returning to menu')                
+                else:
+                    print('Invalid input, returning to menu')
             elif inventory_input=='2':
                 if len(player.convoy)==0:
                     print('The convoy is empty, returning to menu')
                 else:
+                    possibilities=[]
                     for j in range(0,len(player.roster)):
                         if player.roster[j].status=='Alive':
                             print(f'{j} {player.roster[j].name}')
+                            possibilities.append(j)
                     choice=input(f"Enter the number of the unit you want to withdraw items or x to cancel \n")
                     if choice.lower()=='x':
                         pass
-                    else:
-                        try:
+                    elif choice.isdigit():
+                        if int(choice) in possibilities:
                             player.roster[int(choice)].withdraw_items()
-                        except Exception as e:
-                            print('Invalid input, returning to menu')                 
+                    else:
+                        print('Invalid input')
             elif inventory_input=='3':
                 #Buy items
                 print('0 Convoy')
+                possibilities=[]
                 for j in range(0,len(player.roster)):
                     if player.roster[j].status=='Alive':
-                        print(f'{j+1} {player.roster[j].name}')    
+                        print(f'{j+1} {player.roster[j].name}')
+                        possibilites.append(j+1)
                 choice=input(f"Enter who you want to buy items or x to cancel \n")
                 if choice=='0':
                     player.buy_item(baseShop)
                 elif choice.lower()=='x':
                     pass
-                else:
-                    try:
+                elif choice.isdigit():
+                    if int(choice) in possibilities:
                         player.roster[int(choice)-1].buy_item(baseShop)
-                    except Exception as e:
-                        print(traceback.format_exc())
-                        print('Invalid input, returning to menu')
-                pass
+                else:
+                    print('Invalid input')
             elif inventory_input=='4':
                 #Sell Items
                 print('0 Convoy')
+                possibilities=[]
                 for j in range(0,len(player.roster)):
                     if player.roster[j].status=='Alive':
-                        print(f'{j+1} {player.roster[j].name}')    
+                        print(f'{j+1} {player.roster[j].name}')
+                        possibilities.append(j+1)
                 choice=input(f"Enter who you want to sell items or x to cancel \n")
                 if choice=='0':
                     player.sell_item()
                 elif choice.lower()=='x':
                     pass
-                else:
-                    try:
+                elif choice.isdigit():
+                    if int(choice) in possibilities:
                         player.roster[int(choice)-1].sell_item()
-                    except Exception as e:
-                        print(traceback.format_exc())
-                        print('Invalid input, returning to menu')
+                else:
+                    print('Invalid input, returning to menu')
             elif inventory_input=='6':
                 #Swap skills
-                skill_count=0
+                possibilities=[]
                 for j in range(0,len(player.roster)):
                     if player.roster[j].status=='Alive' and len(player.roster[j].skills)!=len(player.roster[j].skills_all):
                         print(f'{j} {player.roster[j].name}')
-                        skill_count+=1
-                if skill_count==0:
+                        possibilities.append(j)
+                if len(possibilities)==0:
                     print('Noone has any skills to swap. Returning to menu')
                 else:
                     choice=input(f"Enter the number of the unit you want to swap skills or x to cancel \n")
-                    try:
-                        player.roster[int(choice)].swap_skills()
-                    except Exception as e:
-                        print(traceback.format_exc())
+                    if choice.lower()=='x':
+                        pass
+                    elif choice.isdigit():
+                        if int(choice) in possibilities:
+                            player.roster[int(choice)].swap_skills()
+                    else:
                         print('Invalid input, returning to menu')
             elif inventory_input=='7' and not nosupport:
                 supportRange=[]
@@ -1673,14 +1707,14 @@ class mapLevel:
                     choiceSupport=input('Enter the number of the support you would like to view or x to cancel \n')
                     if choiceSupport.lower()=='x':
                         pass
-                    else:
-                        try:
+                    elif choiceSupport.isdigit():
+                        if int(choiceSupport)>=0 and int(choiceSupport)<len(supportRange):
                             print(player.support_master[supportRange[int(choiceSupport)][0],
                                                         supportRange[int(choiceSupport)][1]][player.support_master[supportRange[int(choiceSupport)][0],
                                                                                                                    supportRange[int(choiceSupport)][1]][0]+1])
                             player.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+=1
-                        except Exception as e:
-                            print(traceback.format_exc())
+                    else:
+                        print('Invalid input, returning to menu')
             elif inventory_input=='8' and saveallowed:
                 save()
             elif inventory_input.lower()=='x' or inventory_input=='9':
@@ -1688,30 +1722,33 @@ class mapLevel:
             else:
                 print('Invalid input, please try again')   
         self.display('cur')
+        choice=None
         for i in self.spawns:
-            cont=False
-            count=0
+            if choice!='x':
+                cont=False
+            else:
+                cont=True
             while cont==False:
+                possible=[]
                 for j in range(0,len(player.roster)):
                     if player.roster[j].placed==False and player.roster[j].status=='Alive':
                         print(f'{j} {player.roster[j].name}')
-                        count+=1
-                    else:
-                        print(player.roster[j].placed)
-                if count==0:
+                        possible.append(j)
+                if len(possible)==0:
                     cont=True
                     break
-                choice=input(f"Enter the number of the unit you want at {i} \n")
-                try:
-                    if player.roster[int(choice)].placed==False:
+                choice=input(f"Enter the number of the unit you want at {i} or X to finish placing units\n")
+                if choice.lower()=='x':
+                    cont=True
+                elif choice.isdigit():
+                    if int(choice) in possible:
                        player.roster[int(choice)].update_location(i)
                        player.roster[int(choice)].placed=True
                        player.roster[int(choice)].deployed=True
                        cont=True
                     else:
                        print("Invalid input, try again") 
-                except:
-                    print(traceback.format_exc())
+                else:
                     print("Invalid input, try again")
         for i in player.roster:
             i.placed=False
@@ -1799,60 +1836,62 @@ class mapLevel:
                         print('Input x to cancel')
                         location=input('Enter the coordinates now\n')
                         if location.lower()!='x':
-                            try:
-                                location=location.split(',')
-                                location[0]=int(location[0])
-                                location[1]=int(location[1])
-                                print(self.x_size)
-                                print(self.y_size)
-                                moveOn=True
-                                if (location[0],location[1]) in self.objectList:
-                                    print(f'There is already a {self.objectList[location[0],location[1]].name} at {location[0]},{location[1]}.')
-                                    confirm=input(f'Input Y to confirm that you want to overwrite this object or anything else to cancel\n')
-                                    if confirm.lower()=='y':
-                                        pass
+                            location=location.split(',')
+                            if len(location)==2:
+                                if location[0].isdigit() and location[1].isdigit:
+                                    location[0]=int(location[0])
+                                    location[1]=int(location[1])
+                                    if (location[0],location[1]) in self.spaces:
+                                        moveOn=True
+                                        if (location[0],location[1]) in self.objectList:
+                                            print(f'There is already a {self.objectList[location[0],location[1]].name} at {location[0]},{location[1]}.')
+                                            confirm=input(f'Input Y to confirm that you want to overwrite this object or anything else to cancel\n')
+                                            if confirm.lower()=='y':
+                                                pass
+                                            else:
+                                                moveOn=False
+                                        for i in self.spawns:
+                                            if [location[0],location[1]]==i and possibility.name=='Void' or possibility.name=='Water' or possibility.name=='Door':
+                                                print('There is a spawn at this location, you cant add this object there')
+                                                moveOn=False
+                                        for i in self.enemy_roster:
+                                            if [location[0],location[1]]==i.spawn:
+                                                if i.classType.moveType!='Pirate' and i.classType.moveType!='Flying' and possibility.name=='Water':
+                                                    print('There is a enemy spawn at this location, you cant add this object there')
+                                                    moveOn=False
+                                                elif i.classType.moveType!='Flying' and possibility.name=='Void':
+                                                    print('There is a enemy spawn at this location, you cant add this object there')
+                                                    moveOn=False
+                                                elif possibility.name=='Door':
+                                                    print('There is a enemy spawn at this location, you cant add this object there')
+                                                    moveOn=False
+                                        if moveOn==True:
+                                            contI=False
+                                            if possibility.name=='Chest' or possibility.name=='Shop':
+                                                contI=True
+                                                inventory=[]
+                                            while contI==True:                                
+                                                if possibility.name=='Chest':
+                                                    inventory=stock_inventory('chest')
+                                                    if inventory==[]:
+                                                        cont=False
+                                                        contI=False
+                                                elif possibility.name=='Shop':
+                                                    inventory=edit_shop()
+                                            z=possibility.name.replace(' ','_')
+                                            z=z.lower()
+                                            if possibility.name=='Shop':
+                                                globals()[z](self,[location[0],location[1]],inventory)
+                                            elif possibility.name=='Treasure Chest':
+                                                globals()[z](self,[location[0],location[1]],inventory[0])
+                                            else:
+                                                globals()[z](self,[location[0],location[1]])
+                                        else:
+                                            print('Invalid input, try again')
                                     else:
-                                        moveOn=False
-                                for i in self.spawns:
-                                    if [location[0],location[1]]==i and possibility.name=='Void' or possibility.name=='Water' or possibility.name=='Door':
-                                        print('There is a spawn at this location, you cant add this object there')
-                                        moveOn=False
-                                for i in self.enemy_roster:
-                                    if [location[0],location[1]]==i.spawn:
-                                        if i.classType.moveType!='Pirate' and i.classType.moveType!='Flying' and possibility.name=='Water':
-                                            print('There is a enemy spawn at this location, you cant add this object there')
-                                            moveOn=False
-                                        elif i.classType.moveType!='Flying' and possibility.name=='Void':
-                                            print('There is a enemy spawn at this location, you cant add this object there')
-                                            moveOn=False
-                                        elif possibility.name=='Door':
-                                            print('There is a enemy spawn at this location, you cant add this object there')
-                                            moveOn=False
-                                if location[0]<self.x_size and location[1]<self.y_size and location[0]>=0 and location[1]>=0 and moveOn==True:
-                                    contI=False
-                                    if possibility.name=='Chest' or possibility.name=='Shop':
-                                        contI=True
-                                        inventory=[]
-                                    while contI==True:                                
-                                        if possibility.name=='Chest':
-                                            inventory=stock_inventory('chest')
-                                            if inventory==[]:
-                                                cont=False
-                                                contI=False
-                                        elif possibility.name=='Shop':
-                                            inventory=edit_shop()
-                                    z=possibility.name.replace(' ','_')
-                                    z=z.lower()
-                                    if possibility.name=='Shop':
-                                        globals()[z](self,[location[0],location[1]],inventory)
-                                    elif possibility.name=='Treasure Chest':
-                                        globals()[z](self,[location[0],location[1]],inventory[0])
-                                    else:
-                                        globals()[z](self,[location[0],location[1]])
-                                else:
-                                    print('Invalid input, try again')
-                            except:
-                                    print(traceback.format_exc())
+                                        print('That space is out of bounds!')
+                            else:
+                                print('The location must be entered in x,y form where x and y are integers seperated by a comma')
     def delete_map_objects(self):
         cont=True
         while cont==True:
@@ -1863,21 +1902,22 @@ class mapLevel:
             if path.lower()=='x':
                 cont=False
             else:
-                try:
-                    path=path.split(',')
-                    path[0]=int(path[0])
-                    path[1]=int(path[1])
-                    if (path[0],path[1]) in self.objectList:
-                        confirm=input(f'Input Y to confirm that you want to delete the {self.objectList[path[0],path[1]].name} at {path[0]},{path[1]} or anything else to cancel\n')
-                        if confirm.lower()=='y':
-                            del self.objectList[path[0],path[1]]
-                            print('Object deleted')
+                path=path.split(',')
+                if len(path)==2:
+                    if path[0].isdigit() and path[1].isdigit():
+                        path[0]=int(path[0])
+                        path[1]=int(path[1])
+                        if (path[0],path[1]) in self.objectList:
+                            confirm=input(f'Input Y to confirm that you want to delete the {self.objectList[path[0],path[1]].name} at {path[0]},{path[1]} or anything else to cancel\n')
+                            if confirm.lower()=='y':
+                                del self.objectList[path[0],path[1]]
+                                print('Object deleted')
+                            else:
+                                print('Deletion canceled, returning to menu')
                         else:
-                            print('Deletion canceled, returning to menu')
-                except:
-                    print(traceback.format_exc())
-                    print('Invalid input, try again')
-        
+                            print('Theres nothing there!')
+                else:
+                    print('The x,y form must be 2 integers seperated by a comma')
 
 
 class tempMap:
@@ -2096,25 +2136,35 @@ def gameplay(align):
             for i in range(0,len(enemy.roster)):
                 print(f'{i} : {enemy.roster[i].name} {enemy.roster[i].location}')
             enemy_checked=input('Enter the number of the enemy whose range you want to check \n')
-            ec_r=djikstra(enemy.roster[int(enemy_checked)])
-            curMap.display('djik',ec_r)
-            listX=[]
-            for i in ec_r:
-                listX.append(i)
-            print(listX)
+            if enemy_checked.isdigit():
+                if int(enemy_checked)>=0 and int(enemy_checked)<len(enemy.roster):
+                    ec_r=djikstra(enemy.roster[int(enemy_checked)])
+                    curMap.display('djik',ec_r)
+                    listX=[]
+                    for i in ec_r:
+                        listX.append(i)
+                    print(listX)
+                else:
+                    print('Invalid input')
+            else:
+                print('Invalid input')
         elif path=='1':
+            possible=[]
             for i in range(0,len(align.roster)):
                 if align.roster[i].moved==False and align.roster[i].status=='Alive' and align.roster[i].deployed==True:
                     print(f'{i} {align.roster[i].name} {align.roster[i].location}')
+                    possible.append(i)
             cont1=False
             while cont1==False:
-                try:
-                    choice=input("Enter the number of the unit you want to move \n")
-                    print(f"The current location of {align.roster[int(choice)].name} is {align.roster[int(choice)].location} and they can move {align.roster[int(choice)].mov} spaces")
-                    cont1=True
-                except Exception as e:
-                    print(traceback.format_exc())
-                    print('Invalid input, try again')
+                choice=input("Enter the number of the unit you want to move \n")
+                if choice.isdigit():
+                    if int(choice) in possible:
+                        print(f"The current location of {align.roster[int(choice)].name} is {align.roster[int(choice)].location} and they can move {align.roster[int(choice)].mov} spaces")
+                        cont1=True
+                    else:
+                        print('Invalid input')
+                else:
+                    print('Invalid input')
             dj=djikstra(align.roster[int(choice)])
             curMap.display('djik',dj)
             listY=[]
@@ -2124,16 +2174,16 @@ def gameplay(align):
             cont=False
             while cont==False:
                 dest=input('Type where you want to move the character to in X,Y form \n')
-                try:
-                    dest=dest.split(',')
-                    if (int(dest[0]),int(dest[1])) in dj:
-                        align.roster[int(choice)].move([int(dest[0]),int(dest[1])])
-                        cont=True
-                        cont2=True
-                    else:
-                       print('Invalid input, try again') 
-                except Exception as e:
-                    print(traceback.format_exc())
+                dest=dest.split(',')
+                if len(dest)==2:
+                    if dest[0].isdigit() and dest[1].isdigit():
+                        if (int(dest[0]),int(dest[1])) in dj:
+                            align.roster[int(choice)].move([int(dest[0]),int(dest[1])])
+                            cont=True
+                            cont2=True
+                        else:
+                           print('Invalid input, try again') 
+                else:
                     print('Invalid input, try again')
     if count!=0 and levelComplete==False and lordDied==False:
         gameplay(align)
@@ -2162,8 +2212,6 @@ def ai(align):
                 print(f"Player unit {curMap.spaces[q][1].name} at {q}")
             elif curMap.spaces[q][1].alignment==enemy:
                 print(f"Enemy unit {curMap.spaces[q][1].name} at {q}")
-        else:
-            print("Error")
     #We just choose the last item in the list cuz its easiest this way
     curMap.display('cur')
     choice=j
@@ -2227,15 +2275,11 @@ def djikstra(self):
             viable_spaces.append([i[0],i[1]])
             if distFromAI==1:
                 moveCost=1
-                try:
+                if (i[0],i[1]) in curMap.objectList:
                     moveCost=curMap.objectList[i[0],i[1]].moveCost
-                except Exception as e:
-                    pass
-                try:
+                if curMap.spaces[i[0],i[1]][0]==True:
                     if curMap.spaces[i[0],i[1]][1].alignment!=self.alignment:
                         moveCost=999
-                except Exception as e:
-                    pass
                 shortest_path[i[0],i[1]]=moveCost
             else:
                 shortest_path[i[0],i[1]]=999 
@@ -2251,23 +2295,16 @@ def djikstra(self):
         for i in range(-1,2):
             for j in range(-1,2):
                 if abs(i+j)==1:
-                    try:
-                        curMap.spaces[cur_min[0]+i,cur_min[1]+j]
+                    if (cur_min[0]+i,cur_min[1]+j) in curMap.spaces:
                         neighbors.append([cur_min[0]+i,cur_min[1]]+j)
-                    except Exception as e:
-                        pass
         for neighbor in neighbors:
             tenative_value = shortest_path[cur_min[0],cur_min[1]]
             moveCost=1
-            try:
+            if (neighbor[0],neighbor[1]) in curMap.objectList:
                 moveCost=curMap.objectList[neighbor[0],neighbor[1]].moveCost
-            except Exception as e:
-                pass
-            try:
+            if curMap.spaces[neighbor[0],neighbor[1]][0]==True:
                 if curMap.spaces[neighbor[0],neighbor[1]][1].alignment!=self.alignment:
                     moveCost=999
-            except Exception as e:
-                pass
             if moveCost!=999 and moveCost!=1:
                 if self.classType.moveType=='Flying':
                     moveCost=1
@@ -2278,15 +2315,12 @@ def djikstra(self):
                 elif self.classType.moveType=='Pirate' and curMap.objectList[neighbor[0],neighbor[1]].name=='Water':
                     moveCost=2
             tenative_value+=moveCost
-            try:
-                if tenative_value < shortest_path[neighbor[0],neighbor[1]]:
-                    shortest_path[neighbor[0],neighbor[1]]=tenative_value
-                    try:
-                        previous_nodes[neighbor[0],neighbor[1]].append(cur_min)
-                    except Exception as e:
-                        previous_nodes[neighbor[0],neighbor[1]]=[cur_min]
-            except Exception as e:
-                pass
+            if tenative_value < shortest_path[neighbor[0],neighbor[1]]:
+                shortest_path[neighbor[0],neighbor[1]]=tenative_value
+                try:
+                    previous_nodes[neighbor[0],neighbor[1]].append(cur_min)
+                except Exception as e:
+                    previous_nodes[neighbor[0],neighbor[1]]=[cur_min]
             try:
                 viable_spaces.remove([cur_min[0],cur_min[1]])
             except Exception as e:
@@ -2306,22 +2340,18 @@ def append_shop(base_class,*weapon):
             i.info()
         inventoryX=input(f'Input the number of the {weapon} you wish to add.\n')
         count=input('Input how many of this item you want this shop to have\n')
-        if int(count)>0:
-            try:
+        if inventoryX.isdigit() and count.isdigit():
+            if int(count)>0 and int(inventoryX)>=0 and int(inventoryX)<len(base_class[weapon[0]]):
                 return [base_class[weapon[0]][int(inventoryX)],int(count)]
-            except:
-                print(traceback.format_exc())
     else:
         for i in range(0,len(base_class)):
             print(f'{i} {base_class[i].name}')
             i.info()
         inventoryX=input('Input the number of the item you wish to add.\n')
         count=input('Input how many of this item you want this shop to have\n')
-        if int(count)>0:
-            try:
+        if inventoryX.isdigit() and count.isdigit():
+            if int(count)>0 and int(inventoryX)>=0 and int(inventoryX)<len(base_class):
                 return [base_class[int(inventoryX)],int(count)]
-            except:
-                print(traceback.format_exc())
                    
 def edit_shop(*shop):
     if shop:
@@ -3457,7 +3487,7 @@ def create_character(*name):
                         growth[i]=float(stat)
                         cont=True
                     else:
-                        print("The growth must be a number')
+                        print("The growth must be a number")
         #Creating the character
 #player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,support_list,weapon_arts,ending)
 #enemy_char(name,classType,joinMap,[inventory],level,[spawn])
@@ -4290,13 +4320,15 @@ def edit_map():
                     if route.lower()=='x':
                         pass
                     else:
-                        try:
-                            route=route.split(',')
-                            route[0]=int(route[0])
-                            route[1]=int(route[1])
-                            mapX.objectList[route[0],route[1]].edit_contents()
-                        except:
-                            print(traceback.format_exc())
+                        route=route.split(',')
+                        if len(route)==2:
+                            if route[0].isdigit() and route[1].isdigit:
+                                route[0]=int(route[0])
+                                route[1]=int(route[1])
+                                if (route[0],route[1]) in mapX.objectList:
+                                    if isinstance(mapX.objectList[route[0],route[1]],shop) or isinstance(mapX.objectList[route[0],route[1]],treasure_chest):
+                                        mapX.objectList[route[0],route[1]].edit_contents()
+                        else:
                             print('Invalid input, try again')
                 else:
                     print('There are no shops or chests on this map, returning to menu')
@@ -4318,125 +4350,122 @@ def edit_map():
             if new_size.lower()=='x':
                 pass
             else:
-                try:
-                    new_size=new_size.split(',')
-                    new_size[0]=int(new_size[0])
-                    new_size[1]=int(new_size[1])
-                    missing_enemy=[]
-                    missing_spawn=[]
-                    missing_object=[]
-                    for i in mapX.spaces:
-                        if i[0]>new_size[0]-1 or i[1]>new_size[1]-1:
-                            del mapX.spaces[i]
-                    if new_size[0]>mapX.x_size:
-                        for i in range(mapX.x_size,new_size[0]):
-                            for j in range(0,mapX.y_size):
-                                mapX.spaces[i,j]=[False]
-                    mapX.x_size=new_size[0]
-                    if new_size[1]>mapX.y_size:
-                        for j in range(mapX.y_size,new_size[1]):
-                            for i in range(0,mapX.x_size):
-                                mapX.spaces[i,j]=[False]
-                    mapX.y_size=new_size[1]
-                    for j in mapX.enemy_roster:
-                        if (j.spawn[0],j.spawn[1]) not in mapX.spaces:
-                            missing_enemy.append(mapX.enemy_roster.pop(j))
-                    for k in mapX.spawns:
-                        if (k[0],k[1]) not in mapX.spaces:
-                            missing_spawn.append(mapX.spaces.pop(k))
-                    for l in mapX.objectList:
-                        if l not in mapX.spaces:
-                            missing_object.append(mapX.objectList[l])
-                            del mapX.objectList[l]
-                    contFix=True
-                    while contFix==True:
-                        if len(missing_enemy)==0 and len(missing_object)==0:
-                            contFix=False
-                        mapX.display('base')
-                        print(f'There are {len(missing_enemy)} enemies that need to have their spawn changed, {len(missing_object)} objects that need to be moved, and {len(missing_spawn)} player spawns have been deleted')
-                        while len(missing_enemy)>0:
-                            #update spawm
-                            length=len(missing_enemy)
-                            for aqw in range(0,length):
-                                contZ=False
-                                mapX.display('base')
-                                while contZ==False:
-                                    print(f'Input the coordinates where you would like {missing_enemy[0].name} to spawn on their map in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
-                                    print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
-                                    spawn=input('Enter the coordinates now, or input X to delete this unit\n')
-                                    if spawn.lower()=='x':
-                                        missing_enemy.pop(0)
-                                        contZ=True
-                                    try:
+                new_size=new_size.split(',')
+                if len(new_size)==2:
+                    if new_size[0].isdigit() and new_size[1].isdigit():
+                        new_size[0]=int(new_size[0])
+                        new_size[1]=int(new_size[1])
+                        missing_enemy=[]
+                        missing_spawn=[]
+                        missing_object=[]
+                        for i in mapX.spaces:
+                            if i[0]>new_size[0]-1 or i[1]>new_size[1]-1:
+                                del mapX.spaces[i]
+                        if new_size[0]>mapX.x_size:
+                            for i in range(mapX.x_size,new_size[0]):
+                                for j in range(0,mapX.y_size):
+                                    mapX.spaces[i,j]=[False]
+                        mapX.x_size=new_size[0]
+                        if new_size[1]>mapX.y_size:
+                            for j in range(mapX.y_size,new_size[1]):
+                                for i in range(0,mapX.x_size):
+                                    mapX.spaces[i,j]=[False]
+                        mapX.y_size=new_size[1]
+                        for j in mapX.enemy_roster:
+                            if (j.spawn[0],j.spawn[1]) not in mapX.spaces:
+                                missing_enemy.append(mapX.enemy_roster.pop(j))
+                        for k in mapX.spawns:
+                            if (k[0],k[1]) not in mapX.spaces:
+                                missing_spawn.append(mapX.spaces.pop(k))
+                        for l in mapX.objectList:
+                            if l not in mapX.spaces:
+                                missing_object.append(mapX.objectList[l])
+                                del mapX.objectList[l]
+                        contFix=True
+                        while contFix==True:
+                            if len(missing_enemy)==0 and len(missing_object)==0:
+                                contFix=False
+                            mapX.display('base')
+                            print(f'There are {len(missing_enemy)} enemies that need to have their spawn changed, {len(missing_object)} objects that need to be moved, and {len(missing_spawn)} player spawns have been deleted')
+                            while len(missing_enemy)>0:
+                                #update spawm
+                                length=len(missing_enemy)
+                                for aqw in range(0,length):
+                                    contZ=False
+                                    mapX.display('base')
+                                    while contZ==False:
+                                        print(f'Input the coordinates where you would like {missing_enemy[0].name} to spawn on their map in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                                        print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
+                                        spawn=input('Enter the coordinates now, or input X to delete this unit\n')
+                                        if spawn.lower()=='x':
+                                            missing_enemy.pop(0)
+                                            contZ=True
                                         spawn=spawn.split(',')
-                                        spawn[0]=int(spawn[0])
-                                        spawn[1]=int(spawn[1])
-                                        contCont=True
-                                        if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
-                                            if (spawn[0],spawn[1]) in mapX.objectList:
-                                                if mapX.objectList[spawn[0],spawn[1]].name=='Door':
-                                                    contCont=False
-                                                elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and class_choice.moveType!='Flying':
-                                                    contCont=False
-                                                elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and (class_choice.moveType!='Flying' and class_choice.moveType!='Pirate'):
-                                                    contCont=False
-                                            if contCont==True:
-                                                missing_enemy[0].spawn=[spawn[0],spawn[1]]
-                                                missing_enemy.pop(0)
-                                                contZ=True
-                                        elif [spawn[0],spawn[1]] in mapX.spawns:
-                                            print('A player unit spawns there, invalid input')
-                                        else:
-                                            print('Invalid spawn, try again')
-                                    except:
-                                        print(traceback.format_exc())
-                                        print('Invalid input, try again')
-                        while len(missing_object)>0:
-                            length=len(missing_object)
-                            for acq in range(0,length):
-                                contZ=False
-                                mapX.display('base')
-                                while contZ==False:
-                                    print(f'Input the coordinates where you would like {missing_object[0].name} to be in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
-                                    print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
-                                    spawn=input('Enter the coordinates now, or input X to delete this object\n')
-                                    if spawn.lower()=='x':
-                                        missing_object.pop(0)
-                                        contZ=True
-                                    try:
+                                        if len(spawn)==2:
+                                            if spawn[0].isdigit() and spawn[1].isdigit():
+                                                spawn[0]=int(spawn[0])
+                                                spawn[1]=int(spawn[1])
+                                                contCont=True
+                                                if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
+                                                    if (spawn[0],spawn[1]) in mapX.objectList:
+                                                        if mapX.objectList[spawn[0],spawn[1]].name=='Door':
+                                                            contCont=False
+                                                        elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and class_choice.moveType!='Flying':
+                                                            contCont=False
+                                                        elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and (class_choice.moveType!='Flying' and class_choice.moveType!='Pirate'):
+                                                            contCont=False
+                                                    if contCont==True:
+                                                        missing_enemy[0].spawn=[spawn[0],spawn[1]]
+                                                        missing_enemy.pop(0)
+                                                        contZ=True
+                                                elif [spawn[0],spawn[1]] in mapX.spawns:
+                                                    print('A player unit spawns there, invalid input')
+                                                else:
+                                                    print('Invalid spawn, try again')
+                            while len(missing_object)>0:
+                                length=len(missing_object)
+                                for acq in range(0,length):
+                                    contZ=False
+                                    mapX.display('base')
+                                    while contZ==False:
+                                        print(f'Input the coordinates where you would like {missing_object[0].name} to be in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                                        print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
+                                        spawn=input('Enter the coordinates now, or input X to delete this object\n')
+                                        if spawn.lower()=='x':
+                                            missing_object.pop(0)
+                                            contZ=True
                                         spawn=spawn.split(',')
-                                        spawn[0]=int(spawn[0])
-                                        spawn[1]=int(spawn[1])
-                                        contCont=True
-                                        if (spawn[0],spawn[1]) in mapX.spaces:
-                                            if (spawn[0],spawn[1]) in mapX.objectList:
-                                                print('Theres already an object there, find somewhere else to put this')
-                                                contCont=False
-                                            if [spawn[0],spawn[1]] in mapX.spawns:
-                                                if missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door':
-                                                    print('Theres already a player unit spawn there, find somewhere else to put this')
-                                                    contCont=False
-                                            for i in mapX.enemy_roster:
-                                                if i.spawn==[spawn[0],spawn[1]] and (missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door'):
-                                                    print('Theres already an enemy unit spawn there, find somewhere else to put this')
-                                                    contCont=False
-                                            if contCont==True:
-                                                missing_object[0].location=[spawn[0],spawn[1]]                                                
-                                                mapX.objectList[spawn[0],spawn[1]]=missing_enemy.pop(0)
-                                                contZ=True
-                                        else:
-                                            print('Invalid location, try again')
-                                    except:
-                                        print(traceback.format_exc())
-                                        print('Invalid input, try again')
-                    print('Map resized')
+                                        if len(spawn)==2:
+                                            if spawn[0].isdigit() and spawn[1].isdigit():
+                                                spawn[0]=int(spawn[0])
+                                                spawn[1]=int(spawn[1])
+                                                contCont=True
+                                                if (spawn[0],spawn[1]) in mapX.spaces:
+                                                    if (spawn[0],spawn[1]) in mapX.objectList:
+                                                        print('Theres already an object there, find somewhere else to put this')
+                                                        contCont=False
+                                                    if [spawn[0],spawn[1]] in mapX.spawns:
+                                                        if missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door':
+                                                            print('Theres already a player unit spawn there, find somewhere else to put this')
+                                                            contCont=False
+                                                    for i in mapX.enemy_roster:
+                                                        if i.spawn==[spawn[0],spawn[1]] and (missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door'):
+                                                            print('Theres already an enemy unit spawn there, find somewhere else to put this')
+                                                            contCont=False
+                                                    if contCont==True:
+                                                        missing_object[0].location=[spawn[0],spawn[1]]                                                
+                                                        mapX.objectList[spawn[0],spawn[1]]=missing_enemy.pop(0)
+                                                        contZ=True
+                                                else:
+                                                    print('Invalid location, try again')
+                        print('Map resized')
                 except:
                     print(traceback.format_exc())
         elif path=='5':
             #edit rosters
             pass
         else:
-            print('Invalid input, returning to menu')
+            print('Invalid input')
 
 def edit_char():
     cont=False
@@ -4444,11 +4473,11 @@ def edit_char():
         for i in range(0,len(character.character_list)):
             print(f'{i}: {character.character_list[i].name}')
         char_choice=input(f'Input the number for the character you would like to edit\n')
-        try:            
-            char=character.character_list[int(char_choice)]
-            cont=True
-        except:
-            print(traceback.format_exc())
+        if char_choice.isdigit():
+            if int(char_choice)>=0 and int(char_choice)<len(character.character_list):
+                char=character.character_list[int(char_choice)]
+                cont=True
+        else:
             print('Invalid input, try again')
     cont=True
     while cont==True:
@@ -4467,7 +4496,7 @@ def edit_char():
                 if stat_change in character.stats or stat_change in character.growths:
                     print(f"The current value for {char.name}'s {stat_change} is {getattr(char,eval(stat_change))}")
                     new_value=input(f"Input the new value you want {stat_change} to be\n")
-                    try:
+                    if isfloat(new_value):
                         if stat_change in character.stats:
                             if stat_change!='hp' and stat_change!='movModifier':
                                 if int(new_value)>=0:
@@ -4502,10 +4531,7 @@ def edit_char():
                                 print(f'THIS MEANS THAT THIS CHARACTER WILL NEVER GAIN A STAT IN THIS LEVEL, AND HAS A {float(new_value)*100}\% CHANCE OF LOSING A POINT IN THE STAT ON LEVEL UP')
                                 confirm=input(f"IF YOU ARE ABSOLUTELY SURE THIS IS WHAT YOU WANT\nInput Y to confirm that you want to change {stat_change} to {new_value} or anything else to cancel\n")
                                 if confirm.lower()=='y':
-                                    setattr(char,stat_change,float(new_value))                             
-                    except:
-                        print(traceback.format_exc())
-                        print('Invalid input, try again')
+                                    setattr(char,stat_change,float(new_value))
                 elif stat_change.lower()=='x':
                     cont=False
                 else:
@@ -4519,52 +4545,57 @@ def edit_char():
             print(f"The existing levels are {existing_levels}")
             print(f"{char.name}'s current join map is {char.joinMap}")
             new_join=input(f'Input which number level do you want {char.name} to join on\n')
-            if int(new_join) in existing_levels:
-                if char.alignment==player:
-                    for i in mapLevel.map_list:
-                        if i.mapNum==int(new_join):
-                            i.player_roster.append(char)
-                        elif i.mapNum==char.joinMap:
-                            i.player_roster.pop(char)
-                else:
-                    for i in mapLevel.map_list:
-                        if i.mapNum==int(new_join):
-                            i.enemy_roster.append(char)
-                            cont2=True
-                            while cont2==True:
-                                print(f"{char.name}'s spawn has to be edited for the new map")
-                                taken=[]
-                                for j in i.enemy_roster:
-                                    if j!=char:
-                                        taken.append(j.spawn)
-                                for k in i.spawns:
-                                    taken.append(k)
-                                print(f"The current occupied spaces on this map are {taken}\nAnd the map looks like this")
-                                i.display('base')
-                                new_spawn=input('Input this characters new spawn point in x,y form seperated by a comma\n')
-                                try:
+            if new_join.isdigit():
+                if int(new_join) in existing_levels:
+                    if char.alignment==player:
+                        for i in mapLevel.map_list:
+                            if i.mapNum==int(new_join):
+                                i.player_roster.append(char)
+                            elif i.mapNum==char.joinMap:
+                                i.player_roster.pop(char)
+                    else:
+                        for i in mapLevel.map_list:
+                            if i.mapNum==int(new_join):
+                                i.enemy_roster.append(char)
+                                cont2=True
+                                while cont2==True:
+                                    print(f"{char.name}'s spawn has to be edited for the new map")
+                                    taken=[]
+                                    for j in i.enemy_roster:
+                                        if j!=char:
+                                            taken.append(j.spawn)
+                                    for k in i.spawns:
+                                        taken.append(k)
+                                    print(f"The current occupied spaces on this map are {taken}\nAnd the map looks like this")
+                                    i.display('base')
+                                    new_spawn=input('Input this characters new spawn point in x,y form seperated by a comma\n')
                                     new_spawn=new_spawn.split(',')
-                                    new_spawn[0]=int(new_spawn[0])
-                                    new_spawn[1]=int(new_spawn[1])
-                                    if (new_spawn[0],new_spawn[1]) not in taken:
-                                        char.spawn=[new_spawn[0],new_spawn[1]]
-                                        cont2=True
+                                    if len(new_spawn)==2:
+                                        if new_spawn[0].isdigit() and new_spawn[1].isdigit:
+                                            new_spawn[0]=int(new_spawn[0])
+                                            new_spawn[1]=int(new_spawn[1])
+                                            if (new_spawn[0],new_spawn[1]) not in taken:
+                                                char.spawn=[new_spawn[0],new_spawn[1]]
+                                                cont2=True
+                                            else:
+                                                print('That space is already taken, try again')
+                                        else:
+                                            print('The x,y form must consist of 2 integers')
                                     else:
-                                        print('That space is already taken, try again')
-                                except:
-                                    print(traceback.format_exc())
-                                    print('Invalid input, try again')
-                        elif i.mapNum==char.joinMap:
-                            i.enemy_roster.pop(char)
-                char.joinMap=int(new_join)
-                print(f"{char.name}'s join map has been updated")
+                                        print('The x,y form must consist of 2 integers seperated by a comma')
+                            elif i.mapNum==char.joinMap:
+                                i.enemy_roster.pop(char)
+                    char.joinMap=int(new_join)
+                    print(f"{char.name}'s join map has been updated")
+            else:
+                print('Invalid input')
         elif path=='3':
             #level/exp
             print(f"Level: {char.level} Exp: {char.exp}")
             lev=input(f'Enter their new level\n')
             exp=input(f'Enter their new EXP\n')
-            try:
-                if int(lev)<=20 and int(exp)<100:
+            if lev.isdigit() and exp.isdigit():
+                if int(lev)<=20 and int(lev)>=1 and int(exp)<100 and int(exp)>=0:
                     if int(lev)>char.level:
                         gain_stats=input('Since you are raising this characters level, input Y to make them gain stats as if leveling up or anything else to keep their stats the same\n')
                         if gain_stats.lower()=='y':
@@ -4578,26 +4609,27 @@ def edit_char():
                     print(f"{char.name}'s level and exp have been updated")
                 else:
                     print('Invalid input, returning to menu')
-            except:
-                print(traceback.format_exc())
-                print('Invalid input, returning to menu')
+            else:
+                print('Level and exp must be numbers!')
         elif path=='4':
             #class
             for i in range(0,len(classType.class_list)):
                 print(f'{i}: {classType.class_list[i].name}')
             class_choice=input('Input the class number that you would like to reclass to\n')
-            try:
-                newClass=classType.class_list[int(class_choice)]
-                confirm=input(f'Input y to confirm that you wish to change {char.name} to {newClass.name} or anything else to cancel\n')
-                if confirm.lower()=='y':
-                    stat_change=input(f"Input Y to update {char.name}'s stats based off of this new clas or anything else to keep them the same\n")
-                    if stat_change.lower()=='y':
-                        char.reclass(newClass)
-                    else:
-                        char.classType=newClass
-            except:
-                print(traceback.format_exc())
-                print('Invalid input, returning to menu')
+            if class_choice.isdigit():
+                if int(class_choice)>=0 and int(class_choice)<len(classType.class_list):
+                    newClass=classType.class_list[int(class_choice)]
+                    confirm=input(f'Input y to confirm that you wish to change {char.name} to {newClass.name} or anything else to cancel\n')
+                    if confirm.lower()=='y':
+                        stat_change=input(f"Input Y to update {char.name}'s stats based off of this new clas or anything else to keep them the same\n")
+                        if stat_change.lower()=='y':
+                            char.reclass(newClass)
+                        else:
+                            char.classType=newClass
+                else:
+                    print('That number isnt an option')
+            else:
+                print('You need to input the number of the class')
         elif path=='5':
             #skills
             skills_path=input(f'Input A to add a skill, D to drop a skill, or X to finish\n')
@@ -4612,16 +4644,17 @@ def edit_char():
                     skill_add=input(f"Input the number of the skill you would like to add or x to finish\n")
                     if skill_add.lower()=='x':
                         cont=True
-                    else:
-                        try:
+                    elif skill_add.isdigit():
+                        if int(skill_add)>=0 and int(skill_add)<len(skill.skill_list):
                             if int(skill_add) in viable:
                                 char.add_skill(skill.skill_list[i])
                                 print(f'{skill.skill_list[i].name} added')
                             else:
                                 print('Invalid input, try again')
-                        except:
-                            print(traceback.format_exc())
-                            print('Invalid input,try again')
+                        else:
+                            print('That number isnt an option')
+                    else:
+                        print('You need to input the number of the skill')
             elif skills_path.lower()=='d':
                 cont=False
                 while cont==False:
@@ -4630,17 +4663,20 @@ def edit_char():
                     skill_drop=input(f'Input the number of the skill you would like to drop or X to finish\n')
                     if skill_drop.lower()=='x':
                         cont=True
-                    else:
-                        try:
+                    elif skill_drop.isdigit():
+                        if int(skill_drop)>=0 and int(skill_drop)<len(self.skills_all):
                             confirm=input(f'Input Y to confirm that you wish to drop {self.skills_all[int(skill_drop)].name} or anything else to cancel\n')
                             if confirm.lower()=='y':
                                 dropped_skill=self.skills_all.pop(int(skill_drop))
                                 if dropped_skill in self.skills:
                                     self.skills.pop(dropped_skill)
                                 print(f'{dropped_skill.name} dropped')
-                        except:
-                            print(traceback.format_exc())
-                            print('Invalid input, try again')   
+                            else:
+                                print('Drop canceled')
+                        else:
+                            print(f'This must be an integer between 0 and {len(self.skills_all)}')
+                    else:
+                        print(f'The input must either be X or an integer between 0 and {len(self.skills_all)}')
         elif path=='6':
             #inventory
             inventory_path=input(f"Input A to add items to {char.name}'s inventory or D to drop items\n")
@@ -4657,17 +4693,18 @@ def edit_char():
                         cont2=False
                     elif drop_route.lower()=='info':
                         item_info=input(f"Enter the item number that you want info on\n")
-                        try:
-                            char.inventory[int(item_info)].info()
-                        except:
-                            print(traceback.format_exc())
+                        if item_info.isdigit():
+                            if int(item_info)>=0 and int(item_info)<len(char.inventory):
+                                char.inventory[int(item_info)].info()
+                            else:
+                                print('Invalid input, try again')
+                        else:
                             print('Invalid input, try again')
-                    else:
-                        try:
+                    elif drop_route.isdigit():
+                        if int(drop_route)>=0 and int(drop_route)<len(char.inventory):
                             dropY=char.drop_item(int(drop_route))
                             print(f"{dropY.name} was dropped")
-                        except:
-                            print(traceback.format_exc())
+                        else:
                             print('Invalid input, try again')
             else:
                 print('Invalid input, returning to menu')
@@ -4816,7 +4853,9 @@ while debug.lower()=='y':
     print('5 Skill Creator')
     print('6 Support Writer')
     print('7 Character Editor')
-    print('8 Map Editor')    
+    print('8 Map Editor')
+    if saveallowed:
+        print('9 Save')
     path=input('Input which path you would like to take, or x to move to survival mode\n')
     if path=='1':
         create_map()
@@ -4845,6 +4884,8 @@ while debug.lower()=='y':
     elif path=='6':
         write_support()
         cheatallowed=False
+    elif path=='9' and saveallowed:
+        save()
     elif path.lower()=='x':
         debug='x'
     elif cheatshown==False and (path.lower()=='cheat code' or path.lower()=='password' or path.lower()=='secret'):
@@ -4974,10 +5015,10 @@ for i in missing_support:
             cont=True
         else:
             for j in missing_support[i]:
-                try:
-                    del player.support_master[j]
-                except:
+                if isinstance(j,character):
                     del j.support_list[i]
+                else:
+                    del player.support_master[j]                    
             cont=True
 for i in missing_classes:
     cont=False
