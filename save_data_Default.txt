@@ -1,0 +1,9 @@
+time
+10
+map
+1
+roster
+Saitama
+King
+support
+{('Saitama', 'King'): [0, 'Hi', 'Yo', 'Final'], ('King', 'Zatch'): [0, 'Hello', 'No Way']}
