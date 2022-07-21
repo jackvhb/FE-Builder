@@ -15,8 +15,6 @@ def init_battle(char1,char2,dist,*weaponX):
     hitMod=0
     cont=False
     active_art=None
-    guarentee_double1=False
-    guarentee_double2=False
     z='End'
     if weaponX:
         weapon1=weaponX[0]
@@ -87,6 +85,8 @@ def init_battle(char1,char2,dist,*weaponX):
         weapon2=empty
     else:
         weapon2=char2.active_item
+    guarentee_double1=guarenteed_double[weapon1.weapontype]
+    guarentee_double2=guarenteed_double[weapon2.weapontype]
     if not nosupport:
         if isinstance(char1,player_char):
             hitMod+=char1.check_support_bonus()
@@ -94,15 +94,11 @@ def init_battle(char1,char2,dist,*weaponX):
             hitMod-=char2.check_support_bonus()
     if not notriangle:
         if (weapon1.weapontype=='Sword' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Sword') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Axe'):
-            dmgMod+=-1
-            hitMod+=-10
+            dmgMod+=-weapon_triangle_damage_bonus
+            hitMod+=-weapon_triangle_hit_bonus
         elif (weapon1.weapontype=='Sword' and weapon2.weapontype=='Axe') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Sword'):
-            dmgMod+=1
-            hitMod+=10
-    if weapon1.weapontype=='Fist':
-        guarentee_double1=True
-    if weapon2.weapontype=='Fist':
-        guarentee_double2=True
+            dmgMod+=weapon_triangle_damage_bonus
+            hitMod+=weapon_triangle_hit_bonus
     cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
     if guarentee_double1 and cont:
         print(f"{char1.name} made a follow up attack")
@@ -114,13 +110,13 @@ def init_battle(char1,char2,dist,*weaponX):
             cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)        
     elif dist not in weapon2.rng:
         print(f"{char2.name} was unable to counter \n")
-    if cont and char1.spd-5>=char2.spd and weapon1 in char1.inventory and active_art==None:
+    if cont and char1.spd-doubling_threshold>=char2.spd and weapon1 in char1.inventory and active_art==None:
         print(f"{char1.name} made a follow up attack")
         cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
         if guarentee_double1 and cont:
             print(f"{char1.name} made another follow up attack")
             battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
-    if cont and char2.spd-5>=char1.spd and weapon2 in char2.inventory:
+    if cont and char2.spd-doubling_threshold>=char1.spd and weapon2 in char2.inventory:
         print(f"{char2.name} made a follow up attack")
         cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
         if guarentee_double2 and cont:
@@ -137,21 +133,22 @@ def init_battle(char1,char2,dist,*weaponX):
         enemy_unit=char2
         player_weapon=weapon1
     if enemy_unit.status=='Dead':
-        player_unit.weaponType[player_weapon.weapontype]+=10
-        expGain=30+enemy_unit.hp
+        player_unit.weaponType[player_weapon.weapontype]+=eval(kill_wep_lev_formula)
+        expGain=eval(kill_exp_formula)
     else:
-        player_unit.weaponType[player_weapon.weapontype]+=1
-        expGain=startHP-enemy_unit.curhp
+        print(wep_lev_formula)
+        player_unit.weaponType[player_weapon.weapontype]+=eval(wep_lev_formula)
+        expGain=eval(exp_formula)
     if paragon in player_unit.skills:
         expGain*=2
     if char1.status!='Dead':
         if galeforce not in char1.skills:
             char1.moved=True
     if player_unit.status!='Dead':
-        if player_unit.level<20:
+        if player_unit.level<level_cap:
             player_unit.exp+=expGain
             print(f'{player_unit.name} EXP +{expGain}')
-        if player_unit.exp>=100:
+        if player_unit.exp>=needed_exp:
             player_unit.level_up()
     print(f'{char1.name} HP: {char1.curhp}')
     input(f'{char2.name} HP: {char2.curhp} \nEnter to continue\n')
@@ -160,7 +157,7 @@ def init_battle(char1,char2,dist,*weaponX):
 def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
     ###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):        
     print(f'{char1.name} attacked {char2.name} with a {weapon1.name}')
-    time.sleep(1)
+    time.sleep(1*text_speed)
     critMod=0
     if (char2.location[0],char2.location[1]) in curMap.objectList:
         hitMod-=curMap.objectList[char2.location[0],char2.location[1]].avoidBonus
@@ -180,11 +177,14 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
                 dmgMod+=weapon1.dmg*3
         else:
             hitMod-=active_art.avoid        
-    hit=1.5*char1.skill+.5*char1.luck+weapon1.hit+hitMod
-    avoid=1.5*char2.spd+.5*char2.luck
-    crit=.5*char1.skill+weapon1.crit
-    dodge=char2.luck
-    randohit=rand.randrange(0,100)
+    hit=eval(hit_formula)
+    avoid=eval(avoid_formula)
+    crit=eval(crit_formula)
+    dodge=eval(dodge_formula)
+    if not true_hit:
+        randohit=rand.randrange(0,100)
+    else:
+        randohit=(rand.randrange(0,100)+rand.randrange(0,100))/2
     randocrit=rand.randrange(0,100)
     truehit=hit-avoid
     truecrit=crit+critMod-dodge
@@ -226,12 +226,12 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
     if damage<0:
         damage=0
     if crit==True:
-        damage*=3
+        damage*=crit_multiplier
         print("Critical hit!")
-        time.sleep(1)
-    if active_art==None or player_unit==char2:
+        time.sleep(1*text_speed)
+    if (active_art==None or player_unit==char2) and weapon_durability:
         weapon1.curUses-=1
-    else:
+    elif weapon_durability:
         weapon1.curUses-=active_art.cost
     if weapon1.curUses<=0:
         weapon1.breakX(char1)
@@ -288,10 +288,10 @@ def menu(self):
                             tradeRange.append([i,curMap.spaces[i][1]])
                         if curMap.spaces[i][1].name in self.support_list:
                             if (self.name, curMap.spaces[i][1].name) in self.alignment.support_master:
-                                if int(self.support_list[curMap.spaces[i][1].name]/10)>self.alignment.support_master[self.name, curMap.spaces[i][1].name][0] and self.alignment.support_master[self.name, curMap.spaces[i][1].name][0]<len(self.alignment.support_master[self.name, curMap.spaces[i][1].name])-1 and[self.name, curMap.spaces[i][1].name] not in supportRange:
+                                if int(self.support_list[curMap.spaces[i][1].name]/support_level_threshold)>self.alignment.support_master[self.name, curMap.spaces[i][1].name][0] and self.alignment.support_master[self.name, curMap.spaces[i][1].name][0]<len(self.alignment.support_master[self.name, curMap.spaces[i][1].name])-1 and[self.name, curMap.spaces[i][1].name] not in supportRange:
                                     supportRange.append([self.name, curMap.spaces[i][1].name])
                             elif (curMap.spaces[i][1].name,self.name) in self.alignment.support_master:
-                                if int(self.support_list[curMap.spaces[i][1].name]/10)>self.alignment.support_master[curMap.spaces[i][1].name,self.name][0] and self.alignment.support_master[curMap.spaces[i][1].name,self.name][0]<len(self.alignment.support_master[curMap.spaces[i][1].name,self.name])-1 and[curMap.spaces[i][1].name,self.name] not in supportRange:
+                                if int(self.support_list[curMap.spaces[i][1].name]/support_level_threshold)>self.alignment.support_master[curMap.spaces[i][1].name,self.name][0] and self.alignment.support_master[curMap.spaces[i][1].name,self.name][0]<len(self.alignment.support_master[curMap.spaces[i][1].name,self.name])-1 and[curMap.spaces[i][1].name,self.name] not in supportRange:
                                     supportRange.append([curMap.spaces[i][1].name,self.name])
                         if (self.name, curMap.spaces[i][1].name) in curMap.char_trigger_list:
                             charTriggerRange.append([self.name, curMap.spaces[i][1].name])
@@ -535,7 +535,7 @@ class character:
                     i.enemy_roster.append(self)
         self.character_list.append(self)        
     def add_item(self,item):
-        if len(self.inventory)<5:
+        if len(self.inventory)<inventory_max_size:
             self.inventory.append(item)
             if self.active_item==None and type(item)==weapon:
                 if item.weapontype in self.weaponType:
@@ -632,8 +632,9 @@ class character:
                                 z=shop.contents[int(buy)][0].name.replace(' ','_').lower()
                                 p=globals()[z](False)
                             self.add_item(p)
-                            shop.contents[int(buy)][1]-=1
-                            if shop.contents[int(buy)][1]<=0:
+                            if limited_shop_items:
+                                shop.contents[int(buy)][1]-=1
+                            if shop.contents[int(buy)][1]<=0 or (shop.contents[int(buy)] in unique_weapons):
                                 shop.contents.pop(int(buy))
                             self.alignment.gold-=p.cost
                     else:
@@ -661,7 +662,7 @@ class character:
                 elif route2.isdigit():
                     if int(route2)<len(self.inventory):
                         trade_partner.inventory.append(self.drop_item(self.inventory[int(route2)]))
-                        while len(trade_partner.inventory)>5:
+                        while len(trade_partner.inventory)>inventory_max_size:
                             routeFix=input(f"{trade_partner.name} has too many items, input 0 to send one to the convoy or 1 to trade an item to {self.name} \n")
                             if routeFix=='0':
                                 for i in range(0,len(trade_partner.inventory)):
@@ -696,7 +697,7 @@ class character:
                 elif route2.isdigit():
                     if int(route2)<len(trade_partner.inventory):
                         self.inventory.append(trade_partner.drop_item(trade_partner.inventory[int(route2)]))
-                        while len(self.inventory)>5:
+                        while len(self.inventory)>inventory_max_size:
                             routeFix=input(f"{self.name} has too many items, input 0 to send one to the convoy or 1 to trade an item to {trade_partner.name} \n")
                             if routeFix=='0':
                                 for i in range(0,len(self.inventory)):
@@ -732,7 +733,7 @@ class character:
             if len(self.alignment.convoy)==0:
                 end=True
                 return
-            if len(self.inventory)<5:
+            if len(self.inventory)<inventory_max_size:
                 for i in range(0,len(self.alignment.convoy)):
                     print(f'{i} {self.alignment.convoy[i].name}')
                 item=input('Enter the number of the item you want to add or input x to exit \n')
@@ -765,18 +766,26 @@ class character:
         if skill not in self.skills_all:
             self.skills_all.append(skill)
         if skill not in self.skills:
-            if len(self.skills)<5:
+            if len(self.skills)<skill_max_size:
                 self.skills.append(skill)
             else:
-                print(f'0: {skill.name}')
-                for i in range(0,len(self.skills)):
-                    print(f'{i+1}: {self.skills[i].name}')            
-                drop=input('Choose a skill to forget with the number key \n')
-                if drop==0:
-                    return
-                else:
-                    self.skills.pop(int(drop)-1)
-                    self.skills.append(skill)
+                cont=False
+                while cont==False:
+                    print(f'0: {skill.name}')
+                    for i in range(0,len(self.skills)):
+                        print(f'{i+1}: {self.skills[i].name}')            
+                    drop=input('Choose a skill to unequip with the number key \n')
+                    if drop==0:
+                        return
+                    elif drop.isdigit():
+                        if int(drop)>=1 and int(drop)<len(self.skills)+1:
+                            self.skills.pop(int(drop)-1)
+                            self.skills.append(skill)
+                            return
+                        else:
+                            print('Invalid input, try again')
+                    else:
+                        print('Invalid input, try again')
     def swap_skills(self):
         end=False
         while end==False:
@@ -792,10 +801,10 @@ class character:
             else:
                 print('Invalid input, try again')
     def level_up(self,*silent):
-        self.exp-=100
+        self.exp-=needed_exp
         self.level+=1
-        if self.level>20:
-            self.level=20
+        if self.level>level_cap:
+            self.level=level_cap
             self.exp=0
             return
         if not silent:
@@ -835,7 +844,7 @@ class character:
             stat=getattr(self,i.trigger_stat)
             if roll<=stat*i.trigger_chance:
                 print(f'{i.name} has procced!')
-                time.sleep(1)
+                time.sleep(1*text_speed)
                 if i.effect_target=='self':
                     cur=getattr(self,i.effect_stat)
                     if i.effect_temp==True:
@@ -875,7 +884,7 @@ class character:
             return       
         if location[0]==self.location[0] and location[1]==self.location[1]:
             print(f"Opening menu for {self.name}")
-            time.sleep(.25)
+            time.sleep(.25*text_speed)
             menu(self)
         elif abs(location[0]-self.location[0])+abs(location[1]-self.location[1])<=self.mov:
             self.update_location(location)
@@ -928,7 +937,7 @@ class character:
                 self.inventory[i].info()
                 count.append(i)
             elif isinstance(self.inventory[i],promotion_item):
-                if self.level>=10 and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
+                if self.level>=promotion_level and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
                     print(i)
                     self.inventory[i].info()
                     count.append(i)
@@ -951,7 +960,7 @@ class character:
                     if self.inventory[int(path)].curUses<=0:
                        self.inventory[int(path)].breakX(self)
                 elif isinstance(self.inventory[i],promotion_item):
-                    if self.level>=10 and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
+                    if self.level>=promotion_level and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
                         self.promote()
             else:
                 print('Invalid input')
@@ -990,20 +999,29 @@ class character:
             else:
                 print('Invalid input, try again')
     def die(self,killer):
-        self.status='Dead'
-        self.alignment.roster.remove(self)
-        print(f"{killer.name} attacked {self.name} and did over {self.curhp} damage, defeating the foe\n")
-        self.curhp=0
-        self.deathMap=curMap.mapNum
-        curMap.spaces[self.location[0],self.location[1]]=[False]
-        killer.kills+=1
-        for i in self.inventory:
-            if i.droppable==True:
-                print(f"{self.name} dropped {i.name}\n")
-                killer.add_item(i)
-        if self.classType==lord:
-            global lordDied
-            lordDied=True
+        global lordDied
+        if permadeath or self.alignment==enemy:
+            self.status='Dead'
+            self.alignment.roster.remove(self)
+            print(f"{killer.name} attacked {self.name} and did over {self.curhp} damage, defeating the foe\n")
+            self.curhp=0
+            self.deathMap=curMap.mapNum
+            curMap.spaces[self.location[0],self.location[1]]=[False]
+            killer.kills+=1
+            for i in self.inventory:
+                if i.droppable==True:
+                    print(f"{self.name} dropped {i.name}\n")
+                    killer.add_item(i)
+            if self.classType==lord:
+                lordDied=True
+        else:
+            self.status='KO'
+            print(f"{killer.name} attacked {self.name} and did over {self.curhp} damage, causing {self.name} to retreat\n")
+            self.curhp=0
+            curMap.spaces[self.location[0],self.location[1]]=[False]
+            killer.kills+=1
+            if self.classType==lord and not phoenix_mode:
+                lordDied=True
     def check_stats(self):
         print('\n')
         print(f"Name: {self.name}")
@@ -1110,6 +1128,16 @@ class recruitable(character):
         super().__init__(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,enemy,classType,weaponType,joinMap,inventory,level)
         if self not in self.recruitable_list:
             self.recruitable_list.append(self)
+    def check_support_bonus(self):
+        support_bonus=0
+        for i in range(-support_range,support_range+1):
+            for j in range(-support_range,support_range+1):
+                if abs(i+j)==support_range:
+                    if (self.location[0]+i,self.location[1]+j) in curMap.spaces:
+                        if curMap.spaces[self.location[0]+i,self.location[1]+j][0]==True:
+                            if curMap.spaces[self.location[0]+i,self.location[1]+j][1].name in self.support_list:
+                                support_bonus+=self.support_list[curMap.spaces[self.location[0]+i,self.location[1]+j][1].name]
+        return support_bonus
 class player_char(character):
     player_char_list=[]
     nameClass='player_char'
@@ -1127,9 +1155,9 @@ class player_char(character):
             self.player_char_list.append(self)
     def check_support_bonus(self):
         support_bonus=0
-        for i in range(-1,2):
-            for j in range(-1,2):
-                if abs(i+j)==1:
+        for i in range(-support_range,support_range+1):
+            for j in range(-support_range,support_range+1):
+                if abs(i+j)==support_range:
                     if (self.location[0]+i,self.location[1]+j) in curMap.spaces:
                         if curMap.spaces[self.location[0]+i,self.location[1]+j][0]==True:
                             if curMap.spaces[self.location[0]+i,self.location[1]+j][1].name in self.support_list:
@@ -1430,6 +1458,7 @@ class skill:
         self.effect_operator=effect_operator
         self.effect_target=effect_target
         self.effect_temp=effect_temp
+        self.description=None
         self.skill_list.append(self)
 
     #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):        
@@ -1469,7 +1498,7 @@ class alignment:
         self.name=name
         self.roster=[]
         self.convoy=[]
-        self.gold=0
+        self.gold=starting_gold
         self.alignment_list.append(self)
         self.support_master={}
     def show_convoy(self):
@@ -1479,32 +1508,39 @@ class alignment:
         for i in self.convoy:
             i.info()
     def buy_item(self,shop):
+        sale=1
+        sale_int=rand.randrange(0,100)
+        if sale_int<=5:
+            sale=rand.randrange(2,5)
         end=False
         while end==False:
             print(f"{self.gold} gold")
+            if sale>1:
+                print(f'Lucky you! Theres a sale going on, everything is {100/sale}% off!')
             for i in range(0,len(shop.contents)):
-                print(f"{i} : {shop.contents[i][0].name}, {shop.contents[i][0].cost} gold x{shop.contents[i][1]}")
+                print(f"{i} : {shop.contents[i][0].name}, {shop.contents[i][0].cost//sale} gold{' x'+str(shop.contents[i][1]) if limited_shop_items else ''}")
             buy=input('Input the number of the item you would like to buy or x to exit \n')
             if buy.lower()=='x':
                 return
             elif buy.isdigit():
                 if int(buy)>=0 and int(buy)<len(shop.contents):
                     if shop.contents[int(buy)][0].cost<=self.gold:
-                        confirm=input(f"Would you like to buy the {shop.contents[int(buy)][0].name} for {shop.contents[int(buy)][0].cost} gold? Input Y to confirm, anything else to cancel \n")
+                        confirm=input(f"Would you like to buy the {shop.contents[int(buy)][0].name} for {shop.contents[int(buy)][0].cost//sale} gold? Input Y to confirm, anything else to cancel \n")
                         if confirm.lower()=='y':
                             print(f"{shop.contents[int(buy)][0].name} bought!")
-                            z=shop.contents[int(buy)][0].name
-                            z=z.replace(' ','_')
-                            z=z.lower()
-                            try:
-                                p=globals()[z](False)
-                            except:
+                            if shop.contents[int(buy)][0] in unique_weapons:
                                 p=shop.contents[int(buy)][0]
+                            else:
+                                z=shop.contents[int(buy)][0].name
+                                z=z.replace(' ','_')
+                                z=z.lower()
+                                p=globals()[z](False)
                             self.convoy.append(p)
-                            shop.contents[int(buy)][1]-=1
-                            if shop.contents[int(buy)][1]<=0:
+                            if limited_shop_items:
+                                shop.contents[int(buy)][1]-=1
+                            if shop.contents[int(buy)][1]<=0 or shop.contents[int(buy)][0] in unique_weapons:
                                 shop.contents.pop(int(buy))
-                            self.gold-=p.cost
+                            self.gold-=p.cost//sale
                     else:
                         print("That item is too expensive for you! Buy something else, will ya?")
             else:
@@ -1512,19 +1548,22 @@ class alignment:
     def sell_item(self):
         end=False
         while end==False:
+            if len(self.convoy)==0:
+                print('The convoy is empty')
+                return
             print(f"{self.gold} gold")
             for i in range(0,len(self.convoy)):
-                print(f"{i}: {self.convoy[i].name} {(self.convoy[i].cost/2)*(self.convoy[i].curUses/self.convoy[i].maxUses)}")
+                print(f"{i}: {self.convoy[i].name} {(self.convoy[i].cost*shop_sell_price_multiplier)*(self.convoy[i].curUses/self.convoy[i].maxUses)}")
             sell=input('Input the number of the item you would like to sell or x to exit \n')
             if sell.lower()=='x':
                 return
             elif sell.isdigit():
                 if int(sell)>=0 and int(sell)<len(self.convoy):
-                    confirm=input(f"Would you like to sell the {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost/2)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold? Input Y to confirm, anything else to cancel \n")
+                    confirm=input(f"Would you like to sell the {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost*shop_sell_price_multiplier)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold? Input Y to confirm, anything else to cancel \n")
                     if confirm.lower()=='y':
-                        print(f"Sold {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost/2)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold")
+                        print(f"Sold {self.convoy[int(sell)].name} for {(self.convoy[int(sell)].cost*shop_sell_price_multiplier)*(self.convoy[int(sell)].curUses/self.convoy[int(sell)].maxUses)} gold")
                         item=self.convoy.pop(int(sell))
-                        self.gold+=(item.cost/2)*(item.curUses/item.maxUses)
+                        self.gold+=(item.cost*shop_sell_price_multiplier)*(item.curUses/item.maxUses)
                         print('Item sold')
                     else:
                         print('Sale canceled')
@@ -1549,8 +1588,8 @@ class alignment:
             if self==player:
                 for j in curMap.spaces:
                     if curMap.spaces[j][0]==True:
-                        if abs(j[0]-i.location[0])+abs(j[1]-i.location[1])==1 and curMap.spaces[j][1].alignment==i.alignment and curMap.spaces[j][1].name in i.support_list:
-                            i.support_list[curMap.spaces[j][1].name]+=1
+                        if abs(j[0]-i.location[0])+abs(j[1]-i.location[1])<=support_range and curMap.spaces[j][1].alignment==i.alignment and curMap.spaces[j][1].name in i.support_list:
+                            i.support_list[curMap.spaces[j][1].name]+=support_growth_multiplier
             
 class mapLevel:
     map_list=[]
@@ -1572,6 +1611,7 @@ class mapLevel:
         self.completion_turns=0
         self.player_roster=[]
         self.enemy_roster=[]
+        self.turnwheel={}
         self.map_list.append(self)
     def start_map(self):
         global levelComplete
@@ -1585,6 +1625,8 @@ class mapLevel:
         for i in player.roster:
             i.deployed=False
             i.curhp=i.hp
+            if not permadeath and i.status=='KO':
+                i.status='Alive'
         inventory=True
         while inventory==True:
             print('0 Trade Items')
@@ -1719,10 +1761,10 @@ class mapLevel:
                 for unit in player.roster:
                     for support_partner in unit.support_list:
                         if (unit.name, support_partner) in player.support_master:
-                            if int(unit.support_list[support_partner]/10)>player.support_master[unit.name, support_partner][0] and player.support_master[unit.name, support_partner][0]<len(player.support_master[unit.name, support_partner])-1 and[unit.name, support_partner] not in supportRange:
+                            if int(unit.support_list[support_partner]/support_level_threshold)>player.support_master[unit.name, support_partner][0] and player.support_master[unit.name, support_partner][0]<len(player.support_master[unit.name, support_partner])-1 and[unit.name, support_partner] not in supportRange:
                                 supportRange.append([unit.name, support_partner])
                         elif (support_partner,unit.name) in player.support_master:
-                            if int(unit.support_list[support_partner]/10)>player.support_master[support_partner,unit.name][0] and player.support_master[support_partner,unit.name][0]<len(player.support_master[support_partner,unit.name])-1 and[support_partner,unit.name] not in supportRange:
+                            if int(unit.support_list[support_partner]/support_level_threshold)>player.support_master[support_partner,unit.name][0] and player.support_master[support_partner,unit.name][0]<len(player.support_master[support_partner,unit.name])-1 and[support_partner,unit.name] not in supportRange:
                                 supportRange.append([support_partner,unit.name])
                 if len(supportRange)==0:
                     print('There are no supports available at this time')
@@ -2130,6 +2172,12 @@ def gameplay(align):
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
     cont2=False
+    global move_num
+    move_num+=1
+    if curMap.turn_count not in curMap.turnwheel:
+        curMap.turnwheel[curMap.turn_count]=[move_num]
+    else:
+        curMap.turnwheel[curMap.turn_count].append(move_num)
     while cont2==False:
         curMap.display('cur')
         print(f'There are {count} units that can still move')
@@ -2142,7 +2190,7 @@ def gameplay(align):
         print("6: View map features")
         print("7: End Turn")
         if curMap.battle_saves<1 and saveallowed:
-            print("7: Save (you get 1 battle save per map)")
+            print("8: Save (you get 1 battle save per map)")
         path=input('Enter the number of the path you want to take \n')
         if path=='4':
             align.show_roster()
@@ -2293,7 +2341,7 @@ def ai(align):
         self.update_location(closest[1])
         print(f'{self.name} moved to {closest[1]}')
         self.moved=True
-        time.sleep(3)
+        time.sleep(1.5*text_speed)
     else:
         self.update_location(maxDamage[2])
         print(f'{self.name} moved to {maxDamage[2]}')
@@ -2342,15 +2390,19 @@ def djikstra(self):
             if curMap.spaces[neighbor[0],neighbor[1]][0]==True:
                 if curMap.spaces[neighbor[0],neighbor[1]][1].alignment!=self.alignment:
                     moveCost=999
-            if moveCost!=999 and moveCost!=1:
-                if self.classType.moveType=='Flying':
-                    moveCost=1
-                elif self.classType.moveType=='Horse':
-                    moveCost*=2
-                elif self.classType.moveType=='Mage' and curMap.objectList[neighbor[0],neighbor[1]].name=='Desert':
-                    moveCost=1
-                elif self.classType.moveType=='Pirate' and curMap.objectList[neighbor[0],neighbor[1]].name=='Water':
-                    moveCost=2
+            if moveCost!=999 and moveCost!=1 and (curMap.objectList[neighbor[0],neighbor[1]].name in move_cost_dict[self.classType.moveType]) or ('All' in move_cost_dict[self.classType.moveType]):
+                if curMap.objectList[neighbor[0],neighbor[1]].name in move_cost_dict[self.classType.moveType]:
+                    moveCost=eval(move_cost_dict[self.classType.moveType][curMap.objectList[neighbor[0],neighbor[1]].name])
+                else:
+                    moveCost=eval(move_cost_dict[self.classType.moveType]['All'])
+##                if self.classType.moveType=='Flying':
+##                    moveCost=1
+##                elif self.classType.moveType=='Horse':
+##                    moveCost*=2
+##                elif self.classType.moveType=='Mage' and curMap.objectList[neighbor[0],neighbor[1]].name=='Desert':
+##                    moveCost=1
+##                elif self.classType.moveType=='Pirate' and curMap.objectList[neighbor[0],neighbor[1]].name=='Water':
+##                    moveCost=2
             tenative_value+=moveCost
             if (neighbor[0],neighbor[1]) in shortest_path:
                 if tenative_value < shortest_path[neighbor[0],neighbor[1]]:
@@ -2500,7 +2552,7 @@ def stock_inventory(name,*inventory):
             if len(inventory)==1:
                 contI=False
         elif name.lower()=='inventory':
-            if len(inventory)==5:
+            if len(inventory)==inventory_max_size:
                 print(f"The {name} is full")
                 contI=False
         print('Current inventory:')
@@ -3302,7 +3354,7 @@ def create_character(*name):
         level=input('Input what level you would like your character to be\n')
         try:
             level=int(level)
-            if level>0 and level<=20:
+            if level>0 and level<=level_cap:
                 cont=True
         except:
             print(traceback.format_exc())
@@ -4403,7 +4455,62 @@ def edit_map():
         elif path=='3':
             #edit spawns
             path=input('Enter 1 to add spawns, 2 to remove spawns, or anything else to cancel\n')
-            pass
+            if path=='1':
+                contZ=False
+                mapX.display('base')
+                while contZ==False:
+                    print(f'Input the coordinates for the new spawn in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                    print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
+                    spawn=input('Enter the coordinates now, or input X to finish\n')
+                    if spawn.lower()=='x':
+                        contZ=True
+                    spawn=spawn.split(',')
+                    if len(spawn)==2:
+                        if spawn[0].isdigit() and spawn[1].isdigit():
+                            spawn[0]=int(spawn[0])
+                            spawn[1]=int(spawn[1])
+                            contCont=True
+                            if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
+                                if (spawn[0],spawn[1]) in mapX.objectList:
+                                    if mapX.objectList[spawn[0],spawn[1]].name=='Door':
+                                        contCont=False
+                                    elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and class_choice.moveType!='Flying':
+                                        contCont=False
+                                    elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and (class_choice.moveType!='Flying' and class_choice.moveType!='Pirate'):
+                                        contCont=False
+                                for i in mapX.enemy_roster:
+                                    if spawn[0]==i.spawn[0] and spawn[1]==i.spawn[1]:
+                                        contCont=False
+                                if contCont==True:
+                                    mapX.spawns.append([spawn[0],spawn[1]])
+                                    print('Spawn added')
+                                else:
+                                    print('Invalid location, theres already something there')
+                            elif [spawn[0],spawn[1]] in mapX.spawns:
+                                print('There is already a spawn there, invalid input')
+                            else:
+                                print('Invalid spawn, try again')
+            elif path=='2':
+                cont=False
+                while cont==False:
+                    if len(mapX.spawns)==1:
+                        print('There are no spawns left to remove, returning to menu')
+                        cont=True
+                    for i in range(0,len(mapX.spawns)):
+                        print(f'{i}: {mapX.spawns[i]}')
+                    spawn_to_remove=input(f'Input the number of the spawn you wish to delete or X to finish\n')
+                    if spawn_to_remove.lower()=='x':
+                        cont=True
+                    elif spawn_to_remove.isdigit():
+                        if int(spawn_to_remove)>=0 and int(spawn_to_remove)<len(mapX.spawns):
+                            rem=mapX.spawns.pop(int(spawn_to_remove))
+                            print(f'{rem} deleted')
+                        else:
+                            print('Invalid input, try again')
+                    else:
+                        print('Invalid input, try again')                    
+            else:
+                print('Returning to menu')
         elif path=='4':
             #edit size
             print(f'This map is currently {mapX.x_size} wide and {mapX.y_size} tall')
@@ -4477,10 +4584,15 @@ def edit_map():
                                                             contCont=False
                                                         elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and (class_choice.moveType!='Flying' and class_choice.moveType!='Pirate'):
                                                             contCont=False
+                                                    for i in mapX.enemy_roster:
+                                                        if spawn[0]==i.spawn[0] and spawn[1]==i.spawn[1]:
+                                                            contCont=False
                                                     if contCont==True:
                                                         missing_enemy[0].spawn=[spawn[0],spawn[1]]
                                                         missing_enemy.pop(0)
                                                         contZ=True
+                                                    else:
+                                                        print('Invalid location, theres already something there')
                                                 elif [spawn[0],spawn[1]] in mapX.spawns:
                                                     print('A player unit spawns there, invalid input')
                                                 else:
@@ -4524,7 +4636,134 @@ def edit_map():
                         print('Map resized')
         elif path=='5':
             #edit rosters
-            pass
+            path=input(f'Input 1 to remove units from this map, 2 to add units to this map, or x to cancel\n')
+            if path.lower()=='x':
+                pass
+            elif path=='1':
+                path2=input('Input 1 to remove player units or 2 to remove enemies\n')
+                if path2=='1':
+                    for i in range(0,len(mapX.player_roster)):
+                        print(f'{i}: {mapX.player_roster[i].name}')
+                    route=input(f'Input the number of the unit that you wish to remove from this maps roster\n')
+                    if route.isdigit():
+                        if int(route)>=0 and int(route)<len(mapX.player_roster):
+                            confirm=input(f'Input Y to confirm that you wish to remove {mapX.player_roster[int(route)].name} from this roster\n')
+                            if confirm.lower()=='y':
+                                moveXY=input(f'Input Y to move this character to another map or X to delete this character')
+                                if moveXY.lower()=='y':
+                                    pass
+                                elif moveXY.lower()=='x':
+                                    deleted_char=mapX.player_roster.pop(int(route))
+                                    character.character_list.remove(deleted_char)
+                                    print('Character deleted')
+                elif path2=='2':
+                    for i in range(0,len(mapX.enemy_roster)):
+                        print(f'{i}: {mapX.enemy_roster[i].name}')
+                    remove_enemy=input(f'Input the number of the enemy you wish to remove or x to cancel\n')
+                    if remove_enemy.lower()=='x':
+                        pass
+                    elif remove_enemy.isdigit():
+                        if int(remove_enemy)>=0 and int(remove_enemy)<len(mapX.enemy_roster):
+                            confirm=input(f'Input Y to confirm that you wish to remove {mapX.enemy_roster[int(remove_enemy)].name} from this maps roster or anything else to cancel\n')
+                            if confirm.lower()=='y':
+                                removed=mapX.enemy_roster.pop(int(remove_enemy))                                
+                                contX=False
+                                while contX==False:
+                                    delete=input('Input Y to move this enemy to another map or X to delete this enemy\n')
+                                    if delete.lower()=='x':
+                                        characters.character_list.remove(removed)
+                                        print('Character deleted')
+                                        contX=True
+                                    elif delete.lower()=='y':
+                                        acceptable_inputs={}
+                                        for i in mapLevel.map_list:
+                                            print(f'{i.name}: map number {i.mapNum}')
+                                            acceptable_inputs[i.mapNum]=i
+                                        new_map=input('Enter the map number that you want to move this character to or X to cancel\n')
+                                        if new_map.lower()=='x':
+                                            pass
+                                        elif new_map.isdigit():
+                                            if int(new_map) in acceptable_inputs:
+                                                contZ=False
+                                                acceptable_inputs[int(new_map)].display('base')
+                                                while contZ==False:
+                                                    print(f'Input the coordinates where you would like {removed.name} to be in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                                                    print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
+                                                    spawn=input('Enter the coordinates now, or input X to cancel\n')
+                                                    if spawn.lower()=='x':
+                                                        contZ=True
+                                                    spawn=spawn.split(',')
+                                                    if len(spawn)==2:
+                                                        if spawn[0].isdigit() and spawn[1].isdigit():
+                                                            spawn[0]=int(spawn[0])
+                                                            spawn[1]=int(spawn[1])
+                                                            contCont=True
+                                                            if (spawn[0],spawn[1]) in acceptable_inputs[int(new_map)].spaces:
+                                                                if (spawn[0],spawn[1]) in acceptable_inputs[int(new_map)].objectList:
+                                                                    print('Theres already an object there, find somewhere else to put this')
+                                                                    contCont=False
+                                                                if [spawn[0],spawn[1]] in acceptable_inputs[int(new_map)].spawns:
+                                                                    print('Theres already a player unit spawn there, find somewhere else to put this')
+                                                                    contCont=False
+                                                                for i in acceptable_inputs[int(new_map)].enemy_roster:
+                                                                    if i.spawn==[spawn[0],spawn[1]]:
+                                                                        print('Theres already an enemy unit spawning there, find somewhere else to put this')
+                                                                        contCont=False
+                                                                if contCont==True:
+                                                                    removed.spawn=[spawn[0],spawn[1]]
+                                                                    acceptable_inputs[int(new_map)].enemy_roster.append(removed)
+                                                                    contZ=True
+                                                            else:
+                                                                print('Invalid location, try again')
+                                            else:
+                                                print('Invalid input, try again')
+                                    else:
+                                        print('Invalid input, try again')                                    
+                            else:
+                                print('Removal canceled')
+                        else:
+                            print('Invalid input, try again')
+                    else:
+                        print('Invalid input, try again')
+                else:
+                    pass
+            elif path=='2':
+                new_old=input('Input 1 to create a new unit or 2 to move an existing unit to this map\n')
+                if new_old=='1':
+                    create_character()
+                elif new_old=='2':
+                    eligible_maps={}
+                    for i in mapLevel.map_list:
+                        print(f'{i.name} map number {i.mapNum}')
+                    mapU=input(f'Enter the map number that you want to take the units from\n')
+                    if mapU.isdigit():
+                        if int(mapU) in eligible_maps:                            
+                            alig=input('Input 1 to add player units, 2 to add enemy units, or x to cancel\n')
+                            if alig=='1':
+                                for k in range(0,len(eligible_maps[int(mapU)].player_roster)):
+                                    print(f'{k}: {eligible_maps[int(mapU)].player_roster[k].name}')
+                                char_add=input(f'Input the number of the character that you would like to this map')
+                                if char_add.isdigit():
+                                    if int(char_add)>=0 and int(char_add)<len(eligible_maps[int(mapU)].player_roster):
+                                        confirm=input(f'Input Y to confirm that you wish to move {eligible_maps[int(mapU)].player_roster[int(char_add)].name} from map {mapU} to map {mapX.mapNum}\n')
+                                        if confirm.lower()=='y':
+                                            addition=eligible_maps[int(mapU)].player_roster.pop(int(char_add))
+                                            mapX.player_roster.append(addition)
+                                            print('Character added!')
+                                        else:
+                                            print('Movement canceled')
+                                    else:
+                                        print('Invalid input, try again')
+                                else:
+                                    print('Invalid input, try again')
+                            elif alig=='2':
+                                pass
+                        else:
+                            print('Thats not an option, returning to menu')
+                    else:
+                        print('Invalid input, returning to menu')                        
+            else:
+                pass
         else:
             print('Invalid input')
 
@@ -4656,7 +4895,7 @@ def edit_char():
             lev=input(f'Enter their new level\n')
             exp=input(f'Enter their new EXP\n')
             if lev.isdigit() and exp.isdigit():
-                if int(lev)<=20 and int(lev)>=1 and int(exp)<100 and int(exp)>=0:
+                if int(lev)<=level_cap and int(lev)>=1 and int(exp)<needed_exp and int(exp)>=0:
                     if int(lev)>char.level:
                         gain_stats=input('Since you are raising this characters level, input Y to make them gain stats as if leveling up or anything else to keep their stats the same\n')
                         if gain_stats.lower()=='y':
@@ -4777,21 +5016,38 @@ def edit_char():
 def edit_mechanics():
     #char1(attacking character),char2(defending character),weapon1,dist,dmgMod,hit_formula,avoid_formula,crit_formula,hitMod,dodge_formula
     #bases,growths, weapon1.stats
+    cont=False
+    while cont==False:
+        print('The available variables to use are:')
+        print('The attacking character, the defending character, the weapon being attacked with, the tile distance this combat is taking place at')
+        print('The damage modifier (additional damage that doesnt come from the attacking characters attack stat or the weapons damage stat, such as weapon triangle bonus or super effective multiplier)')
+        print('The accuracy modifier (additional accuracy that doesnt come from the characters skill or weapon accuracy such as weapon triangle bonus')
+        print('The hit formula, the avoid formula, the crit formula, the dodge formula')
+        print('Numbers and mathematical operators (+-*/)')
     pass
 
 """
 water's movecost is 998, void is 9999, enemy is 999
 """
-#mechanics
+#inherents
+mapNum=1
 campaign='Default'
 timemodifier=0
+move_num=0
 lordDied=False
-mapNum=1
+#settings
+text_speed=1
+permadeath=True
+phoenix_mode=False
+turnwheel=False
+#mechanics
 inventory_max_size=5
 skill_max_size=5
 level_cap=20
 promotion_level=10
-weapon_triange_damage_bonus=1
+needed_exp=100
+
+weapon_triangle_damage_bonus=1
 weapon_triangle_hit_bonus=15
 magic_damage_formula='char1.mag+weapon1.dmg+dmgMod-char2.res'
 magic_damage_formula='char1.atk+weapon1.dmg+dmgMod-char2.def'
@@ -4800,30 +5056,32 @@ avoid_formula='1.5*char2.spd+.5*char2.luck'
 crit_formula='.5*char1.skill+weapon1.crit'
 dodge_formula='char2.luck'
 exp_formula='startHP-enemy_unit.curhp'
-wep_lev_formula='player_unit.weaponType[player_weapon.weapontype]+=1'
-kill_wep_lev_formula='player_unit.weaponType[player_weapon.weapontype]+=10'
+wep_lev_formula='1'
+kill_wep_lev_formula='10'
 kill_exp_formula='30+enemy_unit.hp'
-guarenteed_double={'Sword':False,'Lance':False,'Axe':False,'Bow':False,'Tome':False,'Fist':True}
+guarenteed_double={'Sword':False,'Lance':False,'Axe':False,'Bow':False,'Tome':False,'Fist':True,'Empty':False}
 doubling_threshold=5
 max_number_of_doubles=2
 super_effective_weapon_art_bonus=3
 crit_multiplier=3
 weapon_durability=True
-permadeath=True
-phoenix_mode=False
+weapon_level_type=True #true is the individual weapons all have their own level, false is fe1 style
+true_hit=False#True is the 2rn style
+
 support_range=1
 pair_up=False
-weapon_level_type=True #true is the individual weapons all have their own level, false is fe1 style
+support_growth_multiplier=1
+support_level_threshold=10
+
 starting_gold=0
 shop_sell_price_multiplier=.5
 limited_shop_items=True #false would make it so that shops have infinity of everything
-support_growth_multiplier=1
-support_level_threshold=10
+
 default_weapon_edit=False
 default_map_object=False
 create_new_map_objects=False
 enemy_priority='Damage'
-move_cost_discounts={}
+move_cost_dict={'Foot':{},'Flying':{'All':'1'},'Horse':{'All':'moveCost*2'},'Mage':{'Desert':'1'},'Pirate':{'Water':'1'}}
 baseShop=shop(None,[-1,-1],[[base_silver_axe,1],[base_shield,1]])
 ###alignments
 enemy=alignment('Enemy')
@@ -5237,6 +5495,11 @@ while mapNum<=len(mapLevel.map_list):
             gameplay(player)
             ai(enemy)
             curMap.turn_count+=1
+            move_num=0
+            if phoenix_mode:
+                for i in player.roster:
+                    if i.status=='KO':
+                        i.status='Alive'
         else:
             levelComplete=True
     if len(player.roster)<=0 or lordDied==True:
@@ -5265,10 +5528,10 @@ for i in range(1,len(mapLevel.map_list)+1):
             ordered_maps.append(j)
 for i in ordered_maps:
     print(f'{i.name}: {i.completion_turns} turns')
-    time.sleep(1)
+    time.sleep(1*text_speed)
     total_turns+=i.completion_turns
 print(f'Total turns: {total_turns}')
-time.sleep(1)
+time.sleep(text_speed)
 total_kills=0
 total_battles=0
 for i in player_char.player_char_list:
@@ -5277,7 +5540,7 @@ for i in player_char.player_char_list:
         print(f'{i.ending}')
     else:
         print(f'Died on map number {i.deathMap}')
-    time.sleep(3)
+    time.sleep(3*text_speed)
     total_kills+=i.kills
     total_battles+=i.battles
 for i in recruitable.recruitable_list:
@@ -5287,7 +5550,7 @@ for i in recruitable.recruitable_list:
             print(f'{i.ending}')
         else:
             print(f'Died on map number {i.deathMap}')
-        time.sleep(3)
+        time.sleep(3*text_speed)
         total_kills+=i.kills
         total_battles+=i.battles    
 print(f'Total battles: {total_battles}')
