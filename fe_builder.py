@@ -124,6 +124,7 @@ def init_battle(char1,char2,dist,*weaponX):
             battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
     char1.battles+=1
     char2.battles+=1
+    #need to update this to account for third alignment
     if weaponX:
         player_unit=char2
         player_weapon=weapon2
@@ -1164,6 +1165,33 @@ class player_char(character):
                                 support_bonus+=self.support_list[curMap.spaces[self.location[0]+i,self.location[1]+j][1].name]
         return support_bonus
     
+class green_passive(character):
+    pass
+
+class green_active(character):
+    pass
+
+class turnwheel_ghost:
+    nameClass='turnwheel_ghost'
+    def __init__(self,name,curhp,hp,classType,alignment,location,level):
+        self.name=name
+        self.curhp=curhp
+        self.hp=hp
+        self.classType=None
+        for i in classType.class_list:
+            if i.name==classtype or i==classtype:
+                self.classType=i
+        if isinstance(alignment,str):
+            self.alignment=eval(alignment.lower())
+        else:
+            self.alignment=alignment
+        self.location=location
+        self.level=level
+
+class turnwheel_map:
+    pass
+        
+    
 class classType:
     class_list=[]
     def __init__(self,name,moveType,hp,hpG,atk,atkG,mag,magG,skillX,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list):
@@ -1611,6 +1639,7 @@ class mapLevel:
         self.completion_turns=0
         self.player_roster=[]
         self.enemy_roster=[]
+        self.green_roster=[]
         self.turnwheel={}
         self.map_list.append(self)
     def start_map(self):
@@ -2274,6 +2303,89 @@ def gameplay(align):
     if count!=0 and levelComplete==False and lordDied==False:
         gameplay(align)
 
+def ai_green(align):
+    #The goal here is to make an ai that, if it can attack a player character, it will attack the one that it does the most hp percentage damage to
+    #If it cant, it will move towards the nearest player character
+    #we need to only make the active ones agro
+    count=0
+    board=[]
+    global levelComplete
+    if levelComplete==True or lordDied==True:
+        return
+    print('\n')
+    for i in range(0,len(align.roster)):
+        if align.roster[i].moved==False and align.roster[i].status=='Alive':
+            j=i
+            count+=1
+    if count==0:
+        align.turn_end()
+        return
+    for i in player.roster:
+        if i.deployed==True and i.status=='Alive':
+            print(f'Player unit {i.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in enemy.roster:
+        if i.status=='Alive':
+            print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in enemy.roster:
+        if i.status=='Alive':
+            print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    #We just choose the last item in the list cuz its easiest this way
+    curMap.display('cur')
+    choice=j
+    self=align.roster[j]
+    #dist, weapon
+    atkRange=[]
+    #So here we want to find the attack range of a character
+    for i in self.inventory:
+        if isinstance(i,weapon):
+            if i.weapontype in self.weaponType:
+                if i.weaponlevel<=self.weaponType[i.weapontype]:
+                    for j in i.rng:
+                        atkRange.append([j,i])
+    #closest= dist, location
+    closest=[9999,[0,0]]
+    furthest=[0,[0,0]]
+    #maxDamage has character to attack, damage done, location,weapon being used, and distance
+    maxDamage=[None,0,[0,0],None,0]
+    #We check every map tile
+    potential_spaces=djikstra(self)
+    for i in potential_spaces:
+        for j in curMap.spaces:
+            #We find all the spaces with enemies on them
+            if curMap.spaces[j][0]==True:
+                destToPlayer=abs(j[0]-i[0])+abs(j[1]-i[1])
+                for k in atkRange:
+                    if k[0]==destToPlayer:
+                        bonus=0
+                        if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment==enemy:
+                            if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                                bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                            if self.mag+k[1].dmg+bonus-curMap.spaces[j][0][1].res>=maxDamage[1]:
+                                maxDamage=[curMap.spaces[j][1],self.mag+k[1].dmg+bonus-curMap.spaces[j][1].res,i,k[1],k[0]]
+                        elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment==enemy:
+                            if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                                bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                            if self.atk+k[1].dmg+bonus-curMap.spaces[j][1].defense>=maxDamage[1]:
+                                maxDamage=[curMap.spaces[j][1],self.atk+bonus+k[1].dmg-curMap.spaces[j][1].defense,i,k[1],k[0]]
+                #We then calculate the distance from this point to every player, and if its lower than the previous closest to a player we make it the new destination
+                if curMap.spaces[j][1].alignment==enemy and destToPlayer<=closest[0]:
+                    closest=[destToPlayer,i]
+                #We then calculate the distance from this point to every player, and if its further we have it as a potential destination if this unit needs to retreat
+                if curMap.spaces[j][1].alignment==enemy and destToPlayer>furthest[0]:
+                    furthest=[destToPlayer,i]
+    print('\n')
+    if maxDamage[0]==None:
+        self.update_location(closest[1])
+        print(f'{self.name} moved to {closest[1]}')
+        self.moved=True
+        time.sleep(1.5*text_speed)
+    else:
+        self.update_location(maxDamage[2])
+        print(f'{self.name} moved to {maxDamage[2]}')
+        init_battle(self,maxDamage[0],maxDamage[4],maxDamage[3])
+    if count!=0 and levelComplete==False and lordDied==False:
+        ai_green(align)
+
 def ai(align):
     #The goal here is to make an ai that, if it can attack a player character, it will attack the one that it does the most hp percentage damage to
     #If it cant, it will move towards the nearest player character
@@ -2296,6 +2408,9 @@ def ai(align):
     for i in enemy.roster:
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in enemy.roster:
+        if i.status=='Alive':
+            print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
     #We just choose the last item in the list cuz its easiest this way
     curMap.display('cur')
     choice=j
@@ -2311,6 +2426,7 @@ def ai(align):
                         atkRange.append([j,i])
     #closest= dist, location
     closest=[9999,[0,0]]
+    furthest=[0,[0,0]]
     #maxDamage has character to attack, damage done, location,weapon being used, and distance
     maxDamage=[None,0,[0,0],None,0]
     #We check every map tile
@@ -2323,19 +2439,22 @@ def ai(align):
                 for k in atkRange:
                     if k[0]==destToPlayer:
                         bonus=0
-                        if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment!=self.alignment:
+                        if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment!=enemy:
                             if curMap.spaces[j][1].classType.name in k[1].super_effective:
                                 bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
                             if self.mag+k[1].dmg+bonus-curMap.spaces[j][0][1].res>=maxDamage[1]:
                                 maxDamage=[curMap.spaces[j][1],self.mag+k[1].dmg+bonus-curMap.spaces[j][1].res,i,k[1],k[0]]
-                        elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment!=self.alignment:
+                        elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment!=enemy:
                             if curMap.spaces[j][1].classType.name in k[1].super_effective:
                                 bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
                             if self.atk+k[1].dmg+bonus-curMap.spaces[j][1].defense>=maxDamage[1]:
                                 maxDamage=[curMap.spaces[j][1],self.atk+bonus+k[1].dmg-curMap.spaces[j][1].defense,i,k[1],k[0]]
                 #We then calculate the distance from this point to every player, and if its lower than the previous closest to a player we make it the new destination
-                if curMap.spaces[j][1].alignment!=self.alignment and destToPlayer<=closest[0]:
+                if curMap.spaces[j][1].alignment!=enemy and destToPlayer<=closest[0]:
                     closest=[destToPlayer,i]
+                #We then calculate the distance from this point to every player, and if its further we have it as a potential destination if this unit needs to retreat
+                if curMap.spaces[j][1].alignment!=enemy and destToPlayer>furthest[0]:
+                    furthest=[destToPlayer,i]
     print('\n')
     if maxDamage[0]==None:
         self.update_location(closest[1])
@@ -2348,6 +2467,7 @@ def ai(align):
         init_battle(self,maxDamage[0],maxDamage[4],maxDamage[3])
     if count!=0 and levelComplete==False and lordDied==False:
         ai(align)
+
 
 
 def djikstra(self):
@@ -5030,6 +5150,9 @@ def edit_mechanics():
 water's movecost is 998, void is 9999, enemy is 999
 """
 #inherents
+enemy=alignment('Enemy')
+player=alignment('Player')
+green=alignment('Green')
 mapNum=1
 campaign='Default'
 timemodifier=0
@@ -5083,9 +5206,6 @@ create_new_map_objects=False
 enemy_priority='Damage'
 move_cost_dict={'Foot':{},'Flying':{'All':'1'},'Horse':{'All':'moveCost*2'},'Mage':{'Desert':'1'},'Pirate':{'Water':'1'}}
 baseShop=shop(None,[-1,-1],[[base_silver_axe,1],[base_shield,1]])
-###alignments
-enemy=alignment('Enemy')
-player=alignment('Player')
 ###Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
 luna=skill('Luna',9,'skill','defense',.5,'*',True,'enemy')
 sol=skill('Sol',5,'skill','curhp',10,'+',False,'self','atk')
@@ -5110,6 +5230,7 @@ mercenary=classType('Mercenary','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.
 mage=classType('Mage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Tome':0},[],['Mag Up','Placeholder','Placeholder'])
 pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
 lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
+villiager=classType()
 ###Loading
 print('Welcome to FE Builder, created by Schwa')
 if not os.path.exists('campaign_list.txt'):
@@ -5536,7 +5657,7 @@ total_kills=0
 total_battles=0
 for i in player_char.player_char_list:
     print(f"{i.name}: {i.kills} kills in {i.battles} battles, {i.status}")
-    if i.status=='Alive':
+    if i.status=='Alive' or i.status=='KO':
         print(f'{i.ending}')
     else:
         print(f'Died on map number {i.deathMap}')
@@ -5546,7 +5667,7 @@ for i in player_char.player_char_list:
 for i in recruitable.recruitable_list:
     print(f"{i.name}: {i.kills} kills in {i.battles} battles, {i.status}, {i.alignment.name}")
     if i.alignment==player:
-        if i.status=='Alive':
+        if i.status=='Alive' or i.status=='KO':
             print(f'{i.ending}')
         else:
             print(f'Died on map number {i.deathMap}')
