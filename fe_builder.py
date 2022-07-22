@@ -125,32 +125,35 @@ def init_battle(char1,char2,dist,*weaponX):
     char1.battles+=1
     char2.battles+=1
     #need to update this to account for third alignment
-    if weaponX:
+    cont=True
+    if char2.alignment==player:
         player_unit=char2
         player_weapon=weapon2
         enemy_unit=char1
-    else:
+    elif char1.alignment==player:
         player_unit=char1
         enemy_unit=char2
         player_weapon=weapon1
-    if enemy_unit.status=='Dead':
-        player_unit.weaponType[player_weapon.weapontype]+=eval(kill_wep_lev_formula)
-        expGain=eval(kill_exp_formula)
     else:
-        print(wep_lev_formula)
-        player_unit.weaponType[player_weapon.weapontype]+=eval(wep_lev_formula)
-        expGain=eval(exp_formula)
-    if paragon in player_unit.skills:
-        expGain*=2
+        cont=False
+    if cont==True:
+        if enemy_unit.status=='Dead':
+            player_unit.weaponType[player_weapon.weapontype]+=eval(kill_wep_lev_formula)
+            expGain=eval(kill_exp_formula)
+        else:
+            player_unit.weaponType[player_weapon.weapontype]+=eval(wep_lev_formula)
+            expGain=eval(exp_formula)
+        if paragon in player_unit.skills:
+            expGain*=2
+        if player_unit.status!='Dead':
+            if player_unit.level<level_cap:
+                player_unit.exp+=expGain
+                print(f'{player_unit.name} EXP +{expGain}')
+            if player_unit.exp>=needed_exp:
+                player_unit.level_up()
     if char1.status!='Dead':
         if galeforce not in char1.skills:
             char1.moved=True
-    if player_unit.status!='Dead':
-        if player_unit.level<level_cap:
-            player_unit.exp+=expGain
-            print(f'{player_unit.name} EXP +{expGain}')
-        if player_unit.exp>=needed_exp:
-            player_unit.level_up()
     print(f'{char1.name} HP: {char1.curhp}')
     input(f'{char2.name} HP: {char2.curhp} \nEnter to continue\n')
 
@@ -517,6 +520,7 @@ class character:
             if i not in self.weaponType:
                 self.weaponType[i]=self.classType.weaponType[i]
         self.active_item=None
+        self.recently_attacked=None
         if len(inventory)>0:
             if isinstance(inventory[0],weapon):
                 if inventory[0].weapontype in self.weaponType:
@@ -1173,23 +1177,68 @@ class green_active(character):
 
 class turnwheel_ghost:
     nameClass='turnwheel_ghost'
-    def __init__(self,name,curhp,hp,classType,alignment,location,level):
+    def __init__(self,name,curhp,hp,classType,alignment,level,attr):
         self.name=name
         self.curhp=curhp
         self.hp=hp
-        self.classType=None
-        for i in classType.class_list:
-            if i.name==classtype or i==classtype:
-                self.classType=i
-        if isinstance(alignment,str):
-            self.alignment=eval(alignment.lower())
-        else:
-            self.alignment=alignment
-        self.location=location
+        self.classType=classType
+        self.alignment=alignment
+        #self.location=location
         self.level=level
+        self.attr={}
+        for i in attr:
+            #print(i)
+            self.attr[i[0]]=i[1]
+        #self.attr=attr
 
 class turnwheel_map:
-    pass
+    def __init__(self,spaces,objectList,player_roster,enemy_roster,green_roster,roster):
+        self.spaces=spaces
+        self.objectList=objectList
+        self.player_roster=player_roster
+        self.enemy_roster=enemy_roster
+        self.green_roster=green_roster
+        self.roster=roster
+    def display(self):
+        pass
+##        prev=-1
+##        rows=[]
+##        cur=[]
+##        cont=False
+##        while cont==False:
+##            for i in self.spaces:
+##                if i[1]==0:
+##                    if i[0]==0:
+##                        cur=[0]           
+##                    cur.append(str(i[0]))
+##                    prev=i[1]
+##            cont=True
+##        rows.append(cur)
+##        prev=-1
+##        for i in self.spaces:
+##            char=None
+##            if (i[0],i[1]) in self.objectList:
+##                char=self.objectList[i]
+##            if(i[1]!=prev):
+##                if prev!=-1:
+##                    rows.append(cur)
+##                cur=[i[1]]
+##            if char==None:                    
+##                char=" "
+##            if self.spaces[i][0]==True:
+##                if self.spaces[i][1].alignment==enemy:
+##                    char="E"
+##                elif self.spaces[i][1].alignment==player:
+##                    char="P"
+##                elif self.spaces[i][1].alignment==green:
+##                    char='A'
+##            if i[0]>=10:
+##                char+=' '
+##            cur.append(char)
+##            prev=i[1]
+##        rows.append(cur)
+##        for j in rows:
+##            print(j)   
         
     
 class classType:
@@ -1642,6 +1691,7 @@ class mapLevel:
         self.green_roster=[]
         self.turnwheel={}
         self.map_list.append(self)
+#init green
     def start_map(self):
         global levelComplete
         levelComplete=False
@@ -1650,6 +1700,8 @@ class mapLevel:
                 player.roster.append(i)
         enemy.roster=self.enemy_roster
         for i in enemy.roster:
+            i.update_location(i.spawn)
+        for i in green.roster:
             i.update_location(i.spawn)
         for i in player.roster:
             i.deployed=False
@@ -1850,52 +1902,58 @@ class mapLevel:
             i.placed=False
             i.moved=False
     def display(self,mode,*dj):
-        prev=-1
-        rows=[]
-        cur=[]
-        cont=False
-        while cont==False:
-            for i in self.spaces:
-                if i[1]==0:
-                    if i[0]==0:
-                        cur=[0]           
-                    cur.append(str(i[0]))
-                    prev=i[1]
-            cont=True
-        rows.append(cur)
-        prev=-1
-        for i in self.spaces:
-            char=None
-            if (i[0],i[1]) in self.objectList:
-                char=self.objectList[i].display
-            if dj:
-                if i in dj[0]:
-                    char='#'
-            if(i[1]!=prev):
-                if prev!=-1:
-                    rows.append(cur)
-                cur=[i[1]]
-            if char==None:                    
-                char=" "
-            if self.spaces[i][0]==True:
-                if mode.lower()=='cur' or mode.lower()=='djik':
-                    if self.spaces[i][1].alignment==enemy:
-                        char="E"
-                    elif self.spaces[i][1].alignment==player:
-                        char="P"
-            if mode.lower()=='base':
-                for j in self.enemy_roster:
-                    if [i[0],i[1]]==j.spawn:
-                        char='E'
-                if [i[0],i[1]] in self.spawns:
-                    char='P'
-            if i[0]>=10:
-                char+=' '
-            cur.append(char)
-            prev=i[1]
-        rows.append(cur)
-        for j in rows:
-            print(j)            
+        pass
+##        prev=-1
+##        rows=[]
+##        cur=[]
+##        cont=False
+##        while cont==False:
+##            for i in self.spaces:
+##                if i[1]==0:
+##                    if i[0]==0:
+##                        cur=[0]           
+##                    cur.append(str(i[0]))
+##                    prev=i[1]
+##            cont=True
+##        rows.append(cur)
+##        prev=-1
+##        for i in self.spaces:
+##            char=None
+##            if (i[0],i[1]) in self.objectList:
+##                char=self.objectList[i].display
+##            if dj:
+##                if i in dj[0]:
+##                    char='#'
+##            if(i[1]!=prev):
+##                if prev!=-1:
+##                    rows.append(cur)
+##                cur=[i[1]]
+##            if char==None:                    
+##                char=" "
+##            if self.spaces[i][0]==True:
+##                if mode.lower()=='cur' or mode.lower()=='djik':
+##                    if self.spaces[i][1].alignment==enemy:
+##                        char="E"
+##                    elif self.spaces[i][1].alignment==player:
+##                        char="P"
+##                    elif self.spaces[i][1].alignment==green:
+##                        char='A'
+##            if mode.lower()=='base':
+##                for j in self.enemy_roster:
+##                    if [i[0],i[1]]==j.spawn:
+##                        char='E'
+##                for k in self.green_roster:
+##                    if [i[0],i[1]]==k.spawn:
+##                        char='A'
+##                if [i[0],i[1]] in self.spawns:
+##                    char='P'
+##            if i[0]>=10:
+##                char+=' '
+##            cur.append(char)
+##            prev=i[1]
+##        rows.append(cur)
+##        for j in rows:
+##            print(j)            
     def add_map_objects(self):
         cont=False
         while cont==False:
@@ -2164,7 +2222,8 @@ class char_trigger:
         self.char_trigger_list.append(self)
         if mapLevel!=None:
             self.mapLevel.char_trigger_list[characters[0],characters[1]]=self
-        
+
+       
 def gameplay(align):
     count=0
     board=[]
@@ -2200,13 +2259,40 @@ def gameplay(align):
     for i in enemy.roster:
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in green.roster:
+        if i.status=='Alive':
+            print(f'Allied unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
     cont2=False
     global move_num
     move_num+=1
+    ol={}
+    s={}
+    roster=[]
+    player_roster=[]
+    enemy_roster=[]
+    green_roster=[]
+    inventory=[]
+    for i in player.roster:
+        player_roster.append(i)
+    for i in enemy.roster:
+        enemy_roster.append(i)
+    for i in green_roster:
+        green_roster.append(i)
+    for i in curMap.objectList:
+        ol[i]=curMap.objectList[i].display
+    for i in curMap.spaces:
+        s[i]=curMap.spaces[i]
+        if curMap.spaces[i][0]!=False:
+            char=turnwheel_ghost(curMap.spaces[i][1].name,curMap.spaces[i][1].curhp,curMap.spaces[i][1].hp,curMap.spaces[i][1].classType,curMap.spaces[i][1].alignment,curMap.spaces[i][1].level,curMap.spaces[i][1].__dict__.items())
+            roster.append(char)
+    for i in curMap.objectList:
+        ol[i]=curMap.objectList[i]
+    turn_map=turnwheel_map(curMap.spaces,curMap.objectList,player_roster,enemy_roster,green_roster,roster)
+    print(enemy.roster)
     if curMap.turn_count not in curMap.turnwheel:
-        curMap.turnwheel[curMap.turn_count]=[move_num]
+        curMap.turnwheel[curMap.turn_count]={move_num:turn_map}
     else:
-        curMap.turnwheel[curMap.turn_count].append(move_num)
+        curMap.turnwheel[curMap.turn_count][move_num]=turn_map
     while cont2==False:
         curMap.display('cur')
         print(f'There are {count} units that can still move')
@@ -2219,14 +2305,38 @@ def gameplay(align):
         print("6: View map features")
         print("7: End Turn")
         if curMap.battle_saves<1 and saveallowed:
-            print("8: Save (you get 1 battle save per map)")
+            print("S: Save (you get 1 battle save per map)")
+        print("T: Activate Turnwheel")
         path=input('Enter the number of the path you want to take \n')
         if path=='4':
             align.show_roster()
+        elif path.lower()=='t':
+            #turnwheel
+            for i in curMap.turnwheel:
+                for j in curMap.turnwheel[i]:
+                    print(f'{i},{j}')
+                    curMap.turnwheel[i][j].display()
+            revert=input('Input the turn, move you wish to revert to\n')
+            revert=revert.split(',')
+            curMap.turnwheel[int(revert[0])][int(revert[1])].display()
+            for i in curMap.turnwheel[int(revert[0])][int(revert[1])].roster:
+                for j in character.character_list:
+                    if j.name==i.name:
+                        for at in i.attr:
+                            setattr(j,at,i.attr[at])
+            #print(enemy.roster)
+            #print(curMap.turnwheel[int(revert[0])][int(revert[1])].enemy_roster)
+            enemy.roster=curMap.turnwheel[int(revert[0])][int(revert[1])].enemy_roster
+            player.roster=curMap.turnwheel[int(revert[0])][int(revert[1])].player_roster
+            green.roster=curMap.turnwheel[int(revert[0])][int(revert[1])].green_roster
+            curMap.spaces=curMap.turnwheel[int(revert[0])][int(revert[1])].spaces
+            curMap.objectList=curMap.turnwheel[int(revert[0])][int(revert[1])].objectList
+            print(hao.status)
+            cont2=True
         elif path=='0':
             for i in display_list:
                 print(f'{i.name} : {i.display}')
-        elif path=='8' and curMap.battle_saves<1 and saveallowed:
+        elif path.lower()=='s' and curMap.battle_saves<1 and saveallowed:
             curMap.battle_saves+=1
             save('_battle')
         elif path=='5':
@@ -2326,9 +2436,9 @@ def ai_green(align):
     for i in enemy.roster:
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
-    for i in enemy.roster:
+    for i in green.roster:
         if i.status=='Alive':
-            print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+            print(f'Allied unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
     #We just choose the last item in the list cuz its easiest this way
     curMap.display('cur')
     choice=j
@@ -2408,9 +2518,9 @@ def ai(align):
     for i in enemy.roster:
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
-    for i in enemy.roster:
+    for i in green.roster:
         if i.status=='Alive':
-            print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+            print(f'Allied unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
     #We just choose the last item in the list cuz its easiest this way
     curMap.display('cur')
     choice=j
@@ -2511,9 +2621,10 @@ def djikstra(self):
                 if curMap.spaces[neighbor[0],neighbor[1]][1].alignment!=self.alignment:
                     moveCost=999
             if moveCost!=999 and moveCost!=1 and (curMap.objectList[neighbor[0],neighbor[1]].name in move_cost_dict[self.classType.moveType]) or ('All' in move_cost_dict[self.classType.moveType]):
-                if curMap.objectList[neighbor[0],neighbor[1]].name in move_cost_dict[self.classType.moveType]:
+                #if curMap.objectList[neighbor[0],neighbor[1]].name in move_cost_dict[self.classType.moveType]:
+                try:
                     moveCost=eval(move_cost_dict[self.classType.moveType][curMap.objectList[neighbor[0],neighbor[1]].name])
-                else:
+                except:
                     moveCost=eval(move_cost_dict[self.classType.moveType]['All'])
 ##                if self.classType.moveType=='Flying':
 ##                    moveCost=1
@@ -5150,6 +5261,7 @@ def edit_mechanics():
 water's movecost is 998, void is 9999, enemy is 999
 """
 #inherents
+starting_gold=0
 enemy=alignment('Enemy')
 player=alignment('Player')
 green=alignment('Green')
@@ -5196,7 +5308,6 @@ pair_up=False
 support_growth_multiplier=1
 support_level_threshold=10
 
-starting_gold=0
 shop_sell_price_multiplier=.5
 limited_shop_items=True #false would make it so that shops have infinity of everything
 
@@ -5230,7 +5341,7 @@ mercenary=classType('Mercenary','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.
 mage=classType('Mage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Tome':0},[],['Mag Up','Placeholder','Placeholder'])
 pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
 lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
-villiager=classType()
+#villiager=classType()
 ###Loading
 print('Welcome to FE Builder, created by Schwa')
 if not os.path.exists('campaign_list.txt'):
@@ -5295,10 +5406,10 @@ if campaign=='Default':
     mumen=enemy_char('Mumen','Pirate',1,[iron_axe(False)],1,[1,2])
     ash=enemy_char('Ash','Pirate',1,[silver_axe(False)],1,[9,1])
     yuffie=enemy_char('Yuffie','Wyvern',2,[javelin(False)],2,[9,1])
-    saitama=player_char('Saitama',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'],'Saitama defeated everyone in one punch')
+    saitama=player_char('Saitama',25,700,.6,10,.4,100,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'],'Saitama defeated everyone in one punch')
     saitama.add_skill(luna)
     saitama.add_skill(armsthrift)
-    king=player_char('King',30,30,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,'Lord',{},1,[iron_sword(False),key(False)],1,{},[],'King continued his infinite unbeaten streak in Super Bash Bros')
+    king=player_char('King',30,700,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,'Lord',{},1,[iron_sword(False),key(False)],1,{},[],'King continued his infinite unbeaten streak in Super Bash Bros')
     zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Mercenary',{},2,[iron_sword(False)],1,{},[],'The Mamodo King returned to his throne')
 #Loading
 if os.path.exists(f'save_data_{campaign}.txt') or os.path.exists(f'save_data_battle_{campaign}.txt'):
