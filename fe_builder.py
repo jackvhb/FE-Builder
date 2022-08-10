@@ -2413,11 +2413,12 @@ def gameplay(align):
         print("7: End Turn")
         if curMap.battle_saves<1 and saveallowed:
             print("S: Save (you get 1 battle save per map)")
-        print("T: Activate Turnwheel")
+        if turnwheel:
+            print("T: Activate Turnwheel")
         path=input('Enter the number of the path you want to take \n')
         if path=='4':
             align.show_roster()
-        elif path.lower()=='t':
+        elif path.lower()=='t' and turnwheel:
             #turnwheel
             for i in curMap.turnwheel:
                 for j in curMap.turnwheel[i]:
@@ -5469,21 +5470,120 @@ def edit_char():
             print('Invalid input, try again')
 
 def edit_mechanics():
+    global inventory_max_size
+    global skill_max_size
+    global level_cap
+    global promotion_level
+    global needed_exp
+    global support_range
+    global weapon_triangle_damage_bonus
+    global weapon_triangle_hit_bonus
+    global doubling_threshold
+    global max_number_of_doubles
+    global super_effective_weapon_art_bonus
+    global crit_multiplier
+    global support_growth_multiplier
+    global support_level_threshold
+    global shop_sell_price_multiplier
+    global move_cost_dict
+
+    global magic_damage_formula
+    global phys_damage_formula
+    global hit_formula
+    global avoid_formula
+    global crit_formula
+    global dodge_formula
+    global exp_formula
+    global wep_lev_formula
+    global kill_wep_lev_formula
+    global kill_exp_formula
+
+    global guarenteed_double
+    global weapon_durability
+    global weapon_level_type#true is the individual weapons all have their own level, false is fe1 style
+    global true_hit#True is the 2rn style
+    global pair_up
+    global default_weapon_edit
+    global default_map_object
+    global create_new_map_objects
+    global enemy_priority
     #char1(attacking character),char2(defending character),weapon1,dist,dmgMod,hit_formula,avoid_formula,crit_formula,hitMod,dodge_formula
     #bases,growths, weapon1.stats
     cont=False
     while cont==False:
-        print('The available variables to use are:')
-        print('The attacking character, the defending character, the weapon being attacked with, the tile distance this combat is taking place at')
-        print('The damage modifier (additional damage that doesnt come from the attacking characters attack stat or the weapons damage stat, such as weapon triangle bonus or super effective multiplier)')
-        print('The accuracy modifier (additional accuracy that doesnt come from the characters skill or weapon accuracy such as weapon triangle bonus')
-        print('The hit formula, the avoid formula, the crit formula, the dodge formula')
-        print('Numbers and mathematical operators (+-*/)')
-    pass
+        route=input(f'Input 1 to edit formulas such as the experience formula or the damage formula\n2 to edit number values like the max inventory size or the multiplier applied to sold item price\n3 to toggle options such as whether shops have limited items or whether a weapon type should automatically double\nX to finish editing game mechanics\n')
+        if route.lower()=='x':
+            cont=True
+        elif route=='2':
+            print(f'1: Max character inventory size\n2: Number of skills able to be equipped at once')
+            print('3: Level cap\n4: Minimum level to promote\n5: EXP needed to level up\n6: Maximum tile distance to grow and use supports')
+            print('7: Weapon triangle advantage damage bonus\n8: Weapon triangle advantage accuracy bonus\n9: Minimum speed difference to double')
+            print('10: Number of bonus rounds of combat for doubling\n11: Super effective weapon art damage multiplier\n12: Critical hit damage multiplier')
+            print('13: Support growth speed multiplier\n14: Support level up threshold\n15: Shop sell price multiplier')
+            route2=input('Input the number that you would like to edit:\n')
+            if route2=='1':
+                pass
+            elif route2=='2':
+                pass
+            elif route2=='3':
+                pass
+            elif route2=='4':
+                pass
+            elif route2=='5':
+                pass
+            elif route2=='6':
+                pass
+            elif route2=='7':
+                pass
+            elif route2=='8':
+                pass
+            elif route2=='9':
+                pass
+            elif route2=='10':
+                pass
+            elif route2=='11':
+                pass
+            elif route2=='12':
+                pass
+            elif route2=='13':
+                pass
+            elif route2=='14':
+                pass
+            elif route2=='15':
+                pass
+            else:
+                print('Invalid input, returning to menu')
+        elif route=='1':
+            print('1: Magic attack damage formula')
+            print('2: Physical attack damage formula')
+            print('3: Attacking accuracy formula')
+            print('4: Defending hit avoid formula')
+            print('5: Attacking critical hit likelihood formula')
+            print('6: Defending critical hit avoid formula')
+            print("7: Experience point gain formula in battles that didn't result in a kill")
+            print("8: Experience point gain formula in battles that result in a kill")
+            print("9: Weapon experience gain formula in battles that didn't result in a kill")
+            print("10: Weapon Experiance point gain in battles that result in a kill")
+            route2=input('Input the number that you would like to edit\n')
+            print('The available variables to use are:')
+            print('The attacking character, the defending character, the weapon being attacked with, the tile distance this combat is taking place at')
+            print('The damage modifier (additional damage that doesnt come from the attacking characters attack stat or the weapons damage stat, such as weapon triangle bonus or super effective multiplier)')
+            print('The accuracy modifier (additional accuracy that doesnt come from the characters skill or weapon accuracy such as weapon triangle bonus')
+            print('The hit formula, the avoid formula, the crit formula, the dodge formula')
+            print('Numbers and mathematical operators (+-*/)')
+            pass
+        elif route=='3':
+            print('1: Weapon type guarenteed doubling')
+            print('2: Weapon durability')
+            print('3 Seperated weapon levels')#weapon_level_type#true is the individual weapons all have their own level, false is fe1 style
+            print('4: 2rn hit calculation')
+            print('5: Pair up')
+            print('6: Enemy priority')
+            route2=input('Input the number that you would like to edit\n')
+            pass
 
 def magic_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
     return eval(magic_damage_formula)
-    pass
 def phys_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
     return eval(phys_damage_formula)
 def hit_function(char1,char2,weapon1,weapon2,hitMod,dist):
@@ -5555,6 +5655,7 @@ create_new_map_objects=False
 enemy_priority='Damage'
 move_cost_dict={'Foot':{},'Flying':{'All':'1'},'Horse':{'All':'moveCost*2'},'Mage':{'Desert':'1'},'Pirate':{'Water':'1'}}
 baseShop=shop(None,[-1,-1],[[base_silver_axe,1],[base_shield,1]])
+
 ###Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
 luna=skill('Luna',9,'skill','defense',.5,'*',True,'enemy')
 sol=skill('Sol',5,'skill','curhp',10,'+',False,'self','atk')
