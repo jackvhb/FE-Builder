@@ -5243,7 +5243,7 @@ def edit_char():
             cont=True
             while cont==True:
                 print('The stats you can change are as follows:')
-                for i in stats:
+                for i in character.stats:
                     print(i)
                 print('The G stats are growths, and movModifer is how many extra spaces a character can move compared to a default member of their class')
                 print('Growths are decimals, and represent the change that a character gains that stat when leveling up')
@@ -5507,6 +5507,7 @@ def edit_mechanics():
     global default_map_object
     global create_new_map_objects
     global enemy_priority
+    global freewielding
     #char1(attacking character),char2(defending character),weapon1,dist,dmgMod,hit_formula,avoid_formula,crit_formula,hitMod,dodge_formula
     #bases,growths, weapon1.stats
     cont=False
@@ -5520,8 +5521,10 @@ def edit_mechanics():
             print('7: Weapon triangle advantage damage bonus\n8: Weapon triangle advantage accuracy bonus\n9: Minimum speed difference to double')
             print('10: Number of bonus rounds of combat for doubling\n11: Super effective weapon art damage multiplier\n12: Critical hit damage multiplier')
             print('13: Support growth speed multiplier\n14: Support level up threshold\n15: Shop sell price multiplier')
-            route2=input('Input the number that you would like to edit:\n')
-            if route2=='1':
+            route2=input('Input the number that you would like to edit or X to cancel:\n')
+            if route2.lower()=='x':
+                pass
+            elif route2=='1':
                 pass
             elif route2=='2':
                 pass
@@ -5564,13 +5567,35 @@ def edit_mechanics():
             print("8: Experience point gain formula in battles that result in a kill")
             print("9: Weapon experience gain formula in battles that didn't result in a kill")
             print("10: Weapon Experiance point gain in battles that result in a kill")
-            route2=input('Input the number that you would like to edit\n')
+            route2=input('Input the number that you would like to edit or X to cancel\n')
             print('The available variables to use are:')
             print('The attacking character, the defending character, the weapon being attacked with, the tile distance this combat is taking place at')
             print('The damage modifier (additional damage that doesnt come from the attacking characters attack stat or the weapons damage stat, such as weapon triangle bonus or super effective multiplier)')
             print('The accuracy modifier (additional accuracy that doesnt come from the characters skill or weapon accuracy such as weapon triangle bonus')
             print('The hit formula, the avoid formula, the crit formula, the dodge formula')
             print('Numbers and mathematical operators (+-*/)')
+            if route2.lower()=='x':
+                pass
+            elif route2=='1':
+                pass
+            elif route2=='2':
+                pass
+            elif route2=='3':
+                pass
+            elif route2=='4':
+                pass
+            elif route2=='5':
+                pass
+            elif route2=='6':
+                pass
+            elif route2=='7':
+                pass
+            elif route2=='8':
+                pass
+            elif route2=='9':
+                pass
+            elif route2=='10':
+                pass
             pass
         elif route=='3':
             print('1: Weapon type guarenteed doubling')
@@ -5579,9 +5604,88 @@ def edit_mechanics():
             print('4: 2rn hit calculation')
             print('5: Pair up')
             print('6: Enemy priority')
-            route2=input('Input the number that you would like to edit\n')
-            pass
+            print('7: Any weapon type can be used by any class')
+            route2=input('Input the number that you would like to edit or X to cancel\n')
+            if route2.lower()=='x':
+                pass
+            elif route2=='1':
+                pass
+            elif route2=='2':
+                pass
+            elif route2=='3':
+                pass
+            elif route2=='4':
+                pass
+            elif route2=='5':
+                pass
+            elif route2=='6':
+                pass
+            elif route2=='7':
+                pass
 
+def settings():
+    global text_speed
+    global permadeath
+    global phoenix_mode
+    global turnwheel
+    cont=False
+    while cont==False:
+        print(f'1: Text speed {text_speed}')
+        print(f'2: Permadeath {permadeath}')
+        print(f'3: Phoenix Mode {phoenix_mode}')
+        print(f'4: Turnwheel {turnwheel}')
+        path=input('Input the number of the setting that you would like to change or X to finish\n')
+        if path.lower()=='x':
+            cont=True
+        elif path=='1':
+            print(f'The current text speed multiplier is {text_speed}')
+            spd=input('Input a positive number that you would like the text speed multiplier to be\n')
+            if isfloat(spd):
+                if spd>=0:
+                    text_speed=spd
+                else:
+                    print('Invalid input')
+            else:
+                print('Invalid input')
+        elif path=='2':
+            print(f'The permadeath option is currently set to {permadeath}')
+            print('If permadeath is set to true any unit that falls in battle will be gone forever')
+            print('If permadeath is set to false your dead units will come back after each map')
+            perm=input(f'Input T to have permadeath on or F to have permadeath off\n')
+            if perm.lower()=='t':
+                permadeath=True
+                if phoenix_mode:
+                    phoenix_mode=False
+            elif perm.lower()=='f':
+                permadeath=False
+            else:
+                print("Invalid input")
+        elif path=='3':
+            print(f'The phoenix mode option is currently set to {phoenix_mode}')
+            if permadeath==True:
+                print('Phoenix mode is only available when permadeath is set to False')
+            else:
+                print(f'If phoenix mode is set to true any unit that falls in battle will revive at the start of the next turn')
+                print(f'If phoenix mode is set to false any unit that falls in battle will be lost until the end of the map')
+                pho=input(f'Input T to have phoenix mode on or F to have phoenix mode off\n')
+                if pho.lower()=='y':
+                    phoenix_mode=True
+                elif pho.lower()=='f':
+                    phoenix_mode=False
+                else:
+                    print('Invalid input')
+            pass
+        elif path=='4':
+            print(f'The turnwheel option is currently set to {turnwheel}')
+            print('If the turnwheel option is set to true you will be able to rewind your actions to a previous state a limited time for each battle')
+            print('If the turnwheel option is set to false you will have to live with the consequences of your actions')
+            tur=input('Input T to have the turnwheel on or F to have the turnwheel off')
+            if tur.lower()=='t':
+                turnwheel=True
+            elif tur.lower()=='f':
+                turnwheel=False
+            else:
+                print('Invalid input')
 def magic_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
     return eval(magic_damage_formula)
 def phys_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
@@ -5640,6 +5744,7 @@ crit_multiplier=3
 weapon_durability=True
 weapon_level_type=True #true is the individual weapons all have their own level, false is fe1 style
 true_hit=False#True is the 2rn style
+freewielding=False
 
 support_range=1
 pair_up=False
@@ -5667,20 +5772,58 @@ placeholder=skill('Placeholder',0,'luck','atk',0,'+',True,'self')
 paragon=skill('Paragon',0,'luck','atk',0,'+',False,'self')
 galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')
 canto=skill('Canto',0,'luck','atk',0,'+',False,'self')
+steal=skill('Steal',0,'luck','atk',0,'+',False,'self')
 ###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):
 grounder=weapon_art('Grounder','Sword',3,5,10,0,0,[],[1,2,3,4],'Magic')
 ###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
-wyvern=classType('Wyvern','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Axe':0,'Lance':0},[],['Luna','Placeholder','Placeholder'])
+wyvern_rider=classType('Wyvern Rider','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Lance':0},['Wyvern Lord'],['Luna','Placeholder','Placeholder'])
 swordmaster=classType('Swordmaster','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],['Sol','Placeholder','Placeholder'])
 hero=classType('Hero','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0,'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
 paladin=classType('Paladin','Horse',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
 sage=classType('Sage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Tome':0},[],['Mag Up 2','Placeholder','Placeholder'])
-myrmidom=classType('Myrmidom','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0},['Swordmaster'],['Astra','Placeholder','Placeholder'])
-mercenary=classType('Mercenary','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0,'Fist':0},['Hero'],['Armsthrift','Placeholder','Placeholder'])
-mage=classType('Mage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Tome':0},[],['Mag Up','Placeholder','Placeholder'])
+myrmidom=classType('Myrmidom','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0},['Swordmaster','Assassin'],['Astra','Placeholder','Placeholder'])
+mercenary=classType('Mercenary','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,5,{'Sword':0,'Fist':0},['Hero','Bow Knight'],['Armsthrift','Placeholder','Placeholder'])
+mage=classType('Mage','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Tome':0},['Sage'],['Mag Up','Placeholder','Placeholder'])
 pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
-lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
+lord=classType('Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,6,{'Sword':0},['Great Lord'],['Placeholder','Placeholder','Placeholder'])
 villager=classType('Villager','Foot',25,0,0,0,0,0,6,0,2,0,4,0,5,0,5,0,5,{},[],['Placeholder','Placeholder','Placeholder'])
+ranger=classType('Ranger','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0},['Lord'],['Placeholder','Placeholder','Placeholder'])
+soldier=classType('Soldier','Foot',1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,5,5,{'Lance':0},['Halberdier'],['Placeholder','Placeholder','Placeholder'])
+halberdier=classType('Halberdier','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Lance':0},[],['Placeholder','Placeholder','Placeholder'])
+fighter=classType('Fighter','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Axe':0},['Warrior','Hero'],['Placeholder','Placeholder','Placeholder'])
+warrior=classType('Warrior','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Axe':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'])
+archer=classType('Archer','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Bow':0},['Sniper','Bow Knight'],['Placeholder','Placeholder','Placeholder'])
+sniper=classType('Sniper','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Bow':0},[],['Placeholder','Placeholder','Placeholder'])
+knight=classType('Knight','Horse',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Lance':0},['General','Great Knight'],['Placeholder','Placeholder','Placeholder'])
+general=classType('General','Horse',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0,'Lance':0},[],['Placeholder','Placeholder','Placeholder'])
+cavalier=classType('Cavalier','Horse',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0,'Lance':0},['Paladin','Great Knight'],['Placeholder','Placeholder','Placeholder'])
+wyvern_lord=classType('Wyvern Lord','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Axe':0,'Lance':0},[],['Luna','Placeholder','Placeholder'])
+pegasus_knight=classType('Pegasus Knight','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Lance':0},['Falcon Knight','Dark Flier'],['Luna','Placeholder','Placeholder'])
+falcon_knight=classType('Falcon Knight','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Sword':0,'Lance':0},[],['Luna','Placeholder','Placeholder'])
+thief=classType('Thief','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Knife':0},['Assassin','Trickster'],['Luna','Placeholder','Placeholder'])
+assassin=classType('Assassin','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Knife':0,'Bow':0},[],['Luna','Placeholder','Placeholder'])
+great_knight=classType('Great Knight','Horse',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
+berserker=classType('Berserker','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
+barbarian=classType('Barbarian','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0},['Berserker','Warrior'],['Placeholder','Placeholder','Placeholder'])
+bow_knight=classType('Bow Knight','Horse',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Sword':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'])
+dark_flier=classType('Dark Flier','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Lance':0,'Tome':0},[],['Placeholder','Placeholder','Placeholder'])
+dread_fighter=classType('Dread Fighter','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0,'Tome':0,'Sword':0,'Knife':0},[],['Placeholder','Placeholder','Placeholder'])
+great_lord=classType('Great Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
+#priest
+#bishop
+#valkyrie
+#cleric
+#dancer
+#trickster
+#griffon rider
+#troubadour
+#war monk
+#dark knight
+#dark mage
+#sorcerer
+#transporter
+
+
 ###Loading
 print('Welcome to FE Builder, created by Schwa')
 if not os.path.exists('campaign_list.txt'):
@@ -5738,13 +5881,13 @@ if campaign=='Default':
     ###enemy_char(name,classType,joinMap,[inventory],level,[spawn])
     ###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
     ###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
-    garou=enemy_char('Garou','Wyvern',1,[javelin(False),iron_axe(True)],1,[1,1])
+    garou=enemy_char('Garou','Wyvern Lord',1,[javelin(False),iron_axe(True)],1,[1,1])
     boss=boss('Boss',25,25,13,1,12,4,8,7,10,0,'Hero',{},1,[iron_axe(True)],10,[5,8])
     judas=recruitable('Judas',25,25,.5,13,.7,1,.1,12,.4,4,0,8,.2,7,.4,10,.25,0,'Hero',{},1,[iron_axe(True)],10,[5,8],{},[],'Judas continued betraying, and stabbed King in the back before long','Hey')
     hao=enemy_char('Hao','Pirate',1,[iron_axe(False)],1,[1,0])
     mumen=enemy_char('Mumen','Pirate',1,[iron_axe(False)],1,[1,2])
     ash=enemy_char('Ash','Pirate',1,[silver_axe(False)],1,[9,1])
-    yuffie=enemy_char('Yuffie','Wyvern',2,[javelin(False)],2,[9,1])
+    yuffie=enemy_char('Yuffie','Wyvern Lord',2,[javelin(False)],2,[9,1])
     saitama=player_char('Saitama',25,700,.6,10,.4,100,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'],'Saitama defeated everyone in one punch')
     saitama.add_skill(luna)
     saitama.add_skill(armsthrift)
