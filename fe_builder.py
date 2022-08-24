@@ -1342,7 +1342,7 @@ class turnwheel_map:
 
 class classType:
     class_list=[]
-    def __init__(self,name,moveType,hp,hpG,atk,atkG,mag,magG,skillX,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list):
+    def __init__(self,name,moveType,hp,hpG,atk,atkG,mag,magG,skillX,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list,attributes):
         self.name=name
         self.moveType=moveType
         self.hp=hp
@@ -1365,6 +1365,7 @@ class classType:
         self.weaponType=weaponType
         self.promotions=promotions
         self.skill_list=[]
+        self.attributes=attributes
         for i in skill_list:
             for j in skill.skill_list:
                 if j.name==i or j==i:
@@ -4816,6 +4817,9 @@ def create_class(*name):
                 print('Invalid input, try again')
         else:
             cont=True
+    while attributes!=fsadkjhfds:
+        sddfkjsadlakfj
+        #implement attribues here and in the definition
     #Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
     classType(name,moveType,bases['hp'],growths['hpG'],bases['atk'],growths['atkG'],bases['mag'],growths['magG'],bases['skill'],growths['skillG'],
               bases['luck'],growths['luckG'],bases['defense'],growths['defG'],bases['res'],growths['resG'],bases['spd'],growths['spdG'],moveRange,weaponType,promotions,skill_list)
@@ -5762,55 +5766,97 @@ move_cost_dict={'Foot':{},'Flying':{'All':'1'},'Horse':{'All':'moveCost*2'},'Mag
 baseShop=shop(None,[-1,-1],[[base_silver_axe,1],[base_shield,1]])
 
 ###Skills (name,trigger_chance,trigger_stat,effect_stat,effect_change,effect_operator,effect_temp,effect_target,*relative_stat):
-luna=skill('Luna',9,'skill','defense',.5,'*',True,'enemy')
-sol=skill('Sol',5,'skill','curhp',10,'+',False,'self','atk')
-astra=skill('Astra',5,'skill','atk',2.5,'*',True,'self')
-mag_up=skill('Mag Up',100,'skill','atk',5,'+',True,'self')
-mag_up_2=skill('Mag Up 2',100,'skill','atk',5,'+',True,'self')
-armsthrift=skill('Armsthrift',5,'luck','curUses',1,'+',False,'weapon')
+luna=skill('Luna',1,'skill','defense',.5,'*',True,'enemy')
+sol=skill('Sol',1,'skill','curhp',10,'+',False,'self','atk')
+astra=skill('Astra',.5,'skill','atk',2.5,'*',True,'self')
+mag_up=skill('Mag Up',100,'skill','mag',5,'+',True,'self')
+mag_up_2=skill('Mag Up 2',100,'skill','mag',5,'+',True,'self')
+armsthrift=skill('Armsthrift',2,'luck','curUses',1,'+',False,'weapon')
 placeholder=skill('Placeholder',0,'luck','atk',0,'+',True,'self')
-paragon=skill('Paragon',0,'luck','atk',0,'+',False,'self')
-galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')
-canto=skill('Canto',0,'luck','atk',0,'+',False,'self')
-steal=skill('Steal',0,'luck','atk',0,'+',False,'self')
+defence_up=skill('Defence Up',100,'skill','defense',2,'+',True,'self')
+determination=skill('Determination',1,'skill','defense',2,'*',True,'self')
+lethality=skill('Lethality',.25,'skill','atk',100,'*',True,'self')
+big_shield=skill('Big Shield',1,'level','defense',100,'*',True,'self')
+paragon=skill('Paragon',0,'luck','atk',0,'+',False,'self')#double exp gain
+galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')#unlock the ability to taker another turn after a kill
+canto=skill('Canto',0,'luck','atk',0,'+',False,'self')#unlock the ability to move after acting
+steal=skill('Steal',0,'luck','atk',0,'+',False,'self')#unlock the steal command
+discipline=skill('Discipline',0,'luck','atk',0,'+',False,'self')#double weapon exp gain
+vantage=skill('Vantage',0,'luck','atk',0,'+',False,'self')#make unit always attack first if under half health
+swordfaire=skill('Swordfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+lancefaire=skill('Lancefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+axefaire=skill('Axefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+bowfaire=skill('Bowfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+tomefaire=skill('Tomefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+fistfaire=skill('Fistfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+swordbreaker=skill('Swordbreaker',0,'luck','atk',0,'+',False,'self')#+50 avoid/hit vs sword
+lancebreaker=skill('Lancebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+axebreaker=skill('Axebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+bowbreaker=skill('Bowbreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+tomebreaker=skill('Tomebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+fistbreaker=skill('Fistbreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+counter=skill('Counter',0,'luck','atk',0,'+',False,'self')#reflect physical damage
+style_switch=skill('Style Switch',0,'luck','atk',0,'+',False,'self')#switch between trickster, swordmaster, general, and sniper
+locktouch=skill('locktouch',0,'luck','atk',0,'+',False,'self')#unlock stuff w/o key
+acrobat=skill('Acrobat',0,'luck','atk',0,'+',False,'self')#all terrain costs 1
+lifetaker=skill('Lifetaker',0,'luck','atk',0,'+',False,'self')#restore 50% hp on kill
+miracle=skill('Miracle',0,'luck','atk',0,'+',False,'self')#survive letal attacks
+renewal=skill('Renewal',0,'luck','atk',0,'+',False,'self')#restore 30% hp every turn
+aggressor=skill('Aggressor',0,'luck','atk',0,'+',False,'self')#+5 damage when initiating combat
+bargin=skill('Bargin',0,'luck','atk',0,'+',False,'self')#shop stuff is half
+dualwield=skill('Dualwield',0,'luck','atk',0,'+',False,'self')#can equip 2 weapons at once
 ###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):
-grounder=weapon_art('Grounder','Sword',3,5,10,0,0,[],[1,2,3,4],'Magic')
-###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list)
-wyvern_rider=classType('Wyvern Rider','Flying',19,.6,7,.4,0,0,6,.8,0,.35,8,.25,0,.1,5,.5,7,{'Lance':0},['Wyvern Lord'],['Luna','Placeholder','Placeholder'])
-swordmaster=classType('Swordmaster','Foot',20,.6,7,.4,2,0,11,.8,0,.35,6,.25,4,.1,13,.5,6,{'Sword':0},[],['Sol','Placeholder','Placeholder'])
-hero=classType('Hero','Foot',22,.6,8,.4,1,0,11,.8,0,.35,8,.25,3,.1,10,.5,6,{'Sword':0,'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
-paladin=classType('Paladin','Horse',25,.6,9,.4,1,0,7,.8,0,.35,10,.25,6,.1,6,.5,8,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
-sage=classType('Sage','Mage',20,.6,1,.4,7,0,5,.8,0,.35,4,.25,5,.1,7,.5,5,{'Tome':0},[],['Mag Up 2','Placeholder','Placeholder'])
-myrmidom=classType('Myrmidom','Foot',16,.6,4,.4,1,0,9,.8,0,.35,4,.25,1,.1,10,.5,5,{'Sword':0},['Swordmaster','Assassin'],['Astra','Placeholder','Placeholder'])
-mercenary=classType('Mercenary','Foot',18,.6,5,.4,0,0,8,.8,0,.35,5,.25,0,.1,7,.5,5,{'Sword':0,'Fist':0},['Hero','Bow Knight'],['Armsthrift','Placeholder','Placeholder'])
-mage=classType('Mage','Mage',16,.6,0,.4,4,0,3,.8,0,.35,2,.25,3,.1,4,.5,5,{'Tome':0},['Sage'],['Mag Up','Placeholder','Placeholder'])
-lord=classType('Lord','Foot',18,.6,6,.4,0,0,5,.8,0,.35,7,.25,0,.1,7,.5,6,{'Sword':0},['Great Lord'],['Placeholder','Placeholder','Placeholder'])
-villager=classType('Villager','Foot',16,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,5,{},[],['Placeholder','Placeholder','Placeholder'])
-fighter=classType('Fighter','Foot',20,1,8,1,0,1,5,1,0,11,4,1,0,1,5,1,5,{'Axe':0},['Warrior','Hero'],['Placeholder','Placeholder','Placeholder'])
-warrior=classType('Warrior','Foot',28,1,12,1,0,1,8,1,0,11,7,1,3,1,7,1,6,{'Axe':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'])
-archer=classType('Archer','Foot',16,1,5,1,0,1,8,1,0,11,5,1,0,1,6,1,5,{'Bow':0},['Sniper','Bow Knight'],['Placeholder','Placeholder','Placeholder'])
-sniper=classType('Sniper','Foot',20,1,7,1,1,1,12,1,0,11,10,1,3,1,9,1,6,{'Bow':0},[],['Placeholder','Placeholder','Placeholder'])
-knight=classType('Knight','Horse',18,1,8,1,0,1,4,1,0,11,11,1,0,1,2,1,4,{'Lance':0},['General','Great Knight'],['Placeholder','Placeholder','Placeholder'])
-general=classType('General','Horse',28,1,12,1,0,1,7,1,0,11,15,1,3,1,4,1,5,{'Sword':0,'Lance':0},[],['Placeholder','Placeholder','Placeholder'])
-cavalier=classType('Cavalier','Horse',18,1,6,1,0,1,5,1,0,11,7,1,0,1,6,1,7,{'Sword':0,'Lance':0},['Paladin','Great Knight'],['Placeholder','Placeholder','Placeholder'])
+grounder=weapon_art('Grounder','Sword',4,3,20,5,0,['Flying'],[1],'Same')
+curved_shot=weapon_art('Curved Shot','Bow',3,1,30,0,0,[],[1,2,3],'Same')
+sunder=weapon_art('Sunder','Sword',3,4,0,15,0,[],[1],'Same')
+wrath_strike=weapon_art('Wrath Strike','Sword',3,5,10,0,0,[],[1],'Same')
+hexblade=weapon_art('Hexblade','Sword',3,7,10,0,0,[],[1],'Magic')
+haze_slice=weapon_art('Haze Slice','Sword',5,2,0,0,30,[],[1],'Same')
+bane_of_monsters=weapon_art('Bane Of Monsters','Sword',4,6,0,10,0,['Monster'],[1],'Same')
+foudroyant_strike=weapon_art('Foudroyant Strike','Sword',3,6,30,30,0,['Armored','Dragon'],[1],'Same')
+beast_fang=weapon_art('Beast Fang','Sword',3,10,0,30,0,['Horse','Dragon'],[1],'Same')
+ruptured_heaved=weapon_art('Ruptured Heaven','Sword',3,7,10,10,0,['Dragon'],[1,2],'Magic')
+sword_dance=weapon_art('Sword Dance','Sword',2,1,0,0,20,[],[1],'Same')
+tempest_lance=weapon_art('Tempest Lance','Lance',5,8,10,0,0,[],[1],'Same')
+shatter_slash=weapon_art('Shatter Slash','Lance',5,4,10,0,1,[],[1],'Same',['defense',5,'-','enemy'])
+knightkneeler=weapon_art('Knightkneeler','Lance',4,5,15,0,0,['Horse'],[1],'Same')
+monster_piercer=weapon_art('Monster Piercer','Lance',4,7,0,0,10,['Monster'],[1],'Same')
 
-wyvern_lord=classType('Wyvern Lord','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Axe':0,'Lance':0},[],['Luna','Placeholder','Placeholder'])
-pegasus_knight=classType('Pegasus Knight','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Lance':0},['Falcon Knight','Dark Flier'],['Luna','Placeholder','Placeholder'])
-falcon_knight=classType('Falcon Knight','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Sword':0,'Lance':0},[],['Luna','Placeholder','Placeholder'])
-thief=classType('Thief','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Knife':0},['Assassin','Trickster'],['Luna','Placeholder','Placeholder'])
-assassin=classType('Assassin','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,8,{'Knife':0,'Bow':0},[],['Luna','Placeholder','Placeholder'])
-great_knight=classType('Great Knight','Horse',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
-berserker=classType('Berserker','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
-barbarian=classType('Barbarian','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0},['Berserker','Warrior'],['Placeholder','Placeholder','Placeholder'])
-bow_knight=classType('Bow Knight','Horse',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Sword':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'])
-dark_flier=classType('Dark Flier','Flying',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Lance':0,'Tome':0},[],['Placeholder','Placeholder','Placeholder'])
-dread_fighter=classType('Dread Fighter','Mage',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Axe':0,'Tome':0,'Sword':0,'Knife':0},[],['Placeholder','Placeholder','Placeholder'])
-great_lord=classType('Great Lord','Foot',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,7,{'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'])
+###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list,attributes)
+wyvern_rider=classType('Wyvern Rider','Flying',19,.8,7,.4,0,0,6,.25,0,.3,8,.3,0,.05,5,.25,7,{'Lance':0},['Wyvern Lord'],['Luna','Placeholder','Placeholder'],['Flying','Dragon'])
+swordmaster=classType('Swordmaster','Foot',20,.8,7,.4,2,0,11,.5,0,.5,6,.25,4,.3,13,.5,6,{'Sword':0},[],['Sol','Placeholder','Placeholder'],['Advanced'])
+hero=classType('Hero','Foot',22,.9,8,.45,1,0,11,.5,0,.4,8,.3,3,.25,10,.45,6,{'Sword':0,'Axe':0},[],['Placeholder','Placeholder','Placeholder'],['Advanced'])
+paladin=classType('Paladin','Horse',25,.9,9,.45,1,0,7,.4,0,.45,10,.35,6,.3,6,.4,8,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Horse','Advanced'])
+sage=classType('Sage','Mage',20,.7,1,0,7,0.4,5,.4,0,.4,4,.2,5,.25,7,.4,5,{'Tome':0},[],['Mag Up 2','Placeholder','Placeholder'],['Advanced','Magic'])
+myrmidom=classType('Myrmidom','Foot',16,.7,4,.3,1,0,9,.4,0,.4,4,.2,1,.2,10,.4,5,{'Sword':0},['Swordmaster','Assassin'],['Astra','Placeholder','Placeholder'],[])
+mercenary=classType('Mercenary','Foot',18,.8,5,.35,0,0,8,.4,0,.3,5,.25,0,.15,7,.35,5,{'Sword':0,'Fist':0},['Hero','Bow Knight'],['Armsthrift','Placeholder','Placeholder'],[])
+mage=classType('Mage','Mage',16,.6,0,0,4,0.35,3,.3,0,.3,2,.15,3,.25,4,.3,5,{'Tome':0},['Sage'],['Mag Up','Placeholder','Placeholder'],['Magic'])
+lord=classType('Lord','Foot',18,.7,6,.4,0,0,5,.3,0,.4,7,.25,0,.2,7,.3,6,{'Sword':0},['Great Lord'],['Placeholder','Placeholder','Placeholder'],['Lord'])
+villager=classType('Villager','Foot',16,.8,1,.2,0,0,1,.2,1,.2,1,.2,0,.05,1,.2,5,{},[],['Placeholder','Placeholder','Placeholder'],['Villager'])
+fighter=classType('Fighter','Foot',20,.85,8,.4,0,0,5,.3,0,.35,4,.25,0,.1,5,.2,5,{'Axe':0},['Warrior','Hero'],['Placeholder','Placeholder','Placeholder'],[])
+warrior=classType('Warrior','Foot',28,.95,12,.5,0,0,8,.4,0,.35,7,.3,3,.2,7,.2,6,{'Axe':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'],[])
+archer=classType('Archer','Foot',16,.8,5,.25,0,0,8,.4,0,.25,5,.25,0,.15,6,.25,5,{'Bow':0},['Sniper','Bow Knight'],['Placeholder','Placeholder','Placeholder'],[])
+sniper=classType('Sniper','Foot',20,.9,7,.35,1,0,12,.5,0,.35,10,.3,3,.25,9,.4,6,{'Bow':0},[],['Placeholder','Placeholder','Placeholder'],['Advanced'])
+knight=classType('Knight','Horse',18,.9,8,.4,0,0,4,.25,0,.3,11,.4,0,.1,2,.15,4,{'Lance':0},['General','Great Knight'],['Placeholder','Placeholder','Placeholder'],['Armor'])
+general=classType('General','Horse',28,1,12,.5,0,0,7,.35,0,.4,15,.4,3,.2,4,.25,5,{'Sword':0,'Lance':0},[],['Placeholder','Placeholder','Placeholder'],['Armor','Advanced'])
+cavalier=classType('Cavalier','Horse',18,.8,6,.35,0,0,5,.3,0,.35,7,.3,0,.15,6,.3,7,{'Sword':0,'Lance':0},['Paladin','Great Knight'],['Placeholder','Placeholder','Placeholder'],['Horse'])
+wyvern_lord=classType('Wyvern Lord','Flying',24,.9,11,.5,0,0,8,.35,0,.4,11,.35,3,.15,7,.35,8,{'Axe':0,'Lance':0},[],['Luna','Placeholder','Placeholder'],['Flying','Dragon','Advanced'])
+pegasus_knight=classType('Pegasus Knight','Flying',16,.7,4,.2,2,0,7,.4,0,.5,4,.2,6,.35,8,.4,7,{'Lance':0},['Falcon Knight','Dark Flier'],['Luna','Placeholder','Placeholder'],['Flying'])
+falcon_knight=classType('Falcon Knight','Flying',20,.8,6,.35,3,.3,10,.5,0,.6,6,.25,9,.45,11,.5,8,{'Sword':0,'Lance':0},[],['Luna','Placeholder','Placeholder'],['Flying','Advanced'])
+thief=classType('Thief','Mage',16,.6,3,.2,0,0,6,.4,0,.2,2,.2,0,.05,8,.4,5,{'Knife':0},['Assassin','Trickster'],['Luna','Placeholder','Placeholder'],[])
+assassin=classType('Assassin','Mage',21,.8,8,.4,0,0,13,.5,0,.3,5,.25,1,.15,12,.5,6,{'Knife':0,'Bow':0},[],['Luna','Placeholder','Placeholder'],['Advanced'])
+great_knight=classType('Great Knight','Horse',26,.95,11,.45,0,0,6,.3,0,.4,14,.35,1,.15,5,.3,7,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Armor','Advanced','Horse'])
+berserker=classType('Berserker','Foot',30,1,13,.6,0,0,5,.3,0,.3,5,.25,1,.15,11,.4,6,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],['Advanced'])
+barbarian=classType('Barbarian','Foot',22,.9,8,.4,0,0,3,.2,0,.2,3,.2,0,.05,8,.3,5,{'Axe':0},['Berserker','Warrior'],['Placeholder','Placeholder','Placeholder'],[])
+bow_knight=classType('Bow Knight','Horse',24,.9,8,.35,0,0,10,.4,0,.35,6,.25,2,.15,10,.4,8,{'Sword':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'],['Horse','Advanced'])
+dark_flier=classType('Dark Flier','Flying',19,.75,5,.25,6,.35,8,.4,0,.55,5,.25,9,.45,10,.45,8,{'Lance':0,'Tome':0},[],['Placeholder','Placeholder','Placeholder'],['Flying','Advanced'])
+dread_fighter=classType('Dread Fighter','Mage',22,.8,9,.4,6,.2,9,.4,0,.4,8,.25,10,.25,10,.4,7,{'Axe':0,'Tome':0,'Sword':0,'Knife':0},[],['Placeholder','Placeholder','Placeholder'],[])
+great_lord=classType('Great Lord','Foot',23,.8,10,.5,0,0,7,.4,0,.5,10,.3,3,.25,9,.4,7,{'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Lord','Advanced'])
 
-ranger=classType('Ranger','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0},['Lord'],['Placeholder','Placeholder','Placeholder'])
-soldier=classType('Soldier','Foot',1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,5,5,{'Lance':0},['Halberdier'],['Placeholder','Placeholder','Placeholder'])
-halberdier=classType('Halberdier','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,8,5,{'Lance':0},[],['Placeholder','Placeholder','Placeholder'])
-pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'])
+ranger=classType('Ranger','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0},['Lord'],['Placeholder','Placeholder','Placeholder'],[])
+soldier=classType('Soldier','Foot',1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,5,5,{'Lance':0},['Halberdier'],['Placeholder','Placeholder','Placeholder'],[])
+halberdier=classType('Halberdier','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,8,5,{'Lance':0},[],['Placeholder','Placeholder','Placeholder'],[])
+pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],[])
 #priest
 #bishop
 #valkyrie
