@@ -101,7 +101,10 @@ def init_battle(char1,char2,dist,fore,*weaponX):
         weapon2=empty
     else:
         weapon2=char2.active_item
-    guarentee_double1=guarenteed_double[weapon1.weapontype]
+    if active_art!=None:
+        guarentee_double1=active_art.guarenteed_double
+    else:
+        guarentee_double1=guarenteed_double[weapon1.weapontype]
     guarentee_double2=guarenteed_double[weapon2.weapontype]
     if not nosupport:
         if isinstance(char1,player_char):
@@ -115,18 +118,38 @@ def init_battle(char1,char2,dist,fore,*weaponX):
         elif (weapon1.weapontype=='Sword' and weapon2.weapontype=='Axe') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Sword'):
             dmgMod+=weapon_triangle_damage_bonus
             hitMod+=weapon_triangle_hit_bonus
+    if (axebreaker in char1.skills and weapon2.weapontype=='Axe') or (swordbreaker in char1.skills and weapon2.weapontype=='Sword') or \
+        (lancebreaker in char1.skills and weapon2.weapontype=='Lance') or (bowbreaker in char1.skills and weapon2.weapontype=='Bow') or (tomebreaker in char1.skills and weapon2.weapontype=='Tome')\
+            or (fistbreaker in char1.skills and weapon2.weapontype=='Fist'):
+                hitMod+=25
+    if (axebreaker in char2.skills and weapon1.weapontype=='Axe') or (swordbreaker in char2.skills and weapon1.weapontype=='Sword') or \
+        (lancebreaker in char2.skills and weapon1.weapontype=='Lance') or (bowbreaker in char2.skills and weapon1.weapontype=='Bow') or (tomebreaker in char2.skills and weapon1.weapontype=='Tome')\
+            or (fistbreaker in char2.skills and weapon1.weapontype=='Fist'):
+                hitMod-=25
     if fore==False:
-        cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
-        if guarentee_double1 and cont:
-            print(f"{char1.name} made a follow up attack")
+        if vantage not in char2.skills or char2.curhp>=char2.hp/2 or dist not in weapon2.rng:
             cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
-        if dist in weapon2.rng and cont:
+            if guarentee_double1 and cont:
+                print(f"{char1.name} made a follow up attack")
+                cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+            if dist in weapon2.rng and cont:
+                cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+                if guarentee_double2 and cont:
+                    print(f"{char2.name} made a follow up attack")
+                    cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+            elif dist not in weapon2.rng:
+                print(f"{char2.name} was unable to counter \n")
+        else:
+            print(f'{char2.name} got the jump with vantage!')
             cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
             if guarentee_double2 and cont:
                 print(f"{char2.name} made a follow up attack")
                 cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
-        elif dist not in weapon2.rng:
-            print(f"{char2.name} was unable to counter \n")
+            if dist in weapon1.rng and cont:
+                cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+                if guarentee_double1 and cont:
+                    print(f"{char1.name} made a follow up attack")
+                    cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
         if cont and char1.spd-doubling_threshold>=char2.spd and weapon1 in char1.inventory and active_art==None:
             print(f"{char1.name} made a follow up attack")
             cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
@@ -159,17 +182,23 @@ def init_battle(char1,char2,dist,fore,*weaponX):
             else:
                 player_unit.weaponType[player_weapon.weapontype]+=eval(wep_lev_formula)
                 expGain=eval(exp_formula)
+            if paragon_mode:
+                expGain*=2
             if paragon in player_unit.skills:
                 expGain*=2
             if player_unit.status!='Dead':
                 if player_unit.level<level_cap:
                     player_unit.exp+=expGain
                     print(f'{player_unit.name} EXP +{expGain}')
-                if player_unit.exp>=needed_exp:
+                while player_unit.exp>=needed_exp:
                     player_unit.level_up()
+                # if player_unit.exp>=needed_exp:
+                #     player_unit.level_up()
         if char1.status!='Dead':
-            if galeforce not in char1.skills:
+            if galeforce not in char1.skills or char2.status!='Dead':
                 char1.moved=True
+            else:
+                print(f'Due to Galeforce {char1.name} can move again')
         print(f'{char1.name} HP: {char1.curhp}')
         input(f'{char2.name} HP: {char2.curhp} \nEnter to continue\n')
     else:
@@ -182,22 +211,27 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
     print(f'{char1.name} attacked {char2.name} with a {weapon1.name}')
     time.sleep(1*text_speed)
     critMod=0
+    if (swordfaire in char1.skills and weapon1.weapontype=='Sword') or (lancefaire in char1.skills and weapon1.weapontype=='Lance') or (axefaire in char1.skills and weapon1.weapontype=='Axe')\
+        or (bowfaire in char1.skills and weapon1.weapontype=='Bow') or (tomefaire in char1.skills and weapon1.weapontype=='Tome') or (fistfaire in char1.skills and weapon1.weapontype=='Fist'):
+            dmgMod+=5
     if (char2.location[0],char2.location[1]) in curMap.objectList:
         hitMod-=curMap.objectList[char2.location[0],char2.location[1]].avoidBonus
     if char1.alignment==player:
         player_unit=char1
-    else:
+    elif char2.alignment==player:
         player_unit=char2
+    else:
+        player_unit=None
     damageType=weapon1.dmgtype
     if active_art!=None:
         if player_unit==char1:
+            super_effective=False
             hitMod+=active_art.accuracy
             dmgMod+=active_art.damage
             critMod+=active_art.crit
             if active_art.damageType!='Same':
                 damageType=active_art.damageType
-            if char2.classType.name in active_art.super_effective:
-                dmgMod+=weapon1.dmg*3
+            dmgMod+=weapon1.dmg*super_effective_checker(active_art,char2,'Art')
         else:
             hitMod-=active_art.avoid
     hit=hit_function(char1, char2, weapon1, char2.active_item, hitMod, dist)
@@ -212,8 +246,7 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
     truehit=hit-avoid
     truecrit=crit+critMod-dodge
     crit=False
-    if char2.classType.name in weapon1.super_effective:
-        dmgMod+=weapon1.dmg*weapon1.super_effective[char2.classType.name]
+    dmgMod+=weapon1.dmg*super_effective_checker(weapon1,char2,'Weapon')
     if truehit>100:
         truehit=100
     elif truehit<0:
@@ -274,21 +307,48 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
         char2.die(char1)
         return(False)
 
+def super_effective_checker(item,char2,item_type):
+    super_mult=0
+    if char2.classType.name in item.super_effective:
+        if item_type=='Weapon':
+            if item.super_effective[char2.classType.name]> super_mult:
+                super_mult=item.super_effective[char2.classType.name]
+        elif item_type=='Art':
+            super_mult=3
+    for i in item.super_effective:
+        if i in char2.classType.attributes:
+            if item_type=='Weapon':
+                if item.super_effective[i]>super_mult:
+                    super_mult=item.super_effective[i]
+            elif item_type=='Art':
+                super_mult=3
+    return super_mult
+
 def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
     dmgMod1=dmgMod
     dmgMod2=-dmgMod
+    if (swordfaire in char1.skills and weapon1.weapontype=='Sword') or (lancefaire in char1.skills and weapon1.weapontype=='Lance') or (axefaire in char1.skills and weapon1.weapontype=='Axe')\
+        or (bowfaire in char1.skills and weapon1.weapontype=='Bow') or (tomefaire in char1.skills and weapon1.weapontype=='Tome') or (fistfaire in char1.skills and weapon1.weapontype=='Fist'):
+            dmgMod1+=5
+    if (swordfaire in char2.skills and weapon2.weapontype=='Sword') or (lancefaire in char2.skills and weapon2.weapontype=='Lance') or (axefaire in char2.skills and weapon2.weapontype=='Axe')\
+        or (bowfaire in char2.skills and weapon2.weapontype=='Bow') or (tomefaire in char2.skills and weapon2.weapontype=='Tome') or (fistfaire in char2.skills and weapon2.weapontype=='Fist'):
+            dmgMod2+=5
     hitMod1=hitMod
     hitMod2=-hitMod
     double1=1
     double2=1
-    if guarenteed_double[weapon1.weapontype]:
+    if guarenteed_double[weapon1.weapontype] and active_art==None:
         double1=2
     if guarenteed_double[weapon2.weapontype]:
         double2=2
-    if char1.spd>=char2.spd+doubling_threshold:
+    if char1.spd>=char2.spd+doubling_threshold and active_art==None:
         double1*=2
     if char2.spd>=char1.spd+doubling_threshold:
         double2*=2
+    if active_art!=None:
+        if active_art.guarenteed_double==True:
+            double1=2
+    dmgMod1+=weapon1.dmg*super_effective_checker(weapon1,char2,'Weapon')
     #finding player damage to enemy
     if weapon1.dmgtype=='Phys':
         for i in char2.inventory:
@@ -307,6 +367,7 @@ def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
     hit1=hit_function(char1,char2,weapon1,weapon2,hitMod1,dist)
     crit1=crit_function(char1,char2,weapon1,weapon2,0,dist)
     #Finding enemy damage to player
+    dmgMod2+=weapon2.dmg*super_effective_checker(weapon2,char1,'Weapon')
     if dist in weapon2.rng:
         if weapon2.dmgtype=='Phys':
             for i in char1.inventory:
@@ -344,7 +405,7 @@ def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
         crit1=0
     if crit2<0:
         crit2=0
-    print(f'{char1.name} NAME {char2.name}\n{char1.curhp} HP {char2.curhp}\n{damage1}x{double1} DMG {damage2}x{double2}\n{hit1} HIT {hit2}\n{crit1} CRIT {crit2}')
+    print(f'{char1.name} NAME {char2.name}\n{char1.curhp} HP {char2.curhp}\n{damage1}x{double1} DMG {damage2}x{double2}\n{hit1} HIT {hit2}\n{crit1} CRIT {crit2}\nENEMY SKILLS: {char2.check_skills()}')
 
 def menu(self):
     atkRange=[0]
@@ -410,7 +471,7 @@ def menu(self):
             print("B : Support")
         if len(charTriggerRange)>0:
             print("C : Character Event")
-        if self.classType==lord:
+        if 'Convoy' in self.classType.attributes:
             print('A: Convoy')
         print("1 : Inventory")
         print("2 : Equip")
@@ -419,7 +480,7 @@ def menu(self):
         print("5 : End Turn")
         print("6 : Exit Menu")
         if (self.location[0],self.location[1]) in curMap.objectList:
-            if isinstance(curMap.objectList[self.location[0],self.location[1]],throne):
+            if isinstance(curMap.objectList[self.location[0],self.location[1]],throne) and 'Sieze' in self.classType.attributes:
                 print("7 : Sieze Throne")
             elif isinstance(curMap.objectList[self.location[0],self.location[1]],shop):
                 print("S : Shop")
@@ -428,6 +489,8 @@ def menu(self):
                     if isinstance(i,key):
                         keyX=i
                         openable==True
+                if self.classType==thief or locktouch in self.skills:
+                    openable=True
                 if curMap.objectList[self.location[0],self.location[1]].opened==True:
                     openable==False
                 if openable==True:
@@ -436,7 +499,9 @@ def menu(self):
             for i in self.inventory:
                 if isinstance(i,key):
                     keyY=i
-                    openableDoor==True
+                    openableDoor=True
+            if self.classType==thief or locktouch in self.skills:
+                openableDoor=True
             if openableDoor:
                 print('D : Open Door')
         v=input("Press the key of the action you wish to take \n")
@@ -466,7 +531,8 @@ def menu(self):
         elif v.lower()=='z' and openable==True:
             self.add_item(curMap.objectList[self.location[0],self.location[1]].contents)
             curMap.objectList[self.location[0],self.location[1]].opened=True
-            keyX.use(self)
+            if self.classType!=thief and locktouch not in self.skills:
+                keyX.use(self)
             self.moved=True
             end=True
         elif v.lower()=='d' and openableDoor==True:
@@ -478,7 +544,8 @@ def menu(self):
             elif doorChoice.isdigit():
                 if int(doorChoice)>=0 and int(doorChoice)<len(doors):
                     doors[int(doorChoice)].opened=True
-                    keyY.use(self)
+                    if self.classType!=thief and locktouch not in self.skills:
+                        keyY.use(self)
                     self.moved=True
                     end=True
             else:
@@ -552,7 +619,7 @@ def menu(self):
         elif v=='4':
             self.check_stats()
         elif v=='7':
-            if (self.location[0],self.location[1]) in curMap.objectList:
+            if (self.location[0],self.location[1]) in curMap.objectList  and 'Sieze' in self.classType.attributes:
                 if isinstance(curMap.objectList[self.location[0],self.location[1]],throne):
                     global levelComplete
                     levelComplete=True
@@ -593,6 +660,8 @@ class character:
         self.battles=0
         self.status='Alive'
         self.joinMap=joinMap
+        self.stole=False
+        self.bounty=0
         if isinstance(alignment,str):
             self.alignment=eval(alignment.lower())
         else:
@@ -682,6 +751,8 @@ class character:
         return
     def enter_shop(self,shop):
         end=False
+        if self.stole==True:
+            print('I dont think it would be a very good idea to go in here')
         while end==False:
             buysell=input('Input 0 to buy, 1 to sell, or x to exit \n')
             if buysell=='0':
@@ -722,9 +793,28 @@ class character:
             print(f"{self.alignment.gold} gold")
             for i in range(0,len(shop.contents)):
                 print(f"{i} : {shop.contents[i][0].name}, {shop.contents[i][0].cost} gold x{shop.contents[i][1]}")
+            if self.classType==thief:
+                rng=rand.randrange(0,100)
+                if rng>=90:
+                    print('Ive been pretty bored lately. Maybe I should STEAL some stuff...')
             buy=input('Input the number of the item you would like to buy or x to exit \n')
             if buy.lower()=='x':
                 return
+            elif buy.lower()=='steal':
+                print(f"'I dont feel like paying for any of this garbage' {self.name} thought to themselves\n'But that doesnt mean that I dont want it'")
+                print(f"Im sure I could get away with knicking all this stuff, but I dont know if that would be a good idea...")
+                confirm=input(f'Input Y to steal or anything else to back off\n')
+                if confirm.lower()=='y':
+                    self.stole=True
+                    bounty=0
+                    for i in shop.contents:
+                        bounty+=shop.contents[i][0].cost
+                        self.add_item(shop.contents[i][0])
+                    shop.contents=[]
+                    print('YOU THIEF! YOULL PAY FOR THAT!')
+                    self.bounty=bounty
+                    print(f"{self.name} now has a bounty on their head for {bounty} gold")
+                    return
             elif buy.isdigit():
                 if int(buy)>=0 and int(buy)<len(shop.contents):
                     if shop.contents[int(buy)][0].cost<=self.alignment.gold:
@@ -1127,6 +1217,9 @@ class character:
             killer.kills+=1
             if self.classType==lord and not phoenix_mode:
                 lordDied=True
+    def check_skills(self):
+        for i in self.skills:
+            print(f'{i.name}')
     def check_stats(self):
         print('\n')
         print(f"Name: {self.name}")
@@ -1641,7 +1734,7 @@ class skill:
     #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):
 class weapon_art:
     weapon_art_list=[]
-    def __init__(self,name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType,*bonus):
+    def __init__(self,name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType,guarenteed_double,*bonus):
         self.name=name
         self.weapontype=weapontype
         self.cost=cost
@@ -1652,6 +1745,7 @@ class weapon_art:
         self.super_effective=super_effective
         self.range=rng
         self.damageType=damageType
+        self.guarenteed_double=guarenteed_double
         if bonus:
             self.bonus=bonus
         else:
@@ -1665,6 +1759,7 @@ class weapon_art:
         print(f"Accuracy: {self.accuracy}")
         print(f"Crit: {self.crit}")
         print(f"Avoid: {self.avoid}")
+        print(f'Guarenteed Double: {self.guarenteed_double}')
         print(f"Super Effective: {self.super_effective}")
         print(f"Range: {self.range}")
         print(f"Damage Type: {self.damage_type}\n")
@@ -2493,7 +2588,7 @@ def gameplay(align):
                 choice=input("Enter the number of the unit you want to move \n")
                 if choice.isdigit():
                     if int(choice) in possible:
-                        print(f"The current location of {align.roster[int(choice)].name} is {align.roster[int(choice)].location} and they can move {align.roster[int(choice)].mov} spaces")
+                        print(f"The current location of {align.roster[int(choice)].name} is {align.roster[int(choice)].location} and they can move {align.roster[int(choice)].remainingMove} spaces")
                         cont1=True
                     else:
                         print('Invalid input')
@@ -2512,6 +2607,7 @@ def gameplay(align):
                 if len(dest)==2:
                     if dest[0].isdigit() and dest[1].isdigit():
                         if (int(dest[0]),int(dest[1])) in dj:
+                            align.roster[int(choice)].remainingMove-=dj[int(dest[0]),int(dest[1])]
                             align.roster[int(choice)].move([int(dest[0]),int(dest[1])])
                             cont=True
                             cont2=True
@@ -2695,7 +2791,7 @@ def djikstra(self):
     previous_nodes={}
     for i in curMap.spaces:
         distFromAI=abs(i[0]-self.location[0])+abs(i[1]-self.location[1])
-        if distFromAI<=self.mov:
+        if distFromAI<=self.remainingMove:
             viable_spaces.append([i[0],i[1]])
             if distFromAI==1:
                 moveCost=1
@@ -2754,7 +2850,7 @@ def djikstra(self):
             if ([cur_min[0],cur_min[1]]) in viable_spaces:
                 viable_spaces.remove([cur_min[0],cur_min[1]])
     for i in list(shortest_path):
-        if shortest_path[i]>self.mov:
+        if shortest_path[i]>self.remainingMove:
             shortest_path.pop(i)
             #shortest_path.remove(i)
         elif curMap.spaces[i][0]==True:
@@ -5632,12 +5728,14 @@ def settings():
     global permadeath
     global phoenix_mode
     global turnwheel
+    global paragon_mode
     cont=False
     while cont==False:
         print(f'1: Text speed {text_speed}')
         print(f'2: Permadeath {permadeath}')
         print(f'3: Phoenix Mode {phoenix_mode}')
         print(f'4: Turnwheel {turnwheel}')
+        print(f'5: Paragon mode {paragon_mode}')
         path=input('Input the number of the setting that you would like to change or X to finish\n')
         if path.lower()=='x':
             cont=True
@@ -5690,6 +5788,17 @@ def settings():
                 turnwheel=False
             else:
                 print('Invalid input')
+        elif path=='5':
+            print(f'The Paragon Mode option is currently set to {paragon_mode}')
+            print('If the paragon mode option is set to true all experience gain will be doubled')
+            print('If the paragon mode option is set to false experience gain is unaltered')
+            tur=input('Input T to have paragon mode on or F to have it off')
+            if tur.lower()=='t':
+                paragon_mode=True
+            elif tur.lower()=='f':
+                paragon_mode=False
+            else:
+                print('Invalid input')
 def magic_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
     return eval(magic_damage_formula)
 def phys_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
@@ -5721,6 +5830,7 @@ text_speed=1
 permadeath=True
 phoenix_mode=False
 turnwheel=False
+paragon_mode=False
 #mechanics
 inventory_max_size=5
 skill_max_size=5
@@ -5778,10 +5888,12 @@ determination=skill('Determination',1,'skill','defense',2,'*',True,'self')
 lethality=skill('Lethality',.25,'skill','atk',100,'*',True,'self')
 big_shield=skill('Big Shield',1,'level','defense',100,'*',True,'self')
 paragon=skill('Paragon',0,'luck','atk',0,'+',False,'self')#double exp gain
-galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')#unlock the ability to taker another turn after a kill
-canto=skill('Canto',0,'luck','atk',0,'+',False,'self')#unlock the ability to move after acting
-steal=skill('Steal',0,'luck','atk',0,'+',False,'self')#unlock the steal command
-discipline=skill('Discipline',0,'luck','atk',0,'+',False,'self')#double weapon exp gain
+swordbreaker=skill('Swordbreaker',0,'luck','atk',0,'+',False,'self')#+50 avoid/hit vs sword
+lancebreaker=skill('Lancebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+axebreaker=skill('Axebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+bowbreaker=skill('Bowbreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+tomebreaker=skill('Tomebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+fistbreaker=skill('Fistbreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
 vantage=skill('Vantage',0,'luck','atk',0,'+',False,'self')#make unit always attack first if under half health
 swordfaire=skill('Swordfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
 lancefaire=skill('Lancefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
@@ -5789,12 +5901,11 @@ axefaire=skill('Axefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a
 bowfaire=skill('Bowfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
 tomefaire=skill('Tomefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
 fistfaire=skill('Fistfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
-swordbreaker=skill('Swordbreaker',0,'luck','atk',0,'+',False,'self')#+50 avoid/hit vs sword
-lancebreaker=skill('Lancebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
-axebreaker=skill('Axebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
-bowbreaker=skill('Bowbreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
-tomebreaker=skill('Tomebreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
-fistbreaker=skill('Fistbreaker',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
+
+galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')#unlock the ability to taker another turn after a kill
+canto=skill('Canto',0,'luck','atk',0,'+',False,'self')#unlock the ability to move after acting
+steal=skill('Steal',0,'luck','atk',0,'+',False,'self')#unlock the steal command
+discipline=skill('Discipline',0,'luck','atk',0,'+',False,'self')#double weapon exp gain
 counter=skill('Counter',0,'luck','atk',0,'+',False,'self')#reflect physical damage
 style_switch=skill('Style Switch',0,'luck','atk',0,'+',False,'self')#switch between trickster, swordmaster, general, and sniper
 locktouch=skill('locktouch',0,'luck','atk',0,'+',False,'self')#unlock stuff w/o key
@@ -5805,22 +5916,22 @@ renewal=skill('Renewal',0,'luck','atk',0,'+',False,'self')#restore 30% hp every 
 aggressor=skill('Aggressor',0,'luck','atk',0,'+',False,'self')#+5 damage when initiating combat
 bargin=skill('Bargin',0,'luck','atk',0,'+',False,'self')#shop stuff is half
 dualwield=skill('Dualwield',0,'luck','atk',0,'+',False,'self')#can equip 2 weapons at once
-###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):
-grounder=weapon_art('Grounder','Sword',4,3,20,5,0,['Flying'],[1],'Same')
-curved_shot=weapon_art('Curved Shot','Bow',3,1,30,0,0,[],[1,2,3],'Same')
-sunder=weapon_art('Sunder','Sword',3,4,0,15,0,[],[1],'Same')
-wrath_strike=weapon_art('Wrath Strike','Sword',3,5,10,0,0,[],[1],'Same')
-hexblade=weapon_art('Hexblade','Sword',3,7,10,0,0,[],[1],'Magic')
-haze_slice=weapon_art('Haze Slice','Sword',5,2,0,0,30,[],[1],'Same')
-bane_of_monsters=weapon_art('Bane Of Monsters','Sword',4,6,0,10,0,['Monster'],[1],'Same')
-foudroyant_strike=weapon_art('Foudroyant Strike','Sword',3,6,30,30,0,['Armored','Dragon'],[1],'Same')
-beast_fang=weapon_art('Beast Fang','Sword',3,10,0,30,0,['Horse','Dragon'],[1],'Same')
-ruptured_heaved=weapon_art('Ruptured Heaven','Sword',3,7,10,10,0,['Dragon'],[1,2],'Magic')
-sword_dance=weapon_art('Sword Dance','Sword',2,1,0,0,20,[],[1],'Same')
-tempest_lance=weapon_art('Tempest Lance','Lance',5,8,10,0,0,[],[1],'Same')
-shatter_slash=weapon_art('Shatter Slash','Lance',5,4,10,0,1,[],[1],'Same',['defense',5,'-','enemy'])
-knightkneeler=weapon_art('Knightkneeler','Lance',4,5,15,0,0,['Horse'],[1],'Same')
-monster_piercer=weapon_art('Monster Piercer','Lance',4,7,0,0,10,['Monster'],[1],'Same')
+###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),guarenteed_double,*[effect_stat,effect_change,effect_operator,target]):
+grounder=weapon_art('Grounder','Sword',4,3,20,5,0,['Flying'],[1],'Same',False)
+curved_shot=weapon_art('Curved Shot','Bow',3,1,30,0,0,[],[1,2,3],'Same',False)
+sunder=weapon_art('Sunder','Sword',3,4,0,15,0,[],[1],'Same',False)
+wrath_strike=weapon_art('Wrath Strike','Sword',3,5,10,0,0,[],[1],'Same',False)
+hexblade=weapon_art('Hexblade','Sword',3,7,10,0,0,[],[1],'Magic',False)
+haze_slice=weapon_art('Haze Slice','Sword',5,2,0,0,30,[],[1],'Same',False)
+bane_of_monsters=weapon_art('Bane Of Monsters','Sword',4,6,0,10,0,['Monster'],[1],'Same',False)
+foudroyant_strike=weapon_art('Foudroyant Strike','Sword',3,6,30,30,0,['Armored','Dragon'],[1],'Same',False)
+beast_fang=weapon_art('Beast Fang','Sword',3,10,0,30,0,['Horse','Dragon'],[1],'Same',False)
+ruptured_heaved=weapon_art('Ruptured Heaven','Sword',3,7,10,10,0,['Dragon'],[1,2],'Magic',False)
+sword_dance=weapon_art('Sword Dance','Sword',2,1,0,0,20,[],[1],'Same',False)
+tempest_lance=weapon_art('Tempest Lance','Lance',5,8,10,0,0,[],[1],'Same',False)
+shatter_slash=weapon_art('Shatter Slash','Lance',5,4,10,0,1,[],[1],'Same',False,['defense',5,'-','enemy'])
+knightkneeler=weapon_art('Knightkneeler','Lance',4,5,15,0,0,['Horse'],[1],'Same',False)
+monster_piercer=weapon_art('Monster Piercer','Lance',4,7,0,0,10,['Monster'],[1],'Same',False)
 
 ###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list,attributes)
 wyvern_rider=classType('Wyvern Rider','Flying',19,.8,7,.4,0,0,6,.25,0,.3,8,.3,0,.05,5,.25,7,{'Lance':0},['Wyvern Lord'],['Luna','Placeholder','Placeholder'],['Flying','Dragon'])
@@ -5831,7 +5942,7 @@ sage=classType('Sage','Mage',20,.7,1,0,7,0.4,5,.4,0,.4,4,.2,5,.25,7,.4,5,{'Tome'
 myrmidom=classType('Myrmidom','Foot',16,.7,4,.3,1,0,9,.4,0,.4,4,.2,1,.2,10,.4,5,{'Sword':0},['Swordmaster','Assassin'],['Astra','Placeholder','Placeholder'],[])
 mercenary=classType('Mercenary','Foot',18,.8,5,.35,0,0,8,.4,0,.3,5,.25,0,.15,7,.35,5,{'Sword':0,'Fist':0},['Hero','Bow Knight'],['Armsthrift','Placeholder','Placeholder'],[])
 mage=classType('Mage','Mage',16,.6,0,0,4,0.35,3,.3,0,.3,2,.15,3,.25,4,.3,5,{'Tome':0},['Sage'],['Mag Up','Placeholder','Placeholder'],['Magic'])
-lord=classType('Lord','Foot',18,.7,6,.4,0,0,5,.3,0,.4,7,.25,0,.2,7,.3,6,{'Sword':0},['Great Lord'],['Placeholder','Placeholder','Placeholder'],['Lord'])
+lord=classType('Lord','Foot',18,.7,6,.4,0,0,5,.3,0,.4,7,.25,0,.2,7,.3,6,{'Sword':0},['Great Lord'],['Placeholder','Placeholder','Placeholder'],['Lord','Convoy','Sieze'])
 villager=classType('Villager','Foot',16,.8,1,.2,0,0,1,.2,1,.2,1,.2,0,.05,1,.2,5,{},[],['Placeholder','Placeholder','Placeholder'],['Villager'])
 fighter=classType('Fighter','Foot',20,.85,8,.4,0,0,5,.3,0,.35,4,.25,0,.1,5,.2,5,{'Axe':0},['Warrior','Hero'],['Placeholder','Placeholder','Placeholder'],[])
 warrior=classType('Warrior','Foot',28,.95,12,.5,0,0,8,.4,0,.35,7,.3,3,.2,7,.2,6,{'Axe':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'],[])
@@ -5851,7 +5962,7 @@ barbarian=classType('Barbarian','Foot',22,.9,8,.4,0,0,3,.2,0,.2,3,.2,0,.05,8,.3,
 bow_knight=classType('Bow Knight','Horse',24,.9,8,.35,0,0,10,.4,0,.35,6,.25,2,.15,10,.4,8,{'Sword':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'],['Horse','Advanced'])
 dark_flier=classType('Dark Flier','Flying',19,.75,5,.25,6,.35,8,.4,0,.55,5,.25,9,.45,10,.45,8,{'Lance':0,'Tome':0},[],['Placeholder','Placeholder','Placeholder'],['Flying','Advanced'])
 dread_fighter=classType('Dread Fighter','Mage',22,.8,9,.4,6,.2,9,.4,0,.4,8,.25,10,.25,10,.4,7,{'Axe':0,'Tome':0,'Sword':0,'Knife':0},[],['Placeholder','Placeholder','Placeholder'],[])
-great_lord=classType('Great Lord','Foot',23,.8,10,.5,0,0,7,.4,0,.5,10,.3,3,.25,9,.4,7,{'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Lord','Advanced'])
+great_lord=classType('Great Lord','Foot',23,.8,10,.5,0,0,7,.4,0,.5,10,.3,3,.25,9,.4,7,{'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Lord','Advanced','Convoy','Sieze'])
 
 ranger=classType('Ranger','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0},['Lord'],['Placeholder','Placeholder','Placeholder'],[])
 soldier=classType('Soldier','Foot',1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,5,5,{'Lance':0},['Halberdier'],['Placeholder','Placeholder','Placeholder'],[])
