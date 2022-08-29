@@ -15,6 +15,7 @@ def init_battle(char1,char2,dist,fore,*weaponX):
     hitMod=0
     cont=False
     active_art=None
+    dualwielding_weapon=None
     if char2.alignment==player:
         startHP=char1.hp
         player_unit=char2
@@ -25,16 +26,17 @@ def init_battle(char1,char2,dist,fore,*weaponX):
         player_unit=char1
         for j in player_unit.weapon_arts:
             if dist in j.range:
-                for i in player_unit.inventory:
-                    if isinstance(i,weapon):
-                        if i.weapontype==j.weapontype and i.curUses>=j.cost:
-                            if j.weapontype not in art_types:
-                                art_types[j.weapontype]=j.cost
-                            elif j.weapontype in art_types:
-                                if j.cost<art_types[j.weapontype]:
-                                   art_types[j.weapontype]=j.cost
-                            if j not in viable_arts:
-                                viable_arts.append(j)
+                if j.weapontype in player_unit.weaponType:
+                    for i in player_unit.inventory:
+                        if isinstance(i,weapon):
+                            if i.weapontype==j.weapontype and i.curUses>=j.cost:
+                                if j.weapontype not in art_types:
+                                    art_types[j.weapontype]=j.cost
+                                elif j.weapontype in art_types:
+                                    if j.cost<art_types[j.weapontype]:
+                                       art_types[j.weapontype]=j.cost
+                                if j not in viable_arts:
+                                    viable_arts.append(j)
     else:
         player_unit=None
     if weaponX:
@@ -58,6 +60,25 @@ def init_battle(char1,char2,dist,fore,*weaponX):
                 if char1.inventory[int(selection)] in viable_weapons:
                     weapon1=char1.inventory[int(selection)]
                     char1.active_item=weapon1
+                    if dualwield in char1.skills:
+                        contX=False
+                        while contX==False:
+                            dual=input('Input Y to dualwield or anything else to skip')
+                            if dual.lower()=='y':
+                                selection2=input('Choose a weapon to use \n')
+                                if selection2.isdigit():
+                                    if int(selection2)>=0 and int(selection2)<len(char1.inventory) and selection2!=selection:
+                                        if char1.inventory[int(selection2)] in viable_weapons:
+                                            dualwielding_weapon=char1.inventory[int(selection2)]
+                                            contX=True
+                                        else:
+                                            print('Invalid input')
+                                    else:
+                                        print('Invalid input')
+                                else:
+                                    print('Invalid input')
+                            else:
+                                contX=False
                     cont=True
                 else:
                     print('Invalid input, try again')
@@ -150,12 +171,15 @@ def init_battle(char1,char2,dist,fore,*weaponX):
                 if guarentee_double1 and cont:
                     print(f"{char1.name} made a follow up attack")
                     cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
-        if cont and char1.spd-doubling_threshold>=char2.spd and weapon1 in char1.inventory and active_art==None:
+        if cont and (char1.spd-doubling_threshold>=char2.spd and weapon1 in char1.inventory and active_art==None and dualwielding_weapon==None):
             print(f"{char1.name} made a follow up attack")
-            cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+            cont=battle(char1,weapon1,char2,dmgMod,hitMod,None,dist)
             if guarentee_double1 and cont:
                 print(f"{char1.name} made another follow up attack")
-                battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+                battle(char1,weapon1,char2,dmgMod,hitMod,None,dist)
+        elif dualwielding_weapon!=None:
+            print(f"{char1.name} made a follow up attack")
+            cont=battle(char1,dualwielding_weapon,char2,dmgMod,hitMod,None,dist)
         if cont and char2.spd-doubling_threshold>=char1.spd and weapon2 in char2.inventory:
             print(f"{char2.name} made a follow up attack")
             cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
@@ -312,14 +336,14 @@ def super_effective_checker(item,char2,item_type):
     if char2.classType.name in item.super_effective:
         if item_type=='Weapon':
             if item.super_effective[char2.classType.name]> super_mult:
-                super_mult=item.super_effective[char2.classType.name]
+                super_mult+=item.super_effective[char2.classType.name]
         elif item_type=='Art':
             super_mult=3
     for i in item.super_effective:
         if i in char2.classType.attributes:
             if item_type=='Weapon':
                 if item.super_effective[i]>super_mult:
-                    super_mult=item.super_effective[i]
+                    super_mult+=item.super_effective[i]
             elif item_type=='Art':
                 super_mult=3
     return super_mult
@@ -1511,6 +1535,7 @@ class weapon:
         char.active_item=None
 empty=weapon('Empty',0,0,'Empty',[0],0,0,'Empty',False,0,0,{})
 unique_weapons=[empty]
+weapon_types=['Sword','Axe','Lance','Bow','Tome','Fist','Dark Magic','Knife','Staff']
 base_misc=[]
 class sword(weapon):
     def __init__(self,name,maxUses,dmg,dmgtype,rng,crit,hit,droppable,cost,rank,super_effective):
@@ -1539,6 +1564,34 @@ class tome(weapon):
     def __init__(self,name,maxUses,dmg,rng,crit,hit,droppable,cost,rank,super_effective):
         super().__init__(name,maxUses,dmg,'Magic',rng,crit,hit,'Tome',droppable,cost,rank,super_effective)
 base_tome=[]
+'''
+Dark Magic bonus effects:
+vamp: hp steal
+pierce: ignore res
+charge: take a round of combat/turn to charge up
+blind: lower enemy's accuracy
+mute: silence enemy
+cripple: halve enemys stats
+'''
+class dark_magic(weapon):
+    def __init__(self,name,maxUses,dmg,rng,crit,hit,droppable,cost,rank,super_effective,bonus_effect):
+        self.bonus_effect=bonus_effect
+        super().__init__(name,maxUses,dmg,'Magic',rng,crit,hit,'Dark Magic',droppable,cost,rank,super_effective)
+base_dark_magic=[]
+class knife(weapon):
+    def __init__(self,name,maxUses,dmg,dmgtype,rng,crit,hit,droppable,cost,rank,super_effective):
+        super().__init__(name,maxUses,dmg,dmgtype,rng,crit,hit,'Knife',droppable,cost,rank,super_effective)
+base_knife=[]
+class iron_knife(knife):
+    def __init__(self,droppable):
+        super().__init('Iron Knife',30,1,'Phys',[1,2],25,100,droppable,500,0,{})
+base_iron_knife=iron_knife(False)
+base_knife.append(base_iron_knife)
+class nosferatu(dark_magic):
+    def __init__(self,droppable):
+        super().__init__('Nosferatu',25,5,[1,2],0,100,droppable,1000,10,{},'vamp')
+base_nosferatu=nosferatu(False)
+base_dark_magic.append(base_nosferatu)
 class iron_sword(sword):
     def __init__(self,droppable):
         super().__init__('Iron Sword',30,4,'Phys',[1],10,85,droppable,500,0,{})
@@ -1609,7 +1662,33 @@ class gauntlet(fist):
         super().__init__('Gauntlet',100,2,20,100,droppable,250,0,{})
 base_gauntlet=gauntlet(False)
 base_fist.append(base_gauntlet)
-base_weapon_dict={'sword':base_sword,'lance':base_lance,'axe':base_axe,'tome':base_tome,'fist':base_fist}
+base_weapon_dict={'sword':base_sword,'lance':base_lance,'axe':base_axe,'tome':base_tome,'fist':base_fist,'dark_magic':base_dark_magic,'knife':base_knife}
+
+class staff:
+    staff_list=[]
+    stats=['curUses','maxUses','might','cost','weaponlevel']
+    def __init__(self,name,maxUses,might,rng,droppable,cost,rank):
+        self.name=name
+        self.curUses=maxUses
+        self.maxUses=maxUses
+        self.might=might
+        self.rng=rng
+        self.droppable=droppable
+        self.cost=cost
+        self.weaponlevel=rank
+        self.staff_list.append(self)
+    def info(self):
+        print(f"Name: {self.name}")
+        print(f"Current durability: {self.curUses}")
+        print(f"Max durability: {self.maxUses}")
+        print(f"Weapon level: {self.weaponlevel}")
+        print(f"Healing Amount: {self.might}")
+        print(f"Range: {self.rng}")
+        print('\n')
+    def breakX(self,char):
+        input(self.name + " Broke!")
+        char.inventory.remove(self)
+        char.active_item=None
 
 class key:
     key_list=[]
@@ -3782,7 +3861,12 @@ def create_character(*name):
     while cont==False:
         name=input('Input the name for your character\n')
         end_name=input(f'Your character will be named {name}, input Y to confirm or anything else to reenter the name\n')
-        if end_name.lower()=='y':
+        contX=True
+        for i in character.character_list:
+            if i.name==name:
+                print(f'There already exists a character with the name {name}, choose something else')
+                contX=False
+        if end_name.lower()=='y' and contX:
             cont=True
     #set level
     cont=False
@@ -5916,7 +6000,8 @@ renewal=skill('Renewal',0,'luck','atk',0,'+',False,'self')#restore 30% hp every 
 aggressor=skill('Aggressor',0,'luck','atk',0,'+',False,'self')#+5 damage when initiating combat
 bargin=skill('Bargin',0,'luck','atk',0,'+',False,'self')#shop stuff is half
 dualwield=skill('Dualwield',0,'luck','atk',0,'+',False,'self')#can equip 2 weapons at once
-###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),guarenteed_double,*[effect_stat,effect_change,effect_operator,target]):
+false_swipe=skill('False Swipe',0,'luck','atk',0,'+',False,'self')#leave enemies with 1 hp
+###Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),guarenteed_double,*[effect_stat,effect_change,effect_operator,target]):
 grounder=weapon_art('Grounder','Sword',4,3,20,5,0,['Flying'],[1],'Same',False)
 curved_shot=weapon_art('Curved Shot','Bow',3,1,30,0,0,[],[1,2,3],'Same',False)
 sunder=weapon_art('Sunder','Sword',3,4,0,15,0,[],[1],'Same',False)
@@ -6354,6 +6439,16 @@ while cont==False:
                         print('This must be a number')
                 else:
                     print('Invalid input, returning to selection')
+#making everything work with freewielding
+if freewielding:
+    for i in classType.class_list:
+        for j in weapon_types:
+            if j not in i.weaponType:
+                i.weaponType[j]=0
+    for i in character.character_list:
+        for j in weapon_types:
+            if j not in i.weaponType:
+                i.weaponType[j]=0
 #Gameplay loop
 while mapNum<=len(mapLevel.map_list):
     for i in mapLevel.map_list:
