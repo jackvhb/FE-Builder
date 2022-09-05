@@ -206,6 +206,9 @@ def init_battle(char1,char2,dist,fore,*weaponX):
             else:
                 player_unit.weaponType[player_weapon.weapontype]+=eval(wep_lev_formula)
                 expGain=eval(exp_formula)
+            if isinstance(player_weapon,dark_magic):
+                if player_weapon.charged:
+                    player_weapon.charge=False
             if paragon_mode:
                 expGain*=2
             if paragon in player_unit.skills:
@@ -232,6 +235,7 @@ def init_battle(char1,char2,dist,fore,*weaponX):
 
 def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
     ###    #Weapon Arts (name,weapontype,cost,damage,accuracy,crit,avoid,super_effective,rng,damageType(can be 'Same','Magic','Phys'),*[effect_stat,effect_change,effect_operator,target]):
+    statusX=True
     print(f'{char1.name} attacked {char2.name} with a {weapon1.name}')
     time.sleep(1*text_speed)
     critMod=0
@@ -325,27 +329,73 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
         setattr(weapon1,k,weapon_dict[k])
     if char2.curhp-damage>0:
         char2.curhp=char2.curhp-damage
-        input(f"{char1.name} attacked {char2.name} and did {damage} damage \nInput enter to continue\n")
-        return(True)
+        print(f"{char1.name} attacked {char2.name} and did {damage} damage")
     else:
         char2.die(char1)
-        return(False)
+        statusX=False
+    if isinstance(weapon1,dark_magic):
+        if 'vamp' in weapon1.bonus_effect:
+            startHP=char1.curhp
+            char1.curhp+=damage
+            if char1.curhp>char1.hp:
+                char1.curhp=char1.hp
+            print(f'{char1.name} healed {damage} HP with their Nosferatu ability')
+        if 'blind' in weapon1.bonus_effect:
+            char2.debuff['blind']=2
+            print(f'{char2.name} has had their accuracy temporarily reduced')
+        if 'mute' in weapon1.bonus_effect:
+            char2.debuff['mute']=2
+            print(f'{char2.name} is now temporarily unable to use magic')
+        if 'cripple' in weapon1.bonus_effect:
+            char2.debuff['cripple']=2
+            print(f'{char2.name} has had their stats temporarily reduced')
+    input("Input enter to continue\n")
+    return(statusX)
+def init_heal(char1,char2,dist):
+    viable_targets={}
+    j=0
+    for i in char1.inventory:
+        if isinstance(i,staff):
+            if i.weaponlevel<=char1.weapon_level['Staff']:
+                print(f'{j}: {i.name}, heal {i.might+(char1.mag//2)}')
+                viable_targets[j]=i
+                j+=1
+    cont=False
+    while cont==False:
+        path=input(f'Input the number of the staff that you would like to use or X to cancel\n')
+        if path.lower()=='x':
+            cont=True
+        elif path.isdigit():
+            if int(path) in viable_targets:
+                origin_hp=char2.curhp
+                char2.curhp=char2.curhp+viable_targets[int(path)].might+(char1.mag//2)
+                if char2.curhp>char2.hp:
+                    char2.curhp=char2.hp
+                print(f'{char2.name} was healed by {char2.curhp-origin_hp} HP')
+                cont=True
+            else:
+                print('Invalid input, try again')
+        else:
+            print('Invalid input, try again')
 
 def super_effective_checker(item,char2,item_type):
-    super_mult=0
+    super_mult=1
+    if isinstance(item,dark_magic):
+        if item.charged:
+            super_mult*=2
     if char2.classType.name in item.super_effective:
         if item_type=='Weapon':
             if item.super_effective[char2.classType.name]> super_mult:
-                super_mult+=item.super_effective[char2.classType.name]
+                super_mult*=item.super_effective[char2.classType.name]
         elif item_type=='Art':
-            super_mult=3
+            super_mult*=3
     for i in item.super_effective:
         if i in char2.classType.attributes:
             if item_type=='Weapon':
                 if item.super_effective[i]>super_mult:
-                    super_mult+=item.super_effective[i]
+                    super_mult*=item.super_effective[i]
             elif item_type=='Art':
-                super_mult=3
+                super_mult*=3
     return super_mult
 
 def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
@@ -434,26 +484,37 @@ def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
 def menu(self):
     atkRange=[0]
     targetRange=[]
+    healTargetRange=[]
     end=False
     while end==False:
         tradeRange=[]
+        danceRange=[]
         supportRange=[]
         charTriggerRange=[]
         doors=[]
+        healRange=[]
         triggerRange=False
         openable=False
+        charge=False
         openableDoor=False
         for i in self.inventory:
             if isinstance(i,weapon):
                 if i.weapontype in self.weaponType:
-                    for j in i.rng:
-                        if j not in atkRange:
-                            atkRange.append(j)
+                    if i.weaponlevel<=self.weaponType[i.weapontype]:
+                        for j in i.rng:
+                            if j not in atkRange:
+                                atkRange.append(j)
                     for k in self.weapon_arts:
                         if k.weapontype==i.weapontype and k.cost<=i.curUses:
                             for m in k.range:
                                 if m not in atkRange:
                                     atkRange.append(m)
+            if isinstance(i,staff):
+                if 'Staff' in self.weaponType:
+                    if i.weaponlevel<=self.weapontype['Staff']:
+                        for j in i.rng:
+                            if j not in healRange:
+                                healRange.append(j)
         for i in curMap.spaces:
             if abs(i[0]-self.location[0])+abs(i[1]-self.location[1])==1:
                 if (i[0],i[1]) in curMap.objectList:
@@ -464,10 +525,15 @@ def menu(self):
                 if abs(i[0]-self.location[0])+abs(i[1]-self.location[1]) in atkRange:
                     if curMap.spaces[i][1].alignment!=self.alignment and [i,curMap.spaces[i][1]] not in targetRange:
                         targetRange.append([i,curMap.spaces[i][1]])
+                if abs(i[0]-self.location[0])+abs(i[1]-self.location[1]) in healRange:
+                    if curMap.spaces[i][1].alignment==self.alignment and [i,curMap.spaces[i][1]] not in healTargetRange:
+                        healTargetRange.append([i,curMap.spaces[i][1]])
                 if abs(i[0]-self.location[0])+abs(i[1]-self.location[1])==1:
                     if curMap.spaces[i][1].alignment==self.alignment:
                         if [i,curMap.spaces[i][1]] not in tradeRange:
                             tradeRange.append([i,curMap.spaces[i][1]])
+                            if curMap.spaces[i][1].moved==True:
+                                danceRange.append([i,curMap.spaces[i][1]])
                         if curMap.spaces[i][1].name in self.support_list:
                             if (self.name, curMap.spaces[i][1].name) in self.alignment.support_master:
                                 if int(self.support_list[curMap.spaces[i][1].name]/support_level_threshold)>\
@@ -489,14 +555,25 @@ def menu(self):
                 triggerRange=True
         if len(targetRange)>0:
             print("0 : Battle")
+        if len(healTargetRange)>0:
+            print('H : Heal')
         if len(tradeRange)>0:
             print("T : Trade")
+        if len(tradeRange)>0 and self.classType==dancer:
+            print("D : Dance")
         if len(supportRange)>0 and not nosupport:
             print("B : Support")
         if len(charTriggerRange)>0:
             print("C : Character Event")
         if 'Convoy' in self.classType.attributes:
             print('A: Convoy')
+        if style_switch in self.skills:
+            print('Style : Style Switch')
+        if self.active_item!=None:
+            if isinstance(self.active_item,dark_magic):
+                if not self.active_item.charge:
+                    print('Q : Charge')
+                    charge=True
         print("1 : Inventory")
         print("2 : Equip")
         print("3 : Consume")
@@ -543,6 +620,45 @@ def menu(self):
                     self.alignment.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+=1
                     self.moved=True
                     end=True
+        elif v.lower()=='q' and charge:
+            print(f'{self.name} charged up, preparing to unleash {self.active_item.name}.')
+            self.active_item.charge=True
+            self.moved=True
+            end=True
+        elif v.lower()=='style switch' and style_switch in self.skills:
+            route=input(f'W: Trickster\nD: Swordmaster\nS: General\nA:Sniper\nInput the class you would like to switch to\n')
+            if route.lower()=='w':
+                self.reclass(trickster)
+                pass
+            elif route.lower()=='a':
+                self.reclass(sniper)
+                pass
+            elif route.lower()=='s':
+                self.reclass(general)
+                pass
+            elif route.lower()=='d':
+                self.reclass(swordmaster)
+                pass
+        elif v.lower()=='h' and len(healTargetRange)>0:
+            contHeal=True
+            while contHeal==True:
+                for j in range(0,len(healTargetRange)):
+                    print(f"{j} {healTargetRange[j][1].name} at {healTargetRange[j][0]}")
+                choiceBattle=input("Input the unit you wish to heal or x to cancel \n")
+                if choiceBattle=='x':
+                    contBattle=False
+                elif choiceBattle.isdigit():
+                    if int(choiceBattle)>=0 and int(choiceBattle)<len(healTargetRange):
+                        dis=abs(self.location[0]-healTargetRange[int(choiceBattle)][1].location[0])+abs(self.location[1]-healTargetRange[int(choiceBattle)][1].location[1])
+                        confirm=input(f'Input Y to confirm that you wish to heal or anything else to cancel\n')
+                        if confirm.lower()=='y':
+                            init_heal(self,healTargetRange[int(choiceBattle)][1],dis)
+                            end=True
+                            contBattle=False
+                        else:
+                            print('Healing canceled')
+                else:
+                    print('Invalid input, try again')
         elif v.lower()=='a' and self.classType==lord:
             route=input('Input 1 to withdraw items or 2 to store items\n')
             if route=='1':
@@ -618,6 +734,22 @@ def menu(self):
                     self.trade_items(tradeRange[int(choiceTrade)][1])
             else:
                 print('Invalid input, try again')
+        #dancing
+        elif v.lower()=='d' and len(danceRange)>0:
+            for i in range(0,len(danceRange)):
+                print(f'{i} {danceRange[i][1].name}')
+            choiceTrade=input("Input the unit you wish to dance for or x to cancel \n")
+            if choiceTrade.lower=='x':
+                break
+            elif choiceTrade.isdigit():
+                if int(choiceTrade)>=0 and int(choiceTrade)<len(danceRange):
+                    danceRange[int(choiceTrade)][1].moved=False
+                    print(f'{danceRange[int(choiceTrade)][1].name} can move again now')
+                    self.moved=True
+                    end=True
+                    return
+            else:
+                print('Invalid input, try again')
         elif v.lower()=='s':
             if (self.location[0],self.location[1]) in curMap.objectList:
                 if isinstance(curMap.objectList[self.location[0],self.location[1]],shop):
@@ -683,6 +815,7 @@ class character:
         self.kills=0
         self.battles=0
         self.status='Alive'
+        self.debuff={}
         self.joinMap=joinMap
         self.stole=False
         self.bounty=0
@@ -729,8 +862,10 @@ class character:
             if i.mapNum==joinMap:
                 if alignment==player:
                     i.player_roster.append(self)
-                else:
+                elif alignment==enemy:
                     i.enemy_roster.append(self)
+                elif alignment==green:
+                    i.green_roster.append(self)
         self.character_list.append(self)
     def add_item(self,item):
         if len(self.inventory)<inventory_max_size:
@@ -1387,10 +1522,38 @@ class player_char(character):
         return support_bonus
 
 class green_passive(character):
-    pass
+    green_passive_list=[]
+    nameClass='green_passive'
+    def __init__(self,name,classX,joinMap,inventory,level,spawn):
+        self.name=name
+        self.spawn=spawn
+        for i in classType.class_list:
+            if i.name==classX:
+                classtype=i
+        super().__init__(name,classtype.hp,classtype.hp,classtype.hpG,classtype.atk,classtype.atkG,classtype.mag,classtype.magG,
+                         classtype.skill,classtype.skillG,classtype.luck,classtype.luckG,classtype.defense,classtype.defG,classtype.res,
+                         classtype.resG,classtype.spd,classtype.spdG,0,green,classX,{},joinMap,inventory,1)
+        while self.level<level:
+            self.level_up(1)
+        if self not in self.green_passive_list:
+            self.green_passive_list.append(self)
 
 class green_active(character):
-    pass
+    green_active_list=[]
+    nameClass='green_active'
+    def __init__(self,name,classX,joinMap,inventory,level,spawn):
+        self.name=name
+        self.spawn=spawn
+        for i in classType.class_list:
+            if i.name==classX:
+                classtype=i
+        super().__init__(name,classtype.hp,classtype.hp,classtype.hpG,classtype.atk,classtype.atkG,classtype.mag,classtype.magG,
+                         classtype.skill,classtype.skillG,classtype.luck,classtype.luckG,classtype.defense,classtype.defG,classtype.res,
+                         classtype.resG,classtype.spd,classtype.spdG,0,green,classX,{},joinMap,inventory,1)
+        while self.level<level:
+            self.level_up(1)
+        if self not in self.green_active_list:
+            self.green_active_list.append(self)
 
 class turnwheel_ghost:
     nameClass='turnwheel_ghost'
@@ -1404,9 +1567,7 @@ class turnwheel_ghost:
         self.level=level
         self.attr={}
         for i in attr:
-            #print(i)
             self.attr[i[0]]=i[1]
-        #self.attr=attr
 
 class turnwheel_map:
     def __init__(self,spaces,objectList,player_roster,enemy_roster,green_roster,roster):
@@ -1576,6 +1737,7 @@ cripple: halve enemys stats
 class dark_magic(weapon):
     def __init__(self,name,maxUses,dmg,rng,crit,hit,droppable,cost,rank,super_effective,bonus_effect):
         self.bonus_effect=bonus_effect
+        self.charged=False
         super().__init__(name,maxUses,dmg,'Magic',rng,crit,hit,'Dark Magic',droppable,cost,rank,super_effective)
 base_dark_magic=[]
 class knife(weapon):
@@ -1689,6 +1851,13 @@ class staff:
         input(self.name + " Broke!")
         char.inventory.remove(self)
         char.active_item=None
+base_staff=[]
+class heal(staff):
+    def __init__(self,droppable):
+        super().__init__('Heal',25,10,[1],droppable,500,0)
+base_heal=heal(False)
+base_staff.append(base_heal)
+
 
 class key:
     key_list=[]
@@ -1963,6 +2132,7 @@ class mapLevel:
         self.player_roster=[]
         self.enemy_roster=[]
         self.green_roster=[]
+        self.bounty_hunter_roster=[]
         self.turnwheel={}
         self.map_list.append(self)
 #init green
@@ -5884,6 +6054,9 @@ def settings():
             else:
                 print('Invalid input')
 def magic_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
+    if isinstance(weapon1,dark_magic):
+        if 'pierce' in weapon1.bonus_effect:
+            dmgMod+=char2.res
     return eval(magic_damage_formula)
 def phys_damage_function(char1,char2,weapon1,weapon2,dmgMod,dist):
     return eval(phys_damage_formula)
@@ -5904,6 +6077,7 @@ starting_gold=0
 enemy=alignment('Enemy')
 player=alignment('Player')
 green=alignment('Green')
+bounty_hunter=alignment('Bounty Hunter')
 mapNum=1
 campaign='Default'
 timemodifier=0
@@ -6057,8 +6231,8 @@ pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,
 #bishop
 #valkyrie
 #cleric
-#dancer
-#trickster
+dancer=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],[])
+trickster=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],[])
 #griffon rider
 #troubadour
 #war monk
@@ -6196,7 +6370,7 @@ else:
 saveallowed=True
 cheatallowed=True
 bighead=False
-cheat_codes=['uuddlrlrab','630660714755868972','nobitches','superjack','oldschool','bestboy','ultimatelifeform','edgelord','galaxybrain','gettinghead','alphamale']
+cheat_codes=['uuddlrlrab','630660714755868972','nobitches','superjack','oldschool','bestboy','ultimatelifeform','edgelord','galaxybrain','gettinghead','alphamale','super secret swordsman']
 debug='x'
 if loadbattle==False:
     print('In this there are 2 main modes, creative and survival.\nIn creative mode you can create maps, edit characters, write supports, whatever you like.\nIn survival mode you can use your creations, or just use premade ones if you just want to get into the action.')
@@ -6298,6 +6472,8 @@ while debug.lower()=='y':
         saitama.add_skill(armsthrift)
         king=player_char('King',30,30,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,'Lord',{},1,[iron_sword(False),key(False)],1,{},[],'King continued his infinite unbeaten streak in Super Bash Bros')
         zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Mercenary',{},2,[iron_sword(False)],1,{},[],'The Mamodo King returned to his throne')
+    elif path.lower()=='super secret swordsman' or path.lower()=='sick slick six' and cheatallowed:
+        dante=player_char('Dante',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'],'Saitama defeated everyone in one punch')
     else:
         pass
 ##Cheat setting
