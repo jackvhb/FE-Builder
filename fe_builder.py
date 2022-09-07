@@ -208,15 +208,18 @@ def init_battle(char1,char2,dist,fore,*weaponX):
                 expGain=eval(exp_formula)
             if isinstance(player_weapon,dark_magic):
                 if player_weapon.charged:
-                    player_weapon.charge=False
+                    player_weapon.charged=False
             if paragon_mode:
                 expGain*=2
             if paragon in player_unit.skills:
                 expGain*=2
             if player_unit.status!='Dead':
-                if player_unit.level<level_cap:
+                if (player_unit.level<level_cap and 'Low Cap' not in player_unit.classType.attributes) or \
+                    (player_unit.level<level_cap+10 and 'High Cap' in player_unit.classType.attributes) or \
+                        (player_unit.level<level_cap-10 and 'Low Cap' in player_unit.classType.attributes):
                     player_unit.exp+=expGain
                     print(f'{player_unit.name} EXP +{expGain}')
+                #elif player_unit.level<level_cap
                 while player_unit.exp>=needed_exp:
                     player_unit.level_up()
                 # if player_unit.exp>=needed_exp:
@@ -337,8 +340,8 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
         if 'vamp' in weapon1.bonus_effect:
             startHP=char1.curhp
             char1.curhp+=damage
-            if char1.curhp>char1.hp:
-                char1.curhp=char1.hp
+            # if char1.curhp>char1.hp:
+            #     char1.curhp=char1.hp
             print(f'{char1.name} healed {damage} HP with their Nosferatu ability')
         if 'blind' in weapon1.bonus_effect:
             char2.debuff['blind']=2
@@ -349,6 +352,8 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
         if 'cripple' in weapon1.bonus_effect:
             char2.debuff['cripple']=2
             print(f'{char2.name} has had their stats temporarily reduced')
+    if char1.curhp>char1.hp:
+        char1.curhp=char1.hp
     input("Input enter to continue\n")
     return(statusX)
 def init_heal(char1,char2,dist):
@@ -571,7 +576,7 @@ def menu(self):
             print('Style : Style Switch')
         if self.active_item!=None:
             if isinstance(self.active_item,dark_magic):
-                if not self.active_item.charge:
+                if not self.active_item.charged:
                     print('Q : Charge')
                     charge=True
         print("1 : Inventory")
@@ -622,7 +627,7 @@ def menu(self):
                     end=True
         elif v.lower()=='q' and charge:
             print(f'{self.name} charged up, preparing to unleash {self.active_item.name}.')
-            self.active_item.charge=True
+            self.active_item.charged=True
             self.moved=True
             end=True
         elif v.lower()=='style switch' and style_switch in self.skills:
@@ -796,18 +801,25 @@ class character:
         self.hp=hp
         self.hpG=hpG
         self.atk=atk
+        self.eff_atk=atk
         self.atkG=atkG
         self.mag=mag
+        self.eff_mag=mag
         self.magG=magG
         self.skill=skill
+        self.eff_skill=skill
         self.skillG=skillG
         self.luck=luck
+        self.eff_luck=luck
         self.luckG=luckG
         self.defense=defense
+        self.eff_def=defense
         self.defG=defG
         self.res=res
+        self.eff_res=res
         self.resG=resG
         self.spd=spd
+        self.eff_spd=spd
         self.spdG=spdG
         self.movModifier=mov
         self.level=level
@@ -817,6 +829,7 @@ class character:
         self.status='Alive'
         self.debuff={}
         self.joinMap=joinMap
+        self.bonus={}
         self.stole=False
         self.bounty=0
         if isinstance(alignment,str):
@@ -827,24 +840,31 @@ class character:
         for i in classType.class_list:
             if i.name==classtype or i==classtype:
                 self.classType=i
-        if self.classType.skill_list[0]!=placeholder:
-            self.skills=[self.classType.skill_list[0]]
-            self.skills_all=[self.classType.skill_list[0]]
-            if self.level>=10:
-                self.skills.append(self.classType.skill_list[1])
-                self.skills_all.append(self.classType.skill_list[1])
-            if self.level==20:
-                self.skills.append(self.classType.skill_list[2])
-                self.skills_all.append(self.classType.skill_list[2])
-        else:
-            self.skills=[]
-            self.skills_all=[]
+        self.skills=[]
+        self.skills_all=[]
+        for j in self.classType.skill_list:
+            if j<=level:
+                self.skills.append(self.classType.skill_list[j])
+                self.skills_all.append(self.classType.skill_list[j])
+        # if self.classType.skill_list[0]!=placeholder:
+        #     self.skills=[self.classType.skill_list[0]]
+        #     self.skills_all=[self.classType.skill_list[0]]
+        #     if self.level>=10:
+        #         self.skills.append(self.classType.skill_list[1])
+        #         self.skills_all.append(self.classType.skill_list[1])
+        #     if self.level==20:
+        #         self.skills.append(self.classType.skill_list[2])
+        #         self.skills_all.append(self.classType.skill_list[2])
+        # else:
+        #     self.skills=[]
+        #     self.skills_all=[]
         self.mov=self.classType.moveRange+mov
         self.remainingMove=self.mov
         self.weaponType=weaponType
         for i in self.classType.weaponType:
             if i not in self.weaponType:
                 self.weaponType[i]=self.classType.weaponType[i]
+        self.weaponTypeFree=self.weaponType
         self.active_item=None
         self.recently_attacked=None
         if len(inventory)>0:
@@ -858,14 +878,16 @@ class character:
         self.moved=False
         self.placed=False
         self.deployed=False
-        for i in mapLevel.map_list:
-            if i.mapNum==joinMap:
-                if alignment==player:
-                    i.player_roster.append(self)
-                elif alignment==enemy:
-                    i.enemy_roster.append(self)
-                elif alignment==green:
-                    i.green_roster.append(self)
+        reinforcement=False
+        if reinforcement==False:
+            for i in mapLevel.map_list:
+                if i.mapNum==joinMap:
+                    if alignment==player:
+                        i.player_roster.append(self)
+                    elif alignment==enemy:
+                        i.enemy_roster.append(self)
+                    elif alignment==green:
+                        i.green_roster.append(self)
         self.character_list.append(self)
     def add_item(self,item):
         if len(self.inventory)<inventory_max_size:
@@ -1157,20 +1179,31 @@ class character:
     def level_up(self,*silent):
         self.exp-=needed_exp
         self.level+=1
-        if self.level>level_cap:
+        if (self.level>level_cap and 'High Cap' not in self.classType.attributes):
             self.level=level_cap
+            self.exp=0
+            return
+        elif (self.level>level_cap+10 and 'High Cap' in self.classType.attributes):
+            self.level=level_cap+10
+            self.exp=0
+            return
+        elif (self.level>level_cap-10 and 'Low Cap' in self.classType.attributes):
+            self.level=level_cap-10
             self.exp=0
             return
         if not silent:
             print('Level up!')
-        if self.level==10 or self.level==20:
-            if self.level==10:
-                skillX=self.classType.skill_list[1]
-            else:
-                skillX=self.classType.skill_list[2]
-            if not silent:
-                print(f'You have unlocked the skill {skillX.name}')
-            self.add_skill(skillX)
+        if self.level in self.classType.skill_list:
+            print(f'You have unlocked the skill {self.classType.skill_list[self.level].name}')
+            self.add_skill(self.classType.skill_list[self.level])
+        # if self.level==10 or self.level==20:
+        #     if self.level==10:
+        #         skillX=self.classType.skill_list[1]
+        #     else:
+        #         skillX=self.classType.skill_list[2]
+        #     if not silent:
+        #         print(f'You have unlocked the skill {skillX.name}')
+        #     self.add_skill(skillX)
         if not silent:
             print(f'Current level: {self.level}')
         for i in self.growths:
@@ -1366,7 +1399,7 @@ class character:
                 if i.droppable==True:
                     print(f"{self.name} dropped {i.name}\n")
                     killer.add_item(i)
-            if self.classType==lord:
+            if (self.alignment==player or self.alignment==green) and 'Lord' in self.classType.attributes:
                 lordDied=True
         else:
             self.status='KO'
@@ -1374,7 +1407,7 @@ class character:
             self.curhp=0
             curMap.spaces[self.location[0],self.location[1]]=[False]
             killer.kills+=1
-            if self.classType==lord and not phoenix_mode:
+            if 'Lord' in self.classType.attributes:
                 lordDied=True
     def check_skills(self):
         for i in self.skills:
@@ -1642,12 +1675,13 @@ class classType:
         self.moveRange=moveRange
         self.weaponType=weaponType
         self.promotions=promotions
-        self.skill_list=[]
+        self.skill_list={}
         self.attributes=attributes
         for i in skill_list:
             for j in skill.skill_list:
-                if j.name==i or j==i:
-                    self.skill_list.append(j)
+                if j.name==skill_list[i] or j==skill_list[i]:
+                    self.skill_list[i]=j
+                    #self.skill_list.append(j)
         self.class_list.append(self)
     def info(self):
         print(f'Name: {self.name}')
@@ -1658,7 +1692,7 @@ class classType:
             print(i.name)
         print('Skills:')
         for i in self.skill_list:
-            print(i.name)
+            print(self.skill_list[i].name)
         print('\n')
 
 class weapon:
@@ -1746,7 +1780,7 @@ class knife(weapon):
 base_knife=[]
 class iron_knife(knife):
     def __init__(self,droppable):
-        super().__init('Iron Knife',30,1,'Phys',[1,2],25,100,droppable,500,0,{})
+        super().__init__('Iron Knife',30,1,'Phys',[1,2],25,100,droppable,500,0,{})
 base_iron_knife=iron_knife(False)
 base_knife.append(base_iron_knife)
 class nosferatu(dark_magic):
@@ -2152,6 +2186,29 @@ class mapLevel:
             i.curhp=i.hp
             if not permadeath and i.status=='KO':
                 i.status='Alive'
+            i.debuff={}
+            #bonus
+            #self.bonus={}
+            #self.bonus.append({'atk':})
+            #self.bonus{'atk':[{'len':whaver,'blah':whaetet},{}],'mag':[]}
+            #eff_def=enemy.def
+            #for i in enemy.bonus[def]:
+                #eff_def=eval(f'{eff_def}{operator}{stat_bonus}')
+            #if eff_def<0:
+                #eff_def=0
+            '''
+            for i in self.bonus:
+                self.bonus[i]=[x for x in self.bonus[i] if x[incrementor]=='map']
+                for j in self.bonus[i]:
+                    if j[incrementor]=='Map':
+                        j[length]-=1
+                    else:
+                        ppop(j)
+                    if j[lenth]<=0:
+                        pop(j)
+            '''
+            #for j in i.bonus
+            hgkjhgkhg
         inventory=True
         while inventory==True:
             print('0 Trade Items')
@@ -2674,6 +2731,25 @@ class char_trigger:
         self.char_trigger_list.append(self)
         if mapLevel!=None:
             self.mapLevel.char_trigger_list[characters[0],characters[1]]=self
+class event:
+    event_list=[]
+    def __init__(self,name,mapLevel,event,turn,phase):
+        self.name=name
+        self.mapLevel=mapLevel
+        self.event=event
+        self.triggered=False
+        self.turn=turn
+        self.phase=phase
+class reinforcements:
+    reinforcements_list=[]
+    def __init__(self,characters,alignment):
+        self.characters=characters
+        self.alignment=alignment
+    def spawn_in(self):
+        for i in self.characters:
+            if curMap[i.spawn[0],i.spawn[1]][0]==False:
+                i.update_location(i.spawn[0],i.spawn[1])
+                self.alignment.roster.append(i)
 
 
 def gameplay(align):
@@ -6159,8 +6235,8 @@ axefaire=skill('Axefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a
 bowfaire=skill('Bowfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
 tomefaire=skill('Tomefaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
 fistfaire=skill('Fistfaire',0,'luck','atk',0,'+',False,'self')#+5 atk when using a sword
-
 galeforce=skill('Galeforce',0,'luck','atk',0,'+',False,'self')#unlock the ability to taker another turn after a kill
+
 canto=skill('Canto',0,'luck','atk',0,'+',False,'self')#unlock the ability to move after acting
 steal=skill('Steal',0,'luck','atk',0,'+',False,'self')#unlock the steal command
 discipline=skill('Discipline',0,'luck','atk',0,'+',False,'self')#double weapon exp gain
@@ -6193,52 +6269,53 @@ knightkneeler=weapon_art('Knightkneeler','Lance',4,5,15,0,0,['Horse'],[1],'Same'
 monster_piercer=weapon_art('Monster Piercer','Lance',4,7,0,0,10,['Monster'],[1],'Same',False)
 
 ###Classes (advanced classes on top) (name,moveType,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,moveRange,weaponType,promotions,skill_list,attributes)
-wyvern_rider=classType('Wyvern Rider','Flying',19,.8,7,.4,0,0,6,.25,0,.3,8,.3,0,.05,5,.25,7,{'Lance':0},['Wyvern Lord'],['Luna','Placeholder','Placeholder'],['Flying','Dragon'])
-swordmaster=classType('Swordmaster','Foot',20,.8,7,.4,2,0,11,.5,0,.5,6,.25,4,.3,13,.5,6,{'Sword':0},[],['Sol','Placeholder','Placeholder'],['Advanced'])
-hero=classType('Hero','Foot',22,.9,8,.45,1,0,11,.5,0,.4,8,.3,3,.25,10,.45,6,{'Sword':0,'Axe':0},[],['Placeholder','Placeholder','Placeholder'],['Advanced'])
-paladin=classType('Paladin','Horse',25,.9,9,.45,1,0,7,.4,0,.45,10,.35,6,.3,6,.4,8,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Horse','Advanced'])
-sage=classType('Sage','Mage',20,.7,1,0,7,0.4,5,.4,0,.4,4,.2,5,.25,7,.4,5,{'Tome':0},[],['Mag Up 2','Placeholder','Placeholder'],['Advanced','Magic'])
-myrmidom=classType('Myrmidom','Foot',16,.7,4,.3,1,0,9,.4,0,.4,4,.2,1,.2,10,.4,5,{'Sword':0},['Swordmaster','Assassin'],['Astra','Placeholder','Placeholder'],[])
-mercenary=classType('Mercenary','Foot',18,.8,5,.35,0,0,8,.4,0,.3,5,.25,0,.15,7,.35,5,{'Sword':0,'Fist':0},['Hero','Bow Knight'],['Armsthrift','Placeholder','Placeholder'],[])
-mage=classType('Mage','Mage',16,.6,0,0,4,0.35,3,.3,0,.3,2,.15,3,.25,4,.3,5,{'Tome':0},['Sage'],['Mag Up','Placeholder','Placeholder'],['Magic'])
-lord=classType('Lord','Foot',18,.7,6,.4,0,0,5,.3,0,.4,7,.25,0,.2,7,.3,6,{'Sword':0},['Great Lord'],['Placeholder','Placeholder','Placeholder'],['Lord','Convoy','Sieze'])
-villager=classType('Villager','Foot',16,.8,1,.2,0,0,1,.2,1,.2,1,.2,0,.05,1,.2,5,{},[],['Placeholder','Placeholder','Placeholder'],['Villager'])
-fighter=classType('Fighter','Foot',20,.85,8,.4,0,0,5,.3,0,.35,4,.25,0,.1,5,.2,5,{'Axe':0},['Warrior','Hero'],['Placeholder','Placeholder','Placeholder'],[])
-warrior=classType('Warrior','Foot',28,.95,12,.5,0,0,8,.4,0,.35,7,.3,3,.2,7,.2,6,{'Axe':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'],[])
-archer=classType('Archer','Foot',16,.8,5,.25,0,0,8,.4,0,.25,5,.25,0,.15,6,.25,5,{'Bow':0},['Sniper','Bow Knight'],['Placeholder','Placeholder','Placeholder'],[])
-sniper=classType('Sniper','Foot',20,.9,7,.35,1,0,12,.5,0,.35,10,.3,3,.25,9,.4,6,{'Bow':0},[],['Placeholder','Placeholder','Placeholder'],['Advanced'])
-knight=classType('Knight','Horse',18,.9,8,.4,0,0,4,.25,0,.3,11,.4,0,.1,2,.15,4,{'Lance':0},['General','Great Knight'],['Placeholder','Placeholder','Placeholder'],['Armor'])
-general=classType('General','Horse',28,1,12,.5,0,0,7,.35,0,.4,15,.4,3,.2,4,.25,5,{'Sword':0,'Lance':0},[],['Placeholder','Placeholder','Placeholder'],['Armor','Advanced'])
-cavalier=classType('Cavalier','Horse',18,.8,6,.35,0,0,5,.3,0,.35,7,.3,0,.15,6,.3,7,{'Sword':0,'Lance':0},['Paladin','Great Knight'],['Placeholder','Placeholder','Placeholder'],['Horse'])
-wyvern_lord=classType('Wyvern Lord','Flying',24,.9,11,.5,0,0,8,.35,0,.4,11,.35,3,.15,7,.35,8,{'Axe':0,'Lance':0},[],['Luna','Placeholder','Placeholder'],['Flying','Dragon','Advanced'])
-pegasus_knight=classType('Pegasus Knight','Flying',16,.7,4,.2,2,0,7,.4,0,.5,4,.2,6,.35,8,.4,7,{'Lance':0},['Falcon Knight','Dark Flier'],['Luna','Placeholder','Placeholder'],['Flying'])
-falcon_knight=classType('Falcon Knight','Flying',20,.8,6,.35,3,.3,10,.5,0,.6,6,.25,9,.45,11,.5,8,{'Sword':0,'Lance':0},[],['Luna','Placeholder','Placeholder'],['Flying','Advanced'])
-thief=classType('Thief','Mage',16,.6,3,.2,0,0,6,.4,0,.2,2,.2,0,.05,8,.4,5,{'Knife':0},['Assassin','Trickster'],['Luna','Placeholder','Placeholder'],[])
-assassin=classType('Assassin','Mage',21,.8,8,.4,0,0,13,.5,0,.3,5,.25,1,.15,12,.5,6,{'Knife':0,'Bow':0},[],['Luna','Placeholder','Placeholder'],['Advanced'])
-great_knight=classType('Great Knight','Horse',26,.95,11,.45,0,0,6,.3,0,.4,14,.35,1,.15,5,.3,7,{'Axe':0,'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Armor','Advanced','Horse'])
-berserker=classType('Berserker','Foot',30,1,13,.6,0,0,5,.3,0,.3,5,.25,1,.15,11,.4,6,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],['Advanced'])
-barbarian=classType('Barbarian','Foot',22,.9,8,.4,0,0,3,.2,0,.2,3,.2,0,.05,8,.3,5,{'Axe':0},['Berserker','Warrior'],['Placeholder','Placeholder','Placeholder'],[])
-bow_knight=classType('Bow Knight','Horse',24,.9,8,.35,0,0,10,.4,0,.35,6,.25,2,.15,10,.4,8,{'Sword':0,'Bow':0},[],['Placeholder','Placeholder','Placeholder'],['Horse','Advanced'])
-dark_flier=classType('Dark Flier','Flying',19,.75,5,.25,6,.35,8,.4,0,.55,5,.25,9,.45,10,.45,8,{'Lance':0,'Tome':0},[],['Placeholder','Placeholder','Placeholder'],['Flying','Advanced'])
-dread_fighter=classType('Dread Fighter','Mage',22,.8,9,.4,6,.2,9,.4,0,.4,8,.25,10,.25,10,.4,7,{'Axe':0,'Tome':0,'Sword':0,'Knife':0},[],['Placeholder','Placeholder','Placeholder'],[])
-great_lord=classType('Great Lord','Foot',23,.8,10,.5,0,0,7,.4,0,.5,10,.3,3,.25,9,.4,7,{'Lance':0,'Sword':0},[],['Placeholder','Placeholder','Placeholder'],['Lord','Advanced','Convoy','Sieze'])
+wyvern_rider=classType('Wyvern Rider','Flying',19,.8,7,.4,0,0,6,.25,0,.3,8,.3,0,.05,5,.25,7,{'Lance':0},['Wyvern Lord','Griffon Rider'],{1:'Luna'},['Flying','Dragon'])
+swordmaster=classType('Swordmaster','Foot',20,.8,7,.4,2,0,11,.5,0,.5,6,.25,4,.3,13,.5,6,{'Sword':0},[],{1:'Sol'},['Advanced'])
+hero=classType('Hero','Foot',22,.9,8,.45,1,0,11,.5,0,.4,8,.3,3,.25,10,.45,6,{'Sword':0,'Axe':0,'Fist':0},[],{},['Advanced'])
+paladin=classType('Paladin','Horse',25,.9,9,.45,1,0,7,.4,0,.45,10,.35,6,.3,6,.4,8,{'Axe':0,'Lance':0,'Sword':0},[],{},['Horse','Advanced'])
+sage=classType('Sage','Mage',20,.7,1,0,7,0.4,5,.4,0,.4,4,.2,5,.25,7,.4,5,{'Tome':0,'Staff':0},[],{1:'Mag Up 2'},['Advanced','Magic'])
+myrmidom=classType('Myrmidom','Foot',16,.7,4,.3,1,0,9,.4,0,.4,4,.2,1,.2,10,.4,5,{'Sword':0},['Swordmaster','Assassin'],{1:'Astra'},[])
+mercenary=classType('Mercenary','Foot',18,.8,5,.35,0,0,8,.4,0,.3,5,.25,0,.15,7,.35,5,{'Sword':0,'Fist':0},['Hero','Bow Knight'],{1:'Armsthrift'},[])
+mage=classType('Mage','Mage',16,.6,0,0,4,0.35,3,.3,0,.3,2,.15,3,.25,4,.3,5,{'Tome':0},['Sage','Dark Knight'],{1:'Mag Up'},['Magic'])
+lord=classType('Lord','Foot',18,.7,6,.4,0,0,5,.3,0,.4,7,.25,0,.2,7,.3,6,{'Sword':0},['Great Lord'],{},['Lord','Convoy','Sieze'])
+villager=classType('Villager','Foot',16,.8,1,.2,0,0,1,.2,1,.2,1,.2,0,.05,1,.2,5,{},[],{},['Villager'])
+fighter=classType('Fighter','Foot',20,.85,8,.4,0,0,5,.3,0,.35,4,.25,0,.1,5,.2,5,{'Axe':0,'Fist':0},['Warrior','Hero'],{},[])
+warrior=classType('Warrior','Foot',28,.95,12,.5,0,0,8,.4,0,.35,7,.3,3,.2,7,.2,6,{'Axe':0,'Bow':0,'Fist':0},[],{},[])
+archer=classType('Archer','Foot',16,.8,5,.25,0,0,8,.4,0,.25,5,.25,0,.15,6,.25,5,{'Bow':0},['Sniper','Bow Knight'],{},[])
+sniper=classType('Sniper','Foot',20,.9,7,.35,1,0,12,.5,0,.35,10,.3,3,.25,9,.4,6,{'Bow':0},[],{},['Advanced'])
+knight=classType('Knight','Horse',18,.9,8,.4,0,0,4,.25,0,.3,11,.4,0,.1,2,.15,4,{'Lance':0},['General','Great Knight'],{},['Armor'])
+general=classType('General','Horse',28,1,12,.5,0,0,7,.35,0,.4,15,.4,3,.2,4,.25,5,{'Sword':0,'Lance':0},[],{},['Armor','Advanced'])
+cavalier=classType('Cavalier','Horse',18,.8,6,.35,0,0,5,.3,0,.35,7,.3,0,.15,6,.3,7,{'Sword':0,'Lance':0},['Paladin','Great Knight'],{},['Horse'])
+wyvern_lord=classType('Wyvern Lord','Flying',24,.9,11,.5,0,0,8,.35,0,.4,11,.35,3,.15,7,.35,8,{'Axe':0,'Lance':0},[],{1:'Luna'},['Flying','Dragon','Advanced'])
+pegasus_knight=classType('Pegasus Knight','Flying',16,.7,4,.2,2,0,7,.4,0,.5,4,.2,6,.35,8,.4,7,{'Lance':0},['Falcon Knight','Dark Flier'],{1:'Luna'},['Flying'])
+falcon_knight=classType('Falcon Knight','Flying',20,.8,6,.35,3,.3,10,.5,0,.6,6,.25,9,.45,11,.5,8,{'Sword':0,'Lance':0},[],{1:'Luna'},['Flying','Advanced'])
+thief=classType('Thief','Mage',16,.6,3,.2,0,0,6,.4,0,.2,2,.2,0,.05,8,.4,5,{'Knife':0},['Assassin','Trickster'],{1:'Luna'},[])
+assassin=classType('Assassin','Mage',21,.8,8,.4,0,0,13,.5,0,.3,5,.25,1,.15,12,.5,6,{'Knife':0,'Bow':0},[],{1:'Luna'},['Advanced'])
+great_knight=classType('Great Knight','Horse',26,.95,11,.45,0,0,6,.3,0,.4,14,.35,1,.15,5,.3,7,{'Axe':0,'Lance':0,'Sword':0},[],{},['Armor','Advanced','Horse'])
+berserker=classType('Berserker','Foot',30,1,13,.6,0,0,5,.3,0,.3,5,.25,1,.15,11,.4,6,{'Axe':0},[],{},['Advanced'])
+barbarian=classType('Barbarian','Foot',22,.9,8,.4,0,0,3,.2,0,.2,3,.2,0,.05,8,.3,5,{'Axe':0},['Berserker','Warrior'],{},[])
+bow_knight=classType('Bow Knight','Horse',24,.9,8,.35,0,0,10,.4,0,.35,6,.25,2,.15,10,.4,8,{'Sword':0,'Bow':0},[],{},['Horse','Advanced'])
+dark_flier=classType('Dark Flier','Flying',19,.75,5,.25,6,.35,8,.4,0,.55,5,.25,9,.45,10,.45,8,{'Lance':0,'Tome':0},[],{},['Flying','Advanced'])
+dread_fighter=classType('Dread Fighter','Mage',22,.8,9,.4,6,.2,9,.4,0,.4,8,.25,10,.25,10,.4,7,{'Axe':0,'Tome':0,'Sword':0,'Knife':0},[],{},[])
+great_lord=classType('Great Lord','Foot',23,.8,10,.5,0,0,7,.4,0,.5,10,.3,3,.25,9,.4,7,{'Lance':0,'Sword':0},[],{},['Lord','Advanced','Convoy','Sieze'])
+dancer=classType('Dancer','Foot',16,.35,1,.05,1,0,5,.25,0,.35,3,.05,1,.05,8,.25,5,{'Sword':0},[],{},['Dancer','High Cap','Limited'])
+trickster=classType('Trickster','Foot',19,.7,4,.4,4,.35,10,.45,0,.35,3,.25,5,.25,11,.45,6,{'Sword':0,'Bow':0,'Staff':0},[],{},['Advanced','Magic'])
+griffon_rider=classType('Griffon Rider','Flying',22,.9,9,.4,0,0,10,0.4,0,0.4,8,0.3,3,0.15,9,0.4,8,{'Axe':0},[],{},['Advanced','Flying'])
+troubadour=classType('Troubadour','Horse',16,0.6,0,0,3,0.3,2,0.2,0,0.4,1,0.15,5,0.25,5,0.4,7,{'Staff':0},['Valkyrie','War Monk'],{},['Horse','Magic'])
+war_monk=classType('War Monk','Magic',24,0.9,5,0.4,5,0.35,4,0.3,0,0.45,6,0.3,6,0.4,6,0.45,6,{'Fist':0,'Staff':0},[],{},['Magic','Advanced'])
+dark_knight=classType('Dark Knight','Horse',25,0.95,4,0.35,5,0.4,6,0.4,0,0.3,9,0.35,5,0.3,5,0.3,8,{'Sword':1,'Dark Magic':0,'Tome':0},{},['Advanced','Horse','Magic'])
+dark_mage=classType('Dark Mage','Magic',18,.8,1,0,3,.25,2,.2,0,.2,4,.25,4,.25,3,.2,5,{'Dark Magic':0,'Tome':0},['Dark Knight','Sorcerer'],{},['Magic'])
+sorcerer=classType('Sorcerer','Magic',23,.9,2,0,6,.4,4,.3,0,.3,7,.3,7,.35,4,.3,6,{'Dark Magic':0,'Tome':0},{},['Magic','Advanced'])
+valkyrie=classType('Valkyrie','Horse',19,.7,0,0,5,.4,4,.3,0,.5,3,.2,8,.45,8,.5,8,{'Staff':0,'Tome':0},[],{},['Advanced','Horse','Magic'])
+priest=classType('Priest','Mage',16,.6,0,0,3,.2,2,.2,0,.4,1,.15,6,.35,4,.2,5,{'Staff':0},['Sage','War Monk'],{},['Magic'])
 
-ranger=classType('Ranger','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0},['Lord'],['Placeholder','Placeholder','Placeholder'],[])
-soldier=classType('Soldier','Foot',1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,5,5,{'Lance':0},['Halberdier'],['Placeholder','Placeholder','Placeholder'],[])
-halberdier=classType('Halberdier','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,8,5,{'Lance':0},[],['Placeholder','Placeholder','Placeholder'],[])
-pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],[])
-#priest
+pirate=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],{},[])
+ranger=classType('Ranger','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,5,{'Sword':0},['Lord'],{},[])
+soldier=classType('Soldier','Foot',1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,5,5,{'Lance':0},['Halberdier'],{},[])
+halberdier=classType('Halberdier','Foot',1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,8,5,{'Lance':0},[],{},[])
 #bishop
-#valkyrie
 #cleric
-dancer=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],[])
-trickster=classType('Pirate','Pirate',25,.6,10,.4,0,0,6,.8,2,.35,4,.25,6,.1,7,.5,4,{'Axe':0},[],['Placeholder','Placeholder','Placeholder'],[])
-#griffon rider
-#troubadour
-#war monk
-#dark knight
-#dark mage
-#sorcerer
+
 #transporter
 
 
