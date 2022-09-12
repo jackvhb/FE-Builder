@@ -56,9 +56,10 @@ def init_battle(char1,char2,dist,fore,*weaponX):
     while cont==False:
         selection=input('Choose a weapon to use \n')
         if selection.isdigit():
-            if int(selection)>=0 and int(selection)<len(char1.inventory):
-                if char1.inventory[int(selection)] in viable_weapons:
-                    weapon1=char1.inventory[int(selection)]
+            selection=int(selection)
+            if selection>=0 and selection<len(char1.inventory):
+                if char1.inventory[selection] in viable_weapons:
+                    weapon1=char1.inventory[selection]
                     char1.active_item=weapon1
                     if dualwield in char1.skills:
                         contX=False
@@ -67,9 +68,10 @@ def init_battle(char1,char2,dist,fore,*weaponX):
                             if dual.lower()=='y':
                                 selection2=input('Choose a weapon to use \n')
                                 if selection2.isdigit():
-                                    if int(selection2)>=0 and int(selection2)<len(char1.inventory) and selection2!=selection:
-                                        if char1.inventory[int(selection2)] in viable_weapons:
-                                            dualwielding_weapon=char1.inventory[int(selection2)]
+                                    selection2=int(selection2)
+                                    if selection2>=0 and selection2<len(char1.inventory) and selection2!=selection:
+                                        if char1.inventory[selection2] in viable_weapons:
+                                            dualwielding_weapon=char1.inventory[selection2]
                                             contX=True
                                         else:
                                             print('Invalid input')
@@ -109,8 +111,9 @@ def init_battle(char1,char2,dist,fore,*weaponX):
                 print(f'{i} {possible_arts[i].name}, {possible_arts[i].cost} cost, +{possible_arts[i].damage} damage, +{possible_arts[i].accuracy} accuracy, +{possible_arts[i].crit} crit, +{possible_arts[i].avoid} avoid')
             choice=input('Choose the weapon art to use \n')
             if choice.isdigit():
-                if int(choice)>=0 and int(choice)<len(possible_arts):
-                    active_art=possible_arts[int(choice)]
+                choice=int(choice)
+                if choice>=0 and choice<len(possible_arts):
+                    active_art=possible_arts[choice]
                     cont=True
                 else:
                     print('Invalid input, try again')
@@ -127,65 +130,67 @@ def init_battle(char1,char2,dist,fore,*weaponX):
     else:
         guarentee_double1=guarenteed_double[weapon1.weapontype]
     guarentee_double2=guarenteed_double[weapon2.weapontype]
-    if not nosupport:
-        if isinstance(char1,player_char):
-            hitMod+=char1.check_support_bonus()
-        elif isinstance(char2,player_char):
-            hitMod-=char2.check_support_bonus()
-    if not notriangle:
-        if (weapon1.weapontype=='Sword' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Sword') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Axe'):
-            dmgMod+=-weapon_triangle_damage_bonus
-            hitMod+=-weapon_triangle_hit_bonus
-        elif (weapon1.weapontype=='Sword' and weapon2.weapontype=='Axe') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Sword'):
-            dmgMod+=weapon_triangle_damage_bonus
-            hitMod+=weapon_triangle_hit_bonus
-    if (axebreaker in char1.skills and weapon2.weapontype=='Axe') or (swordbreaker in char1.skills and weapon2.weapontype=='Sword') or \
-        (lancebreaker in char1.skills and weapon2.weapontype=='Lance') or (bowbreaker in char1.skills and weapon2.weapontype=='Bow') or (tomebreaker in char1.skills and weapon2.weapontype=='Tome')\
-            or (fistbreaker in char1.skills and weapon2.weapontype=='Fist'):
-                hitMod+=25
-    if (axebreaker in char2.skills and weapon1.weapontype=='Axe') or (swordbreaker in char2.skills and weapon1.weapontype=='Sword') or \
-        (lancebreaker in char2.skills and weapon1.weapontype=='Lance') or (bowbreaker in char2.skills and weapon1.weapontype=='Bow') or (tomebreaker in char2.skills and weapon1.weapontype=='Tome')\
-            or (fistbreaker in char2.skills and weapon1.weapontype=='Fist'):
-                hitMod-=25
+    dmgMod1,hitMod1=mod_checker(char1,char2,weapon1,weapon2,dist)
+    dmgMod2,hitMod2=mod_checker(char2,char1,weapon2,weapon1,dist)
+    # if not nosupport:
+    #     if isinstance(char1,player_char):
+    #         hitMod+=char1.check_support_bonus()
+    #     elif isinstance(char2,player_char):
+    #         hitMod-=char2.check_support_bonus()
+    # if not notriangle:
+    #     if (weapon1.weapontype=='Sword' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Sword') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Axe'):
+    #         dmgMod+=-weapon_triangle_damage_bonus
+    #         hitMod+=-weapon_triangle_hit_bonus
+    #     elif (weapon1.weapontype=='Sword' and weapon2.weapontype=='Axe') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Sword'):
+    #         dmgMod+=weapon_triangle_damage_bonus
+    #         hitMod+=weapon_triangle_hit_bonus
+    # if (axebreaker in char1.skills and weapon2.weapontype=='Axe') or (swordbreaker in char1.skills and weapon2.weapontype=='Sword') or \
+    #     (lancebreaker in char1.skills and weapon2.weapontype=='Lance') or (bowbreaker in char1.skills and weapon2.weapontype=='Bow') or (tomebreaker in char1.skills and weapon2.weapontype=='Tome')\
+    #         or (fistbreaker in char1.skills and weapon2.weapontype=='Fist'):
+    #             hitMod+=25
+    # if (axebreaker in char2.skills and weapon1.weapontype=='Axe') or (swordbreaker in char2.skills and weapon1.weapontype=='Sword') or \
+    #     (lancebreaker in char2.skills and weapon1.weapontype=='Lance') or (bowbreaker in char2.skills and weapon1.weapontype=='Bow') or (tomebreaker in char2.skills and weapon1.weapontype=='Tome')\
+    #         or (fistbreaker in char2.skills and weapon1.weapontype=='Fist'):
+    #             hitMod-=25
     if fore==False:
         if vantage not in char2.skills or char2.curhp>=char2.hp/2 or dist not in weapon2.rng:
-            cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+            cont=battle(char1,weapon1,char2,dmgMod1,hitMod1,active_art,dist)
             if guarentee_double1 and cont:
                 print(f"{char1.name} made a follow up attack")
-                cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+                cont=battle(char1,weapon1,char2,dmgMod1,hitMod1,active_art,dist)
             if dist in weapon2.rng and cont:
-                cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+                cont=battle(char2,weapon2,char1,dmgMod2,hitMod2,active_art,dist)
                 if guarentee_double2 and cont:
                     print(f"{char2.name} made a follow up attack")
-                    cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+                    cont=battle(char2,weapon2,char1,dmgMod2,hitMod2,active_art,dist)
             elif dist not in weapon2.rng:
                 print(f"{char2.name} was unable to counter \n")
         else:
             print(f'{char2.name} got the jump with vantage!')
-            cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+            cont=battle(char2,weapon2,char1,dmgMod2,hitMod2,active_art,dist)
             if guarentee_double2 and cont:
                 print(f"{char2.name} made a follow up attack")
-                cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+                cont=battle(char2,weapon2,char1,dmgMod2,hitMod2,active_art,dist)
             if dist in weapon1.rng and cont:
-                cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+                cont=battle(char1,weapon1,char2,dmgMod1,hitMod1,active_art,dist)
                 if guarentee_double1 and cont:
                     print(f"{char1.name} made a follow up attack")
-                    cont=battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist)
+                    cont=battle(char1,weapon1,char2,dmgMod1,hitMod1,active_art,dist)
         if cont and (char1.spd-doubling_threshold>=char2.spd and weapon1 in char1.inventory and active_art==None and dualwielding_weapon==None):
             print(f"{char1.name} made a follow up attack")
-            cont=battle(char1,weapon1,char2,dmgMod,hitMod,None,dist)
+            cont=battle(char1,weapon1,char2,dmgMod1,hitMod1,None,dist)
             if guarentee_double1 and cont:
                 print(f"{char1.name} made another follow up attack")
-                battle(char1,weapon1,char2,dmgMod,hitMod,None,dist)
+                battle(char1,weapon1,char2,dmgMod1,hitMod1,None,dist)
         elif dualwielding_weapon!=None:
             print(f"{char1.name} made a follow up attack")
-            cont=battle(char1,dualwielding_weapon,char2,dmgMod,hitMod,None,dist)
+            cont=battle(char1,dualwielding_weapon,char2,dmgMod1,hitMod1,None,dist)
         if cont and char2.spd-doubling_threshold>=char1.spd and weapon2 in char2.inventory:
             print(f"{char2.name} made a follow up attack")
-            cont=battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+            cont=battle(char2,weapon2,char1,dmgMod2,hitMod2,active_art,dist)
             if guarentee_double2 and cont:
                 print(f"{char2.name} made another follow up attack")
-                battle(char2,weapon2,char1,-dmgMod,-hitMod,active_art,dist)
+                battle(char2,weapon2,char1,dmgMod2,hitMod2,active_art,dist)
         char1.battles+=1
         char2.battles+=1
         #need to update this to account for third alignment
@@ -232,7 +237,7 @@ def init_battle(char1,char2,dist,fore,*weaponX):
         print(f'{char1.name} HP: {char1.curhp}')
         input(f'{char2.name} HP: {char2.curhp} \nEnter to continue\n')
     else:
-        forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist)
+        forecast(char1,weapon1,char2,weapon2,active_art,dist)
         return weapon1
 
 
@@ -242,11 +247,8 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
     print(f'{char1.name} attacked {char2.name} with a {weapon1.name}')
     time.sleep(1*text_speed)
     critMod=0
-    if (swordfaire in char1.skills and weapon1.weapontype=='Sword') or (lancefaire in char1.skills and weapon1.weapontype=='Lance') or (axefaire in char1.skills and weapon1.weapontype=='Axe')\
-        or (bowfaire in char1.skills and weapon1.weapontype=='Bow') or (tomefaire in char1.skills and weapon1.weapontype=='Tome') or (fistfaire in char1.skills and weapon1.weapontype=='Fist'):
-            dmgMod+=5
-    if (char2.location[0],char2.location[1]) in curMap.objectList:
-        hitMod-=curMap.objectList[char2.location[0],char2.location[1]].avoidBonus
+    if char2.location in curMap.objectList:
+        hitMod-=curMap.objectList[char2.location].avoidBonus
     if char1.alignment==player:
         player_unit=char1
     elif char2.alignment==player:
@@ -301,17 +303,15 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
             if isinstance(i,armor):
                 if i.stat=='def':
                     dmgMod-=i.effect
-        if (char2.location[0],char2.location[1]) in curMap.objectList:
-            dmgMod-=curMap.objectList[char2.location[0],char2.location[1]].defBonus
+        if char2.location in curMap.objectList:
+            dmgMod-=curMap.objectList[char2.location].defBonus
         damage=phys_damage_function(char1, char2, weapon1, char2.active_item, dmgMod, dist)
-        #damage=eval(phys_damage_formula)#char1.atk+weapon1.dmg+dmgMod-char2.defense
     elif damageType=='Magic':
         for i in char2.inventory:
             if isinstance(i,armor):
                 if i.stat=='res':
                     dmgMod-=i.effect
         damage=magic_damage_function(char1, char2, weapon1, char2.active_item, dmgMod, dist)
-        #damage=eval(magic_damage_formula)#char1.mag+weapon1.dmg+dmgMod-char2.res
     if damage<0:
         damage=0
     if crit==True:
@@ -371,9 +371,10 @@ def init_heal(char1,char2,dist):
         if path.lower()=='x':
             cont=True
         elif path.isdigit():
-            if int(path) in viable_targets:
+            path=int(path)
+            if path in viable_targets:
                 origin_hp=char2.curhp
-                char2.curhp=char2.curhp+viable_targets[int(path)].might+(char1.mag//2)
+                char2.curhp=char2.curhp+viable_targets[path].might+(char1.mag//2)
                 if char2.curhp>char2.hp:
                     char2.curhp=char2.hp
                 print(f'{char2.name} was healed by {char2.curhp-origin_hp} HP')
@@ -403,17 +404,37 @@ def super_effective_checker(item,char2,item_type):
                 super_mult*=3
     return super_mult
 
-def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
-    dmgMod1=dmgMod
-    dmgMod2=-dmgMod
+def mod_checker(char1,char2,weapon1,weapon2,dist):
+    dmgMod=0
+    hitMod=0
+    if not nosupport:
+        if isinstance(char1,player_char):
+            hitMod+=char1.check_support_bonus()
+        elif isinstance(char2,player_char):
+            hitMod-=char2.check_support_bonus()
+    if not notriangle:
+        if (weapon1.weapontype=='Sword' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Sword') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Axe'):
+            dmgMod+=-weapon_triangle_damage_bonus
+            hitMod+=-weapon_triangle_hit_bonus
+        elif (weapon1.weapontype=='Sword' and weapon2.weapontype=='Axe') or (weapon1.weapontype=='Axe' and weapon2.weapontype=='Lance') or (weapon1.weapontype=='Lance' and weapon2.weapontype=='Sword'):
+            dmgMod+=weapon_triangle_damage_bonus
+            hitMod+=weapon_triangle_hit_bonus
+    if (axebreaker in char1.skills and weapon2.weapontype=='Axe') or (swordbreaker in char1.skills and weapon2.weapontype=='Sword') or \
+        (lancebreaker in char1.skills and weapon2.weapontype=='Lance') or (bowbreaker in char1.skills and weapon2.weapontype=='Bow') or (tomebreaker in char1.skills and weapon2.weapontype=='Tome')\
+            or (fistbreaker in char1.skills and weapon2.weapontype=='Fist'):
+                hitMod+=25
+    if (axebreaker in char2.skills and weapon1.weapontype=='Axe') or (swordbreaker in char2.skills and weapon1.weapontype=='Sword') or \
+        (lancebreaker in char2.skills and weapon1.weapontype=='Lance') or (bowbreaker in char2.skills and weapon1.weapontype=='Bow') or (tomebreaker in char2.skills and weapon1.weapontype=='Tome')\
+            or (fistbreaker in char2.skills and weapon1.weapontype=='Fist'):
+                hitMod-=25
     if (swordfaire in char1.skills and weapon1.weapontype=='Sword') or (lancefaire in char1.skills and weapon1.weapontype=='Lance') or (axefaire in char1.skills and weapon1.weapontype=='Axe')\
         or (bowfaire in char1.skills and weapon1.weapontype=='Bow') or (tomefaire in char1.skills and weapon1.weapontype=='Tome') or (fistfaire in char1.skills and weapon1.weapontype=='Fist'):
-            dmgMod1+=5
-    if (swordfaire in char2.skills and weapon2.weapontype=='Sword') or (lancefaire in char2.skills and weapon2.weapontype=='Lance') or (axefaire in char2.skills and weapon2.weapontype=='Axe')\
-        or (bowfaire in char2.skills and weapon2.weapontype=='Bow') or (tomefaire in char2.skills and weapon2.weapontype=='Tome') or (fistfaire in char2.skills and weapon2.weapontype=='Fist'):
-            dmgMod2+=5
-    hitMod1=hitMod
-    hitMod2=-hitMod
+            dmgMod+=5
+    return dmgMod,hitMod
+
+def forecast(char1,weapon1,char2,weapon2,active_art,dist,*silent):
+    dmgMod1,hitMod1=mod_checker(char1,char2,weapon1,weapon2,dist)
+    dmgMod2,hitMod2=mod_checker(char2,char1,weapon2,weapon1,dist)
     double1=1
     double2=1
     if guarenteed_double[weapon1.weapontype] and active_art==None:
@@ -434,8 +455,8 @@ def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
             if isinstance(i,armor):
                 if i.stat=='def':
                     dmgMod1-=i.effect
-        if (char2.location[0],char2.location[1]) in curMap.objectList:
-            dmgMod1-=curMap.objectList[char2.location[0],char2.location[1]].defBonus
+        if char2.location in curMap.objectList:
+            dmgMod1-=curMap.objectList[char2.location[0]].defBonus
         damage1=phys_damage_function(char1,char2,weapon1,weapon2,dmgMod1,dist)
     elif weapon1.dmgtype=='Magic':
         for i in char2.inventory:
@@ -453,8 +474,8 @@ def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
                 if isinstance(i,armor):
                     if i.stat=='def':
                         dmgMod2=dmgMod2-i.effect
-            if (char1.location[0],char1.location[1]) in curMap.objectList:
-                dmgMod2-=curMap.objectList[char1.location[0],char1.location[1]].defBonus
+            if char1.location in curMap.objectList:
+                dmgMod2-=curMap.objectList[char1.location[0]].defBonus
             damage2=phys_damage_function(char2,char1,weapon2,weapon1,dmgMod2,dist)
         elif weapon2.dmgtype=='Magic':
             for i in char1.inventory:
@@ -484,7 +505,9 @@ def forecast(char1,weapon1,char2,weapon2,dmgMod,hitMod,active_art,dist):
         crit1=0
     if crit2<0:
         crit2=0
-    print(f'{char1.name} NAME {char2.name}\n{char1.curhp} HP {char2.curhp}\n{damage1}x{double1} DMG {damage2}x{double2}\n{hit1} HIT {hit2}\n{crit1} CRIT {crit2}\nENEMY SKILLS: {char2.check_skills()}')
+    if not silent:
+        print(f'{char1.name} NAME {char2.name}\n{char1.curhp} HP {char2.curhp}\n{damage1}x{double1} DMG {damage2}x{double2}\n{hit1} HIT {hit2}\n{crit1} CRIT {crit2}\nENEMY SKILLS: {char2.check_skills()}')
+    return damage1*double1,damage2*double2
 
 def menu(self):
     atkRange=[0]
@@ -502,10 +525,14 @@ def menu(self):
         openable=False
         charge=False
         openableDoor=False
+        here=self.location
         for i in self.inventory:
             if isinstance(i,weapon):
                 if i.weapontype in self.weaponType:
                     if i.weaponlevel<=self.weaponType[i.weapontype]:
+                        if i.weapontype=='Dark Magic':
+                            if i.charged!=True:
+                                charge=True
                         for j in i.rng:
                             if j not in atkRange:
                                 atkRange.append(j)
@@ -521,41 +548,41 @@ def menu(self):
                             if j not in healRange:
                                 healRange.append(j)
         for i in curMap.spaces:
-            if abs(i[0]-self.location[0])+abs(i[1]-self.location[1])==1:
+            dist=abs(i[0]-self.location[0])+abs(i[1]-self.location[1])
+            if dist==1:
                 if (i[0],i[1]) in curMap.objectList:
                     if isinstance(curMap.objectList[i[0],i[1]],door):
                         if curMap.objectList[i[0],i[1]].opened==False:
                             doors.append([i,curMap.objectList[i[0],i[1]]])
             if curMap.spaces[i][0]==True:
-                if abs(i[0]-self.location[0])+abs(i[1]-self.location[1]) in atkRange:
-                    if curMap.spaces[i][1].alignment!=self.alignment and [i,curMap.spaces[i][1]] not in targetRange:
+                if dist in atkRange:
+                    if (curMap.spaces[i][1].alignment==enemy or curMap.spaces[i][1].alignment==bounty_hunter) and [i,curMap.spaces[i][1]] not in targetRange:
                         targetRange.append([i,curMap.spaces[i][1]])
-                if abs(i[0]-self.location[0])+abs(i[1]-self.location[1]) in healRange:
+                if dist in healRange:
                     if curMap.spaces[i][1].alignment==self.alignment and [i,curMap.spaces[i][1]] not in healTargetRange:
                         healTargetRange.append([i,curMap.spaces[i][1]])
-                if abs(i[0]-self.location[0])+abs(i[1]-self.location[1])==1:
-                    if curMap.spaces[i][1].alignment==self.alignment:
-                        if [i,curMap.spaces[i][1]] not in tradeRange:
-                            tradeRange.append([i,curMap.spaces[i][1]])
-                            if curMap.spaces[i][1].moved==True:
-                                danceRange.append([i,curMap.spaces[i][1]])
-                        if curMap.spaces[i][1].name in self.support_list:
-                            if (self.name, curMap.spaces[i][1].name) in self.alignment.support_master:
-                                if int(self.support_list[curMap.spaces[i][1].name]/support_level_threshold)>\
-                                    self.alignment.support_master[self.name, curMap.spaces[i][1].name][0] and\
-                                        self.alignment.support_master[self.name, curMap.spaces[i][1].name][0]<\
-                                            len(self.alignment.support_master[self.name, curMap.spaces[i][1].name])-1 and\
-                                                [self.name, curMap.spaces[i][1].name] not in supportRange:
-                                    supportRange.append([self.name, curMap.spaces[i][1].name])
-                            elif (curMap.spaces[i][1].name,self.name) in self.alignment.support_master:
-                                if int(self.support_list[curMap.spaces[i][1].name]/support_level_threshold)>self.alignment.support_master[curMap.spaces[i][1].name,self.name][0] and self.alignment.support_master[curMap.spaces[i][1].name,self.name][0]<len(self.alignment.support_master[curMap.spaces[i][1].name,self.name])-1 and[curMap.spaces[i][1].name,self.name] not in supportRange:
-                                    supportRange.append([curMap.spaces[i][1].name,self.name])
-                        if (self.name, curMap.spaces[i][1].name) in curMap.char_trigger_list:
-                            charTriggerRange.append([self.name, curMap.spaces[i][1].name])
-                        elif (curMap.spaces[i][1].name,self.name) in curMap.char_trigger_list:
-                            charTriggerRange.append([curMap.spaces[i][1].name,self.name])
-        if (self.location[0],self.location[1]) in curMap.triggerList:
-            if curMap.triggerList[self.location[0],self.location[1]].triggered==False and (self.name in curMap.triggerList[self.location[0],self.location[1]].character or 'All' in curMap.triggerList[self.location[0],self.location[1]].character):
+                if dist==1 and curMap.spaces[i][1].alignment==self.alignment:
+                    if [i,curMap.spaces[i][1]] not in tradeRange:
+                        tradeRange.append([i,curMap.spaces[i][1]])
+                        if curMap.spaces[i][1].moved==True:
+                            danceRange.append([i,curMap.spaces[i][1]])
+                    if curMap.spaces[i][1].name in self.support_list:
+                        if (self.name, curMap.spaces[i][1].name) in self.alignment.support_master:
+                            if int(self.support_list[curMap.spaces[i][1].name]/support_level_threshold)>\
+                                self.alignment.support_master[self.name, curMap.spaces[i][1].name][0] and\
+                                    self.alignment.support_master[self.name, curMap.spaces[i][1].name][0]<\
+                                        len(self.alignment.support_master[self.name, curMap.spaces[i][1].name])-1 and\
+                                            (self.name, curMap.spaces[i][1].name) not in supportRange:
+                                supportRange.append((self.name, curMap.spaces[i][1].name))
+                        elif (curMap.spaces[i][1].name,self.name) in self.alignment.support_master:
+                            if int(self.support_list[curMap.spaces[i][1].name]/support_level_threshold)>self.alignment.support_master[curMap.spaces[i][1].name,self.name][0] and self.alignment.support_master[curMap.spaces[i][1].name,self.name][0]<len(self.alignment.support_master[curMap.spaces[i][1].name,self.name])-1 and (curMap.spaces[i][1].name,self.name) not in supportRange:
+                                supportRange.append((curMap.spaces[i][1].name,self.name))
+                    if (self.name, curMap.spaces[i][1].name) in curMap.char_trigger_list:
+                        charTriggerRange.append((self.name, curMap.spaces[i][1].name))
+                    elif (curMap.spaces[i][1].name,self.name) in curMap.char_trigger_list:
+                        charTriggerRange.append((curMap.spaces[i][1].name,self.name))
+        if here in curMap.triggerList:
+            if curMap.triggerList[here].triggered==False and (self.name in curMap.triggerList[here].character or 'All' in curMap.triggerList[here].character):
                 print('E : Event')
                 triggerRange=True
         if len(targetRange)>0:
@@ -574,30 +601,27 @@ def menu(self):
             print('A: Convoy')
         if style_switch in self.skills:
             print('Style : Style Switch')
-        if self.active_item!=None:
-            if isinstance(self.active_item,dark_magic):
-                if not self.active_item.charged:
-                    print('Q : Charge')
-                    charge=True
+        if charge:
+            print('Q : Charge')
         print("1 : Inventory")
         print("2 : Equip")
         print("3 : Consume")
         print("4 : Check Stats")
         print("5 : End Turn")
         print("6 : Exit Menu")
-        if (self.location[0],self.location[1]) in curMap.objectList:
-            if isinstance(curMap.objectList[self.location[0],self.location[1]],throne) and 'Sieze' in self.classType.attributes:
+        if here in curMap.objectList:
+            if isinstance(curMap.objectList[here],throne) and 'Sieze' in self.classType.attributes:
                 print("7 : Sieze Throne")
-            elif isinstance(curMap.objectList[self.location[0],self.location[1]],shop):
+            elif isinstance(curMap.objectList[here],shop):
                 print("S : Shop")
-            elif isinstance(curMap.objectList[self.location[0],self.location[1]],treasure_chest):
+            elif isinstance(curMap.objectList[here],treasure_chest):
                 for i in self.inventory:
                     if isinstance(i,key):
                         keyX=i
                         openable==True
                 if self.classType==thief or locktouch in self.skills:
                     openable=True
-                if curMap.objectList[self.location[0],self.location[1]].opened==True:
+                if curMap.objectList[here].opened==True:
                     openable==False
                 if openable==True:
                     print("Z : Open Chest")
@@ -618,64 +642,74 @@ def menu(self):
             if choiceSupport=='x':
                 print('Returning to menu')
             elif choiceSupport.isdigit():
-                if int(choiceSupport)>=0 and int(choiceSupport)<len(supportRange):
-                    print(self.alignment.support_master[supportRange[int(choiceSupport)][0],
-                                                        supportRange[int(choiceSupport)][1]][self.alignment.support_master[supportRange[int(choiceSupport)][0],
-                                                                                                                           supportRange[int(choiceSupport)][1]][0]+1])
-                    self.alignment.support_master[supportRange[int(choiceSupport)][0],supportRange[int(choiceSupport)][1]][0]+=1
+                choiceSupport=int(choiceSupport)
+                if choiceSupport>=0 and choiceSupport<len(supportRange):
+                    #active_support=self.alignment.support_master[support_range[choiceSupport][0],supportRange[choiceSupport][1]]
+                    print(self.alignment.support_master[supportRange[choiceSupport]][self.alignment.support_master[supportRange[choiceSupport]][0]+1])
+                    self.alignment.support_master[supportRange[choiceSupport]][0]+=1
                     self.moved=True
                     end=True
         elif v.lower()=='q' and charge:
-            print(f'{self.name} charged up, preparing to unleash {self.active_item.name}.')
-            self.active_item.charged=True
-            self.moved=True
-            end=True
+            j=0
+            dm=[]
+            for i in self.inventory:
+                if isinstance(i,dark_magic):
+                    if i.charged==False:
+                        print(f'{j} : {i.name}')
+                        dm.append(i)
+                        j+=1
+            path=input('Enter the tome that you would like to charge\n')
+            if path.isdigit():
+                path=int(path)
+                if path<j:
+                    print(f'{self.name} charged up, preparing to unleash {dm[path].name}.')
+                    dm[path].charged=True
+                    self.moved=True
+                    end=True
         elif v.lower()=='style switch' and style_switch in self.skills:
             route=input(f'W: Trickster\nD: Swordmaster\nS: General\nA:Sniper\nInput the class you would like to switch to\n')
             if route.lower()=='w':
                 self.reclass(trickster)
-                pass
             elif route.lower()=='a':
                 self.reclass(sniper)
-                pass
             elif route.lower()=='s':
                 self.reclass(general)
-                pass
             elif route.lower()=='d':
                 self.reclass(swordmaster)
-                pass
         elif v.lower()=='h' and len(healTargetRange)>0:
             contHeal=True
             while contHeal==True:
-                for j in range(0,len(healTargetRange)):
+                htr=len(healTargetRange)
+                for j in range(0,htr):
                     print(f"{j} {healTargetRange[j][1].name} at {healTargetRange[j][0]}")
                 choiceBattle=input("Input the unit you wish to heal or x to cancel \n")
                 if choiceBattle=='x':
                     contBattle=False
                 elif choiceBattle.isdigit():
-                    if int(choiceBattle)>=0 and int(choiceBattle)<len(healTargetRange):
-                        dis=abs(self.location[0]-healTargetRange[int(choiceBattle)][1].location[0])+abs(self.location[1]-healTargetRange[int(choiceBattle)][1].location[1])
+                    choiceBattle=int(choiceBattle)
+                    if choiceBattle>=0 and choiceBattle<htr:
+                        dis=abs(self.location[0]-healTargetRange[choiceBattle][1].location[0])+abs(self.location[1]-healTargetRange[choiceBattle][1].location[1])
                         confirm=input(f'Input Y to confirm that you wish to heal or anything else to cancel\n')
                         if confirm.lower()=='y':
-                            init_heal(self,healTargetRange[int(choiceBattle)][1],dis)
+                            init_heal(self,healTargetRange[choiceBattle][1],dis)
                             end=True
                             contBattle=False
                         else:
                             print('Healing canceled')
                 else:
                     print('Invalid input, try again')
-        elif v.lower()=='a' and self.classType==lord:
+        elif v.lower()=='a' and 'Convoy' in self.classType.attributes:
             route=input('Input 1 to withdraw items or 2 to store items\n')
             if route=='1':
                 self.withdraw_items()
             elif route=='2':
                 self.store_item()
         elif v.lower()=='e' and triggerRange==True:
-            print(curMap.triggerList[self.location[0],self.location[1]].event)
-            curMap.triggerList[self.location[0],self.location[1]].triggered=True
+            print(curMap.triggerList[here].event)
+            curMap.triggerList[here].triggered=True
         elif v.lower()=='z' and openable==True:
-            self.add_item(curMap.objectList[self.location[0],self.location[1]].contents)
-            curMap.objectList[self.location[0],self.location[1]].opened=True
+            self.add_item(curMap.objectList[here].contents)
+            curMap.objectList[here].opened=True
             if self.classType!=thief and locktouch not in self.skills:
                 keyX.use(self)
             self.moved=True
@@ -687,8 +721,9 @@ def menu(self):
             if doorChoice.lower()=='x':
                 pass
             elif doorChoice.isdigit():
-                if int(doorChoice)>=0 and int(doorChoice)<len(doors):
-                    doors[int(doorChoice)].opened=True
+                doorChoice=int(doorChoice)
+                if doorChoice>=0 and doorChoice<len(doors):
+                    doors[doorChoice].opened=True
                     if self.classType!=thief and locktouch not in self.skills:
                         keyY.use(self)
                     self.moved=True
@@ -704,8 +739,9 @@ def menu(self):
                 if choiceChar.lower()=='x':
                     contChar=False
                 elif choiceChar.isdigit():
-                    if int(choiceChar)>=0 and int(choiceChar)<len(charTriggerRange):
-                        print(f'{curMap.char_trigger_list[charTriggerRange[int(choiceChar)][0],charTriggerRange[int(choiceChar)][1]].event}')
+                    choiceChar=int(choiceChar)
+                    if choiceChar>=0 and choiceChar<len(charTriggerRange):
+                        print(f'{curMap.char_trigger_list[charTriggerRange[choiceChar][0],charTriggerRange[choiceChar][1]].event}')
                         contChar=False
                 else:
                     print('Invalid input, try again')
@@ -718,12 +754,13 @@ def menu(self):
                 if choiceBattle=='x':
                     contBattle=False
                 elif choiceBattle.isdigit():
-                    if int(choiceBattle)>=0 and int(choiceBattle)<len(targetRange):
-                        dis=abs(self.location[0]-targetRange[int(choiceBattle)][1].location[0])+abs(self.location[1]-targetRange[int(choiceBattle)][1].location[1])
-                        weaponX=init_battle(self,targetRange[int(choiceBattle)][1],dis,True)
+                    choiceBattle=int(choiceBattle)
+                    if choiceBattle>=0 and choiceBattle<len(targetRange):
+                        dis=abs(self.location[0]-targetRange[choiceBattle][1].location[0])+abs(self.location[1]-targetRange[choiceBattle][1].location[1])
+                        weaponX=init_battle(self,targetRange[choiceBattle][1],dis,True)
                         confirm=input(f'Input Y to confirm that you wish to battle\n')
                         if confirm.lower()=='y':
-                            init_battle(self,targetRange[int(choiceBattle)][1],dis,False,weaponX)
+                            init_battle(self,targetRange[choiceBattle][1],dis,False,weaponX)
                             end=True
                             contBattle=False
                 else:
@@ -735,8 +772,9 @@ def menu(self):
             if choiceTrade.lower=='x':
                 break
             elif choiceTrade.isdigit():
-                if int(choiceTrade)>=0 and int(choiceTrade)<len(tradeRange):
-                    self.trade_items(tradeRange[int(choiceTrade)][1])
+                choiceTrade=int(choiceTrade)
+                if choiceTrade>=0 and choiceTrade<len(tradeRange):
+                    self.trade_items(tradeRange[choiceTrade][1])
             else:
                 print('Invalid input, try again')
         #dancing
@@ -747,18 +785,19 @@ def menu(self):
             if choiceTrade.lower=='x':
                 break
             elif choiceTrade.isdigit():
-                if int(choiceTrade)>=0 and int(choiceTrade)<len(danceRange):
-                    danceRange[int(choiceTrade)][1].moved=False
-                    print(f'{danceRange[int(choiceTrade)][1].name} can move again now')
+                choiceTrade=int(choiceTrade)
+                if choiceTrade>=0 and choiceTrade<len(danceRange):
+                    danceRange[choiceTrade][1].moved=False
+                    print(f'{danceRange[choiceTrade][1].name} can move again now')
                     self.moved=True
                     end=True
                     return
             else:
                 print('Invalid input, try again')
         elif v.lower()=='s':
-            if (self.location[0],self.location[1]) in curMap.objectList:
-                if isinstance(curMap.objectList[self.location[0],self.location[1]],shop):
-                    self.enter_shop(curMap.objectList[self.location[0],self.location[1]])
+            if here in curMap.objectList:
+                if isinstance(curMap.objectList[here],shop):
+                    self.enter_shop(curMap.objectList[here])
                     self.moved=True
                     end=True
                     return
@@ -780,8 +819,8 @@ def menu(self):
         elif v=='4':
             self.check_stats()
         elif v=='7':
-            if (self.location[0],self.location[1]) in curMap.objectList  and 'Sieze' in self.classType.attributes:
-                if isinstance(curMap.objectList[self.location[0],self.location[1]],throne):
+            if here in curMap.objectList  and 'Sieze' in self.classType.attributes:
+                if isinstance(curMap.objectList[here],throne):
                     global levelComplete
                     levelComplete=True
                     end=True
@@ -874,7 +913,7 @@ class character:
                         self.active_item=inventory[0]
         self.inventory=inventory
         self.deathMap=None
-        self.location=[-1,-1]
+        self.location=(-1,-1)
         self.moved=False
         self.placed=False
         self.deployed=False
@@ -888,6 +927,8 @@ class character:
                         i.enemy_roster.append(self)
                     elif alignment==green:
                         i.green_roster.append(self)
+                    elif alignment==bounty_hunter:
+                        i.bounty_hunter_roster.append(self)
         self.character_list.append(self)
     def add_item(self,item):
         if len(self.inventory)<inventory_max_size:
@@ -1257,19 +1298,19 @@ class character:
         for i in self.inventory:
             i.info()
     def move(self,location):
-        if (location[0],location[1]) not in curMap.spaces:
+        if location not in curMap.spaces:
             print("That location is out of bounds")
             dest=input('Type where you want to move the character to in X,Y form \n')
             dest=dest.split(',')
-            self.move([int(dest[0]),int(dest[1])])
+            self.move((int(dest[0]),int(dest[1])))
             return
-        if curMap.spaces[location[0],location[1]][0]==True and curMap.spaces[location[0],location[1]][1]!=self:
+        if curMap.spaces[location][0]==True and curMap.spaces[location][1]!=self:
             print("Theres already something there, try again")
             dest=input('Type where you want to move the character to in X,Y form \n')
             dest=dest.split(',')
-            self.move([int(dest[0]),int(dest[1])])
+            self.move((int(dest[0]),int(dest[1])))
             return
-        if location[0]==self.location[0] and location[1]==self.location[1]:
+        if location==self.location:
             print(f"Opening menu for {self.name}")
             time.sleep(.25*text_speed)
             menu(self)
@@ -1287,20 +1328,20 @@ class character:
                 dest=dest.split(',')
                 if len(dest)==2:
                     if dest[0].isdigit() and dest[1].isdigit():
-                        self.move([int(dest[0]),int(dest[1])])
+                        self.move((int(dest[0]),int(dest[1])))
                         cont=True
                     else:
                         print('Invalid input, you must input numbers seperated by a comma')
                 else:
                     print('Invalid input, you must only input 2 numbers')
     def update_location(self,location):
-        if (self.location[0],self.location[1]) in curMap.spaces:
-            if curMap.spaces[self.location[0],self.location[1]][0]==True:
-                if curMap.spaces[self.location[0],self.location[1]][1]==self:
-                    curMap.spaces[self.location[0],self.location[1]]=[False]
-        if (location[0],location[1]) in curMap.spaces:
+        if self.location in curMap.spaces:
+            if curMap.spaces[self.location][0]==True:
+                if curMap.spaces[self.location][1]==self:
+                    curMap.spaces[self.location]=[False]
+        if location in curMap.spaces:
             self.location=location
-            curMap.spaces[location[0],location[1]]=[True,self]
+            curMap.spaces[location]=[True,self]
         else:
             cont=False
             while cont==False:
@@ -1310,7 +1351,7 @@ class character:
                     if loc[0].isdigit() and loc[1].isdigit():
                         loc[0]=int(loc[0])
                         loc[1]=int(loc[1])
-                        self.update_location(loc)
+                        self.update_location((loc[0],loc[1]))
                         return
                     else:
                         print('Invalid input, try again')
@@ -1393,7 +1434,7 @@ class character:
             print(f"{killer.name} attacked {self.name} and did over {self.curhp} damage, defeating the foe\n")
             self.curhp=0
             self.deathMap=curMap.mapNum
-            curMap.spaces[self.location[0],self.location[1]]=[False]
+            curMap.spaces[self.location]=[False]
             killer.kills+=1
             for i in self.inventory:
                 if i.droppable==True:
@@ -1405,7 +1446,7 @@ class character:
             self.status='KO'
             print(f"{killer.name} attacked {self.name} and did over {self.curhp} damage, causing {self.name} to retreat\n")
             self.curhp=0
-            curMap.spaces[self.location[0],self.location[1]]=[False]
+            curMap.spaces[self.location]=[False]
             killer.kills+=1
             if 'Lord' in self.classType.attributes:
                 lordDied=True
@@ -1496,6 +1537,22 @@ class enemy_char(character):
             self.level_up(1)
         if self not in self.enemy_char_list:
             self.enemy_char_list.append(self)
+class bounty_char(character):
+    bounty_char_list=[]
+    nameClass='bounty_hunter'
+    def __init__(self,name,classX,joinMap,inventory,level,spawn,target):
+        self.name=name
+        self.spawn=spawn
+        self.target=target
+        for i in classType.class_list:
+            if i.name==classX:
+                classtype=i
+        super().__init__(name,classtype.hp,classtype.hp,classtype.hpG,classtype.atk,classtype.atkG,classtype.mag,classtype.magG,
+                         classtype.skill,classtype.skillG,classtype.luck,classtype.luckG,classtype.defense,classtype.defG,classtype.res,classtype.resG,classtype.spd,classtype.spdG,0,bounty_hunter,classX,{},joinMap,inventory,1)
+        while self.level<level:
+            self.level_up(1)
+        if self not in self.bounty_char_list:
+            self.bounty_char_list.append(self)
 class boss(character):
     boss_list=[]
     nameClass='boss'
@@ -1603,11 +1660,12 @@ class turnwheel_ghost:
             self.attr[i[0]]=i[1]
 
 class turnwheel_map:
-    def __init__(self,spaces,objectList,player_roster,enemy_roster,green_roster,roster):
+    def __init__(self,spaces,objectList,player_roster,enemy_roster,bounty_roster,green_roster,roster):
         self.spaces=spaces
         self.objectList=objectList
         self.player_roster=player_roster
         self.enemy_roster=enemy_roster
+        self.bounty_roster=bounty_roster
         self.green_roster=green_roster
         self.roster=roster
     def display(self):
@@ -1638,6 +1696,8 @@ class turnwheel_map:
             if self.spaces[i][0]==True:
                 if self.spaces[i][1].alignment==enemy:
                     char="E"
+                elif self.spaces[i][1].alignment==bounty_hunter:
+                    char='B'
                 elif self.spaces[i][1].alignment==player:
                     char="P"
                 elif self.spaces[i][1].alignment==green:
@@ -2129,9 +2189,9 @@ class alignment:
                 i.check_stats()
     def turn_end(self):
         for i in self.roster:
-            if (i.location[0],i.location[1]) in curMap.objectList:
-                if i.curhp+curMap.objectList[i.location[0],i.location[1]].hpBonus<i.hp:
-                    i.curhp+=curMap.objectList[i.location[0],i.location[1]].hpBonus
+            if i.location in curMap.objectList:
+                if i.curhp+curMap.objectList[i.location].hpBonus<i.hp:
+                    i.curhp+=curMap.objectList[i.location].hpBonus
                 else:
                     i.curhp=i.hp
             for j in i.inventory:
@@ -2434,6 +2494,8 @@ class mapLevel:
                 if mode.lower()=='cur' or mode.lower()=='djik':
                     if self.spaces[i][1].alignment==enemy:
                         char="E"
+                    elif self.spaces[i][1].alignment==bounty_hunter:
+                        char='B'
                     elif self.spaces[i][1].alignment==player:
                         char="P"
                     elif self.spaces[i][1].alignment==green:
@@ -2505,11 +2567,11 @@ class mapLevel:
                                             else:
                                                 moveOn=False
                                         for i in self.spawns:
-                                            if [location[0],location[1]]==i and possibility.name=='Void' or possibility.name=='Water' or possibility.name=='Door':
+                                            if location==i and possibility.name=='Void' or possibility.name=='Water' or possibility.name=='Door':
                                                 print('There is a spawn at this location, you cant add this object there')
                                                 moveOn=False
                                         for i in self.enemy_roster:
-                                            if [location[0],location[1]]==i.spawn:
+                                            if location==i.spawn:
                                                 if i.classType.moveType!='Pirate' and i.classType.moveType!='Flying' and possibility.name=='Water':
                                                     print('There is a enemy spawn at this location, you cant add this object there')
                                                     moveOn=False
@@ -2535,11 +2597,11 @@ class mapLevel:
                                             z=possibility.name.replace(' ','_')
                                             z=z.lower()
                                             if possibility.name=='Shop':
-                                                globals()[z](self,[location[0],location[1]],inventory)
+                                                globals()[z](self,[location],inventory)
                                             elif possibility.name=='Treasure Chest':
-                                                globals()[z](self,[location[0],location[1]],inventory[0])
+                                                globals()[z](self,[location],inventory[0])
                                             else:
-                                                globals()[z](self,[location[0],location[1]])
+                                                globals()[z](self,[location])
                                         else:
                                             print('Invalid input, try again')
                                     else:
@@ -2592,7 +2654,7 @@ class mapObject:
         self.display=display
         self.objectList.append(self)
         if mapLevel!=None:
-            self.mapLevel.objectList[self.location[0],self.location[1]]=self
+            self.mapLevel.objectList[self.location]=self
     def info(self):
         print(f'Name: {self.name}')
         print(f'Defense Bonus: {self.defBonus}')
@@ -2715,7 +2777,7 @@ class trigger:
             self.character=['All']
         self.triggerList.append(self)
         if mapLevel!=None:
-            self.mapLevel.triggerList[location[0],location[1]]=self
+            self.mapLevel.triggerList[location]=self
 class char_trigger:
     char_trigger_list=[]
     def __init__(self,name,mapLevel,event,characters,*location):
@@ -2727,7 +2789,7 @@ class char_trigger:
         if location:
             self.location=location
         else:
-            self.location=[-1,-1]
+            self.location=(-1,-1)
         self.char_trigger_list.append(self)
         if mapLevel!=None:
             self.mapLevel.char_trigger_list[characters[0],characters[1]]=self
@@ -2747,14 +2809,13 @@ class reinforcements:
         self.alignment=alignment
     def spawn_in(self):
         for i in self.characters:
-            if curMap[i.spawn[0],i.spawn[1]][0]==False:
-                i.update_location(i.spawn[0],i.spawn[1])
+            if curMap[i.spawn][0]==False:
+                i.update_location(i.spawn)
                 self.alignment.roster.append(i)
 
 
 def gameplay(align):
     count=0
-    board=[]
     if curMap.turn_count%5==0:
         checkpoint=True
     else:
@@ -2787,6 +2848,9 @@ def gameplay(align):
     for i in enemy.roster:
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in bounty_hunter.roster:
+        if i.status=='Alive':
+            print(f'Bounty hunter {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP\nCurrent Targets: {i.targets}')
     for i in green.roster:
         if i.status=='Alive':
             print(f'Allied unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
@@ -2798,12 +2862,15 @@ def gameplay(align):
     roster=[]
     player_roster=[]
     enemy_roster=[]
+    bounty_roster=[]
     green_roster=[]
     inventory=[]
     for i in player.roster:
         player_roster.append(i)
     for i in enemy.roster:
         enemy_roster.append(i)
+    for i in bounty_hunter.roster:
+        bounty_roster.append(i)
     for i in green_roster:
         green_roster.append(i)
     for i in curMap.objectList:
@@ -2815,7 +2882,7 @@ def gameplay(align):
             roster.append(char)
     for i in curMap.objectList:
         ol[i]=curMap.objectList[i]
-    turn_map=turnwheel_map(curMap.spaces,curMap.objectList,player_roster,enemy_roster,green_roster,roster)
+    turn_map=turnwheel_map(curMap.spaces,curMap.objectList,player_roster,enemy_roster,bounty_roster,green_roster,roster)
     #print(enemy.roster)
     if curMap.turn_count not in curMap.turnwheel:
         curMap.turnwheel[curMap.turn_count]={move_num:turn_map}
@@ -2858,6 +2925,7 @@ def gameplay(align):
             enemy.roster=curMap.turnwheel[int(revert[0])][int(revert[1])].enemy_roster
             player.roster=curMap.turnwheel[int(revert[0])][int(revert[1])].player_roster
             green.roster=curMap.turnwheel[int(revert[0])][int(revert[1])].green_roster
+            bounty_hunter.roster=curMap.turnwheel[int(revert[0])][int(revert[1])].bounty_hunter_roster
             curMap.spaces=curMap.turnwheel[int(revert[0])][int(revert[1])].spaces
             curMap.objectList=curMap.turnwheel[int(revert[0])][int(revert[1])].objectList
             print(hao.status)
@@ -2876,12 +2944,22 @@ def gameplay(align):
             align.turn_end()
             return
         elif path=='2':
-            for i in range(0,len(enemy.roster)):
+            erl=len(enemy_roster)
+            for i in range(0,erl):
                 print(f'{i} : {enemy.roster[i].name} {enemy.roster[i].location}')
+            for j in range(0,len(bounty_hunter.roster)):
+                print(f'{j+erl} : {bounty_hunter.roster[j].name} {bounty_hunter.roster[j].location}')
             enemy_checked=input('Enter the number of the enemy whose range you want to check \n')
             if enemy_checked.isdigit():
-                if int(enemy_checked)>=0 and int(enemy_checked)<len(enemy.roster):
-                    ec_r=djikstra(enemy.roster[int(enemy_checked)])
+                cont=False
+                enemy_checked=int(enemy_checked)
+                if enemy_checked>=0 and enemy_checked<erl:
+                    ec_r=djikstra(enemy.roster[enemy_checked])
+                    cont=True
+                elif enemy_checked>=erl and enemy_checked+erl<len(bounty_hunter.roster):
+                    ec_r=djikstra(bounty_hunter.roster[enemy_checked-erl])
+                    cont=True
+                if cont:
                     curMap.display('djik',ec_r)
                     listX=[]
                     for i in ec_r:
@@ -2892,12 +2970,18 @@ def gameplay(align):
             else:
                 print('Invalid input')
         elif path=='3':
-            for i in range(0,len(enemy.roster)):
+            erl=len(enemy_roster)
+            for i in range(0,erl):
                 print(f'{i} : {enemy.roster[i].name} {enemy.roster[i].location}')
+            for j in range(0,len(bounty_hunter.roster)):
+                print(f'{j+erl} : {bounty_hunter.roster[j].name} {bounty_hunter.roster[j].location}')
             enemy_checked=input('Enter the number of the enemy whose stats you want to check \n')
             if enemy_checked.isdigit():
-                if int(enemy_checked)>=0 and int(enemy_checked)<len(enemy.roster):
-                    enemy.roster[int(enemy_checked)].info()
+                enemy_checked=int(enemy_checked)
+                if enemy_checked>=0 and enemy_checked<erl:
+                    enemy.roster[enemy_checked].info()
+                elif enemy_checked>=erl and enemy_checked+erl<len(bounty_hunter.roster):
+                    bounty_hunter.roster[enemy_checked-erl].info()
                 else:
                     print('Invalid input')
             else:
@@ -2948,7 +3032,6 @@ def ai_green(align):
     #If it cant, it will move towards the nearest player character
     #we need to only make the active ones agro
     count=0
-    board=[]
     global levelComplete
     if levelComplete==True or lordDied==True:
         return
@@ -2966,12 +3049,14 @@ def ai_green(align):
     for i in enemy.roster:
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in bounty_hunter.roster:
+        if i.status=='Alive':
+            print(f'Bounty hunter {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP\nCurrent Targets: {i.targets}')
     for i in green.roster:
         if i.status=='Alive':
             print(f'Allied unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
     #We just choose the last item in the list cuz its easiest this way
     curMap.display('cur')
-    choice=j
     self=align.roster[j]
     #dist, weapon
     atkRange=[]
@@ -2983,10 +3068,10 @@ def ai_green(align):
                     for j in i.rng:
                         atkRange.append([j,i])
     #closest= dist, location
-    closest=[9999,[0,0]]
-    furthest=[0,[0,0]]
+    closest=[9999,(0,0)]
+    furthest=[0,(0,0)]
     #maxDamage has character to attack, damage done, location,weapon being used, and distance
-    maxDamage=[None,0,[0,0],None,0]
+    maxDamage=[None,0,(0,0),None,0]
     #We check every map tile
     potential_spaces=djikstra(self)
     for i in potential_spaces:
@@ -2996,17 +3081,21 @@ def ai_green(align):
                 destToPlayer=abs(j[0]-i[0])+abs(j[1]-i[1])
                 for k in atkRange:
                     if k[0]==destToPlayer:
-                        bonus=0
-                        if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment==enemy:
-                            if curMap.spaces[j][1].classType.name in k[1].super_effective:
-                                bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
-                            if self.mag+k[1].dmg+bonus-curMap.spaces[j][0][1].res>=maxDamage[1]:
-                                maxDamage=[curMap.spaces[j][1],self.mag+k[1].dmg+bonus-curMap.spaces[j][1].res,i,k[1],k[0]]
-                        elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment==enemy:
-                            if curMap.spaces[j][1].classType.name in k[1].super_effective:
-                                bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
-                            if self.atk+k[1].dmg+bonus-curMap.spaces[j][1].defense>=maxDamage[1]:
-                                maxDamage=[curMap.spaces[j][1],self.atk+bonus+k[1].dmg-curMap.spaces[j][1].defense,i,k[1],k[0]]
+                        if curMap.spaces[j][1].alignment==enemy:
+                            damage=forecast(self,k[1],curMap.spaces[j][1],curMap.spaces[j][1].active_item,None,k[0],True)[0]
+                            if damage>=maxDamage[1]:
+                                maxDamage=[curMap.spaces[j][1],damage,i,k[1],k[0]]
+                        # bonus=0
+                        # if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment==enemy:
+                        #     if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                        #         bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                        #     if self.mag+k[1].dmg+bonus-curMap.spaces[j][0][1].res>=maxDamage[1]:
+                        #         maxDamage=[curMap.spaces[j][1],self.mag+k[1].dmg+bonus-curMap.spaces[j][1].res,i,k[1],k[0]]
+                        # elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment==enemy:
+                        #     if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                        #         bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                        #     if self.atk+k[1].dmg+bonus-curMap.spaces[j][1].defense>=maxDamage[1]:
+                        #         maxDamage=[curMap.spaces[j][1],self.atk+bonus+k[1].dmg-curMap.spaces[j][1].defense,i,k[1],k[0]]
                 #We then calculate the distance from this point to every player, and if its lower than the previous closest to a player we make it the new destination
                 if curMap.spaces[j][1].alignment==enemy and destToPlayer<=closest[0]:
                     closest=[destToPlayer,i]
@@ -3030,7 +3119,6 @@ def ai(align):
     #The goal here is to make an ai that, if it can attack a player character, it will attack the one that it does the most hp percentage damage to
     #If it cant, it will move towards the nearest player character
     count=0
-    board=[]
     global levelComplete
     if levelComplete==True or lordDied==True:
         return
@@ -3048,27 +3136,35 @@ def ai(align):
     for i in enemy.roster:
         if i.status=='Alive':
             print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in bounty_hunter.roster:
+        if i.status=='Alive':
+            print(f'Bounty hunter {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP\nCurrent Targets: {i.targets}')
     for i in green.roster:
         if i.status=='Alive':
             print(f'Allied unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
     #We just choose the last item in the list cuz its easiest this way
     curMap.display('cur')
-    choice=j
     self=align.roster[j]
     #dist, weapon
     atkRange=[]
     #So here we want to find the attack range of a character
     for i in self.inventory:
-        if isinstance(i,weapon):
-            if i.weapontype in self.weaponType:
-                if i.weaponlevel<=self.weaponType[i.weapontype]:
-                    for j in i.rng:
-                        atkRange.append([j,i])
+        try:
+            if i.weaponlevel<=self.weaponType[i.weapontype]:
+                for j in i.rng:
+                    atkRange.append([j,i])
+        except:
+            pass
+        # if isinstance(i,weapon):
+        #     if i.weapontype in self.weaponType:
+        #         if i.weaponlevel<=self.weaponType[i.weapontype]:
+        #             for j in i.rng:
+        #                 atkRange.append([j,i])
     #closest= dist, location
-    closest=[9999,[0,0]]
-    furthest=[0,[0,0]]
+    closest=[9999,(0,0)]
+    furthest=[0,(0,0)]
     #maxDamage has character to attack, damage done, location,weapon being used, and distance
-    maxDamage=[None,0,[0,0],None,0]
+    maxDamage=[None,0,(0,0),None,0]
     #We check every map tile
     potential_spaces=djikstra(self)
     for i in potential_spaces:
@@ -3078,22 +3174,26 @@ def ai(align):
                 destToPlayer=abs(j[0]-i[0])+abs(j[1]-i[1])
                 for k in atkRange:
                     if k[0]==destToPlayer:
-                        bonus=0
-                        if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment!=enemy:
-                            if curMap.spaces[j][1].classType.name in k[1].super_effective:
-                                bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
-                            if self.mag+k[1].dmg+bonus-curMap.spaces[j][0][1].res>=maxDamage[1]:
-                                maxDamage=[curMap.spaces[j][1],self.mag+k[1].dmg+bonus-curMap.spaces[j][1].res,i,k[1],k[0]]
-                        elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment!=enemy:
-                            if curMap.spaces[j][1].classType.name in k[1].super_effective:
-                                bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
-                            if self.atk+k[1].dmg+bonus-curMap.spaces[j][1].defense>=maxDamage[1]:
-                                maxDamage=[curMap.spaces[j][1],self.atk+bonus+k[1].dmg-curMap.spaces[j][1].defense,i,k[1],k[0]]
+                        if curMap.spaces[j][1].alignment==green or curMap.spaces[j][1].alignment==player:
+                            damage=forecast(self,k[1],curMap.spaces[j][1],curMap.spaces[j][1].active_item,None,k[0],True)[0]
+                            if damage>=maxDamage[1]:
+                                maxDamage=[curMap.spaces[j][1],damage,i,k[1],k[0]]
+                        # bonus=0
+                        # if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment!=enemy:
+                        #     if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                        #         bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                        #     if self.mag+k[1].dmg+bonus-curMap.spaces[j][0][1].res>=maxDamage[1]:
+                        #         maxDamage=[curMap.spaces[j][1],self.mag+k[1].dmg+bonus-curMap.spaces[j][1].res,i,k[1],k[0]]
+                        # elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment!=enemy:
+                        #     if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                        #         bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                        #     if self.atk+k[1].dmg+bonus-curMap.spaces[j][1].defense>=maxDamage[1]:
+                        #         maxDamage=[curMap.spaces[j][1],self.atk+bonus+k[1].dmg-curMap.spaces[j][1].defense,i,k[1],k[0]]
                 #We then calculate the distance from this point to every player, and if its lower than the previous closest to a player we make it the new destination
-                if curMap.spaces[j][1].alignment!=enemy and destToPlayer<=closest[0]:
+                if (curMap.spaces[j][1].alignment==green or curMap.spaces[j][1].alignment==player) and destToPlayer<=closest[0]:
                     closest=[destToPlayer,i]
                 #We then calculate the distance from this point to every player, and if its further we have it as a potential destination if this unit needs to retreat
-                if curMap.spaces[j][1].alignment!=enemy and destToPlayer>furthest[0]:
+                if (curMap.spaces[j][1].alignment==green or curMap.spaces[j][1].alignment==player) and destToPlayer>furthest[0]:
                     furthest=[destToPlayer,i]
     print('\n')
     if maxDamage[0]==None:
@@ -3108,6 +3208,93 @@ def ai(align):
     if count!=0 and levelComplete==False and lordDied==False:
         ai(align)
 
+def bounty_hunt(align):
+    #The goal here is to make an ai that, if it can attack a player character, it will attack the one that it does the most hp percentage damage to
+    #If it cant, it will move towards the nearest player character
+    count=0
+    global levelComplete
+    if levelComplete==True or lordDied==True:
+        return
+    print('\n')
+    for i in range(0,len(align.roster)):
+        if align.roster[i].moved==False and align.roster[i].status=='Alive':
+            j=i
+            count+=1
+    if count==0:
+        align.turn_end()
+        return
+    for i in player.roster:
+        if i.deployed==True and i.status=='Alive':
+            print(f'Player unit {i.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in enemy.roster:
+        if i.status=='Alive':
+            print(f'Enemy unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    for i in bounty_hunter.roster:
+        if i.status=='Alive':
+            print(f'Bounty hunter {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP\nCurrent Targets: {i.targets}')
+    for i in green.roster:
+        if i.status=='Alive':
+            print(f'Allied unit {i.name} level {i.level} {i.classType.name} at {i.location} {i.curhp}/{i.hp} HP')
+    #We just choose the last item in the list cuz its easiest this way
+    curMap.display('cur')
+    self=align.roster[j]
+    #dist, weapon
+    atkRange=[]
+    #So here we want to find the attack range of a character
+    for i in self.inventory:
+        if isinstance(i,weapon):
+            if i.weapontype in self.weaponType:
+                if i.weaponlevel<=self.weaponType[i.weapontype]:
+                    for j in i.rng:
+                        atkRange.append([j,i])
+    #closest= dist, location
+    closest=[9999,(0,0)]
+    furthest=[0,(0,0)]
+    #maxDamage has character to attack, damage done, location,weapon being used, and distance
+    maxDamage=[None,0,(0,0),None,0]
+    #We check every map tile
+    potential_spaces=djikstra(self)
+    for i in potential_spaces:
+        for j in curMap.spaces:
+            #We find all the spaces with enemies on them
+            if curMap.spaces[j][0]==True:
+                if curMap.spaces[j][1].name in self.targets:
+                    destToPlayer=abs(j[0]-i[0])+abs(j[1]-i[1])
+                    for k in atkRange:
+                        if k[0]==destToPlayer:
+                            damage=forecast(self,k[1],curMap.spaces[j][1],curMap.spaces[j][1].active_item,None,k[0],True)[0]
+                            if damage>=maxDamage[1]:
+                                maxDamage=[curMap.spaces[j][1],damage,i,k[1],k[0]]
+                            # bonus=0
+                            # if k[1].dmgtype=='Magic' and curMap.spaces[j][1].alignment!=enemy:
+                            #     if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                            #         bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                            #     if self.mag+k[1].dmg+bonus-curMap.spaces[j][0][1].res>=maxDamage[1]:
+                            #         maxDamage=[curMap.spaces[j][1],self.mag+k[1].dmg+bonus-curMap.spaces[j][1].res,i,k[1],k[0]]
+                            # elif k[1].dmgtype=='Phys' and curMap.spaces[j][1].alignment!=enemy:
+                            #     if curMap.spaces[j][1].classType.name in k[1].super_effective:
+                            #         bonus+=k[1].dmg*k[1].super_effective[curMap.spaces[j][1].classType.name]
+                            #     if self.atk+k[1].dmg+bonus-curMap.spaces[j][1].defense>=maxDamage[1]:
+                            #         maxDamage=[curMap.spaces[j][1],self.atk+bonus+k[1].dmg-curMap.spaces[j][1].defense,i,k[1],k[0]]
+                    #We then calculate the distance from this point to every player, and if its lower than the previous closest to a player we make it the new destination
+                    if destToPlayer<=closest[0]:
+                        closest=[destToPlayer,i]
+                    #We then calculate the distance from this point to every player, and if its further we have it as a potential destination if this unit needs to retreat
+                    if destToPlayer>furthest[0]:
+                        furthest=[destToPlayer,i]
+    print('\n')
+    if maxDamage[0]==None:
+        self.update_location(closest[1])
+        print(f'{self.name} moved to {closest[1]}')
+        self.moved=True
+        time.sleep(1.5*text_speed)
+    else:
+        self.update_location(maxDamage[2])
+        print(f'{self.name} moved to {maxDamage[2]}')
+        init_battle(self,maxDamage[0],maxDamage[4],maxDamage[3],False)
+    if count!=0 and levelComplete==False and lordDied==False:
+        bounty_hunt(align)
+
 
 
 def djikstra(self):
@@ -3120,15 +3307,15 @@ def djikstra(self):
             viable_spaces.append([i[0],i[1]])
             if distFromAI==1:
                 moveCost=1
-                if (i[0],i[1]) in curMap.objectList:
-                    moveCost=curMap.objectList[i[0],i[1]].moveCost
-                if curMap.spaces[i[0],i[1]][0]==True:
-                    if curMap.spaces[i[0],i[1]][1].alignment!=self.alignment:
+                if i in curMap.objectList:
+                    moveCost=curMap.objectList[i].moveCost
+                if curMap.spaces[i][0]==True:
+                    if curMap.spaces[i][1].alignment!=self.alignment:
                         moveCost=999
-                shortest_path[i[0],i[1]]=moveCost
+                shortest_path[i]=moveCost
             else:
-                shortest_path[i[0],i[1]]=999
-    shortest_path[self.location[0],self.location[1]]=0
+                shortest_path[i]=999
+    shortest_path[self.location]=0
     while viable_spaces:
         cur_min=None
         for node in viable_spaces:
@@ -3192,8 +3379,10 @@ def append_shop(base_class,*weapon):
         inventoryX=input(f'Input the number of the {weapon} you wish to add.\n')
         count=input('Input how many of this item you want this shop to have\n')
         if inventoryX.isdigit() and count.isdigit():
-            if int(count)>0 and int(inventoryX)>=0 and int(inventoryX)<len(base_class[weapon[0]]):
-                return [base_class[weapon[0]][int(inventoryX)],int(count)]
+            inventoryX=int(inventoryX)
+            count=int(count)
+            if count>0 and inventoryX>=0 and inventoryX<len(base_class[weapon[0]]):
+                return [base_class[weapon[0]][inventoryX],count]
     else:
         for i in range(0,len(base_class)):
             print(f'{i} {base_class[i].name}')
@@ -3201,8 +3390,10 @@ def append_shop(base_class,*weapon):
         inventoryX=input('Input the number of the item you wish to add.\n')
         count=input('Input how many of this item you want this shop to have\n')
         if inventoryX.isdigit() and count.isdigit():
-            if int(count)>0 and int(inventoryX)>=0 and int(inventoryX)<len(base_class):
-                return [base_class[int(inventoryX)],int(count)]
+            inventoryX=int(inventoryX)
+            count=int(count)
+            if count>0 and inventoryX>=0 and inventoryX<len(base_class):
+                return [base_class[inventoryX],count]
 
 def edit_shop(*shop):
     if shop:
@@ -3211,24 +3402,26 @@ def edit_shop(*shop):
         inventory=[]
     contI=True
     while contI==True:
-        if len(inventory)>0:
+        len_inven=len(inventory)
+        if len_inven>0:
             print('Current inventory:')
-            for i in range(0,len(inventory)):
+            for i in range(0,len_inven):
                 print(f'{i}: {inventory[i][0].name}')
         item_inventory=input(f'Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, 4 to remove items, or x to finish.\n')
         if item_inventory.lower()=='x':
             return(inventory)
-        elif item_inventory=='4' and len(inventory)>0:
-            for i in range(0,len(inventory)):
+        elif item_inventory=='4' and len_inven>0:
+            for i in range(0,len_inven):
                 print(f'{i}: {inventory[i][0].name}')
             path=input(f'Input the item number that you would like to drop or X to cancel\n')
             if path.lower()=='x':
                 pass
             elif path.isdigit():
-                if int(path)>=0 and int(path)<len(inventory):
-                    confirm=input(f'Input Y to confirm that you would like to remove {inventory[int(path)][0].name} or anything else to cancel\n')
+                path=int(path)
+                if path>=0 and path<len_inven:
+                    confirm=input(f'Input Y to confirm that you would like to remove {inventory[path][0].name} or anything else to cancel\n')
                     if confirm.lower()=='y':
-                        inventory.pop(int(path))
+                        inventory.pop(path)
                         print('Item removed')
                     else:
                         print("Removal canceled")
@@ -3248,10 +3441,11 @@ def edit_shop(*shop):
                     pass
                 else:
                     if unique_inventory.isdigit():
-                        if int(unique_inventory) in range(0,len(unique_weapons)):
-                            confirm=input(f'Input Y to confirm that you wish to add {unique_weapons[int(unique_inventory)]} to the shop or anything else to cancel\n')
+                        unique_inventory=int(unique_inventory)
+                        if unique_inventory in range(0,len(unique_weapons)):
+                            confirm=input(f'Input Y to confirm that you wish to add {unique_weapons[unique_inventory]} to the shop or anything else to cancel\n')
                             if confirm.lower()=='y':
-                                inventory.append([unique_weapons.pop(int(unique_inventory)),1])
+                                inventory.append([unique_weapons.pop(unique_inventory),1])
                         else:
                             print('That number doesnt exist')
                     else:
@@ -3277,8 +3471,9 @@ def append_stock_inventory(base_class,*weapon):
             inventoryX=input(f'Input the number of the {weapon[0]} you wish to add.\n')
             droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
             if inventoryX.isdigit():
-                if int(inventoryX)>=0 and int(inventoryX)<len(base_class[weapon[0]]):
-                    x=base_class[weapon[0]][int(inventoryX)].name
+                inventoryX=int(inventoryX)
+                if inventoryX>=0 and inventoryX<len(base_class[weapon[0]]):
+                    x=base_class[weapon[0]][inventoryX].name
                     cont=True
             else:
                 print('Invalid input')
@@ -3290,8 +3485,9 @@ def append_stock_inventory(base_class,*weapon):
             inventoryX=input('Input the number of the item you wish to add\n')
             droppable=input('Input Y to make this item droppable when the unit holding it dies or anything else to have it not be droppable\n')
             if inventoryX.isdigit():
-                if int(inventoryX)>=0 and int(inventoryX)<len(base_class):
-                    x=base_class[int(inventoryX)].name
+                inventoryX=int(inventoryX)
+                if inventoryX>=0 and inventoryX<len(base_class):
+                    x=base_class[inventoryX].name
                     cont=True
             else:
                 print('Invalid input')
@@ -4298,8 +4494,9 @@ def create_character(*name):
                 spawn=spawn.split(',')
                 spawn[0]=int(spawn[0])
                 spawn[1]=int(spawn[1])
+                spawn=(spawn[0],spawn[1])
                 contCont=True
-                if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
+                if (spawn[0],spawn[1]) not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
                     if (spawn[0],spawn[1]) in mapX.objectList:
                         if mapX.objectList[spawn[0],spawn[1]].name=='Door':
                             contCont=False
@@ -4309,7 +4506,7 @@ def create_character(*name):
                             contCont=False
                     if contCont==True:
                         cont=True
-                elif [spawn[0],spawn[1]] in mapX.spawns:
+                elif (spawn[0],spawn[1]) in mapX.spawns:
                     print('A player unit spawns there, invalid input')
                 else:
                     print('Invalid spawn, try again')
@@ -5355,8 +5552,9 @@ def edit_map():
                         if spawn[0].isdigit() and spawn[1].isdigit():
                             spawn[0]=int(spawn[0])
                             spawn[1]=int(spawn[1])
+                            spawn=(spawn[0],spawn[1])
                             contCont=True
-                            if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
+                            if (spawn[0],spawn[1]) not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
                                 if (spawn[0],spawn[1]) in mapX.objectList:
                                     if mapX.objectList[spawn[0],spawn[1]].name=='Door':
                                         contCont=False
@@ -5365,14 +5563,14 @@ def edit_map():
                                     elif mapX.objectList[spawn[0],spawn[1]].name=='Water':
                                         contCont=False
                                 for i in mapX.enemy_roster:
-                                    if spawn[0]==i.spawn[0] and spawn[1]==i.spawn[1]:
+                                    if spawn==i.spawn:
                                         contCont=False
                                 if contCont==True:
-                                    mapX.spawns.append([spawn[0],spawn[1]])
+                                    mapX.spawns.append((spawn[0],spawn[1]))
                                     print('Spawn added')
                                 else:
                                     print('Invalid location, theres already something there')
-                            elif [spawn[0],spawn[1]] in mapX.spawns:
+                            elif (spawn[0],spawn[1]) in mapX.spawns:
                                 print('There is already a spawn there, invalid input')
                             else:
                                 print('Invalid spawn, try again')
@@ -5426,11 +5624,11 @@ def edit_map():
                                     mapX.spaces[i,j]=[False]
                         mapX.y_size=new_size[1]
                         for j in mapX.enemy_roster:
-                            if (j.spawn[0],j.spawn[1]) not in mapX.spaces:
+                            if j.spawn not in mapX.spaces:
                                 mapX.enemy_roster.remove(j)
                                 missing_enemy.append(j)
                         for k in mapX.spawns:
-                            if (k[0],k[1]) not in mapX.spaces:
+                            if k not in mapX.spaces:
                                 mapX.spaces.pop(k)
                                 missing_spawn.append(k)
                         for l in mapX.objectList:
@@ -5461,8 +5659,9 @@ def edit_map():
                                             if spawn[0].isdigit() and spawn[1].isdigit():
                                                 spawn[0]=int(spawn[0])
                                                 spawn[1]=int(spawn[1])
+                                                spawn=(spawn[0],spawn[1])
                                                 contCont=True
-                                                if [spawn[0],spawn[1]] not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
+                                                if (spawn[0],spawn[1]) not in mapX.spawns and (spawn[0],spawn[1]) in mapX.spaces:
                                                     if (spawn[0],spawn[1]) in mapX.objectList:
                                                         if mapX.objectList[spawn[0],spawn[1]].name=='Door':
                                                             contCont=False
@@ -5471,15 +5670,15 @@ def edit_map():
                                                         elif mapX.objectList[spawn[0],spawn[1]].name=='Void' and (missing_enemy[0].classType.moveType!='Flying' and missing_enemy[0].classType.moveType!='Pirate'):
                                                             contCont=False
                                                     for i in mapX.enemy_roster:
-                                                        if spawn[0]==i.spawn[0] and spawn[1]==i.spawn[1]:
+                                                        if spawn==i.spawn:
                                                             contCont=False
                                                     if contCont==True:
-                                                        missing_enemy[0].spawn=[spawn[0],spawn[1]]
+                                                        missing_enemy[0].spawn=(spawn[0],spawn[1])
                                                         missing_enemy.pop(0)
                                                         contZ=True
                                                     else:
                                                         print('Invalid location, theres already something there')
-                                                elif [spawn[0],spawn[1]] in mapX.spawns:
+                                                elif (spawn[0],spawn[1]) in mapX.spawns:
                                                     print('A player unit spawns there, invalid input')
                                                 else:
                                                     print('Invalid spawn, try again')
@@ -5505,12 +5704,12 @@ def edit_map():
                                                     if (spawn[0],spawn[1]) in mapX.objectList:
                                                         print('Theres already an object there, find somewhere else to put this')
                                                         contCont=False
-                                                    if [spawn[0],spawn[1]] in mapX.spawns:
+                                                    if (spawn[0],spawn[1]) in mapX.spawns:
                                                         if missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door':
                                                             print('Theres already a player unit spawn there, find somewhere else to put this')
                                                             contCont=False
                                                     for i in mapX.enemy_roster:
-                                                        if i.spawn==[spawn[0],spawn[1]] and (missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door'):
+                                                        if i.spawn==(spawn[0],spawn[1]) and (missing_object[0].name=='Void' or missing_object[0].name=='Water' or missing_object[0].name=='Door'):
                                                             print('Theres already an enemy unit spawn there, find somewhere else to put this')
                                                             contCont=False
                                                     if contCont==True:
@@ -5588,15 +5787,15 @@ def edit_map():
                                                                 if (spawn[0],spawn[1]) in acceptable_inputs[int(new_map)].objectList:
                                                                     print('Theres already an object there, find somewhere else to put this')
                                                                     contCont=False
-                                                                if [spawn[0],spawn[1]] in acceptable_inputs[int(new_map)].spawns:
+                                                                if (spawn[0],spawn[1]) in acceptable_inputs[int(new_map)].spawns:
                                                                     print('Theres already a player unit spawn there, find somewhere else to put this')
                                                                     contCont=False
                                                                 for i in acceptable_inputs[int(new_map)].enemy_roster:
-                                                                    if i.spawn==[spawn[0],spawn[1]]:
+                                                                    if i.spawn==(spawn[0],spawn[1]):
                                                                         print('Theres already an enemy unit spawning there, find somewhere else to put this')
                                                                         contCont=False
                                                                 if contCont==True:
-                                                                    removed.spawn=[spawn[0],spawn[1]]
+                                                                    removed.spawn=(spawn[0],spawn[1])
                                                                     acceptable_inputs[int(new_map)].enemy_roster.append(removed)
                                                                     contZ=True
                                                             else:
@@ -5761,7 +5960,7 @@ def edit_char():
                                             new_spawn[0]=int(new_spawn[0])
                                             new_spawn[1]=int(new_spawn[1])
                                             if (new_spawn[0],new_spawn[1]) not in taken:
-                                                char.spawn=[new_spawn[0],new_spawn[1]]
+                                                char.spawn=(new_spawn[0],new_spawn[1])
                                                 cont2=True
                                             else:
                                                 print('That space is already taken, try again')
@@ -6303,9 +6502,9 @@ trickster=classType('Trickster','Foot',19,.7,4,.4,4,.35,10,.45,0,.35,3,.25,5,.25
 griffon_rider=classType('Griffon Rider','Flying',22,.9,9,.4,0,0,10,0.4,0,0.4,8,0.3,3,0.15,9,0.4,8,{'Axe':0},[],{},['Advanced','Flying'])
 troubadour=classType('Troubadour','Horse',16,0.6,0,0,3,0.3,2,0.2,0,0.4,1,0.15,5,0.25,5,0.4,7,{'Staff':0},['Valkyrie','War Monk'],{},['Horse','Magic'])
 war_monk=classType('War Monk','Magic',24,0.9,5,0.4,5,0.35,4,0.3,0,0.45,6,0.3,6,0.4,6,0.45,6,{'Fist':0,'Staff':0},[],{},['Magic','Advanced'])
-dark_knight=classType('Dark Knight','Horse',25,0.95,4,0.35,5,0.4,6,0.4,0,0.3,9,0.35,5,0.3,5,0.3,8,{'Sword':1,'Dark Magic':0,'Tome':0},{},['Advanced','Horse','Magic'])
+dark_knight=classType('Dark Knight','Horse',25,.95,4,.35,5,0.4,6,0.4,0,0.3,9,0.35,5,0.3,5,0.3,8,{'Sword':1,'Dark Magic':0,'Tome':0},[],{},['Advanced','Horse','Magic'])
 dark_mage=classType('Dark Mage','Magic',18,.8,1,0,3,.25,2,.2,0,.2,4,.25,4,.25,3,.2,5,{'Dark Magic':0,'Tome':0},['Dark Knight','Sorcerer'],{},['Magic'])
-sorcerer=classType('Sorcerer','Magic',23,.9,2,0,6,.4,4,.3,0,.3,7,.3,7,.35,4,.3,6,{'Dark Magic':0,'Tome':0},{},['Magic','Advanced'])
+sorcerer=classType('Sorcerer','Magic',23,.9,2,0,6,.4,4,.3,0,.3,7,.3,7,.35,4,.3,6,{'Dark Magic':0,'Tome':0},[],{},['Magic','Advanced'])
 valkyrie=classType('Valkyrie','Horse',19,.7,0,0,5,.4,4,.3,0,.5,3,.2,8,.45,8,.5,8,{'Staff':0,'Tome':0},[],{},['Advanced','Horse','Magic'])
 priest=classType('Priest','Mage',16,.6,0,0,3,.2,2,.2,0,.4,1,.15,6,.35,4,.2,5,{'Staff':0},['Sage','War Monk'],{},['Magic'])
 
@@ -6359,30 +6558,30 @@ if campaign=='Default':
     #triggers(name,mapLevel,location,event,*character)
     #treasure_chest(mapLevel,location,contents)
     #shop(mapLevel,location,contents)
-    map1=mapLevel('Tutorial',11,15,1,[[0,0],[0,1]],[],[])
-    fort(map1,[0,0])
-    throne(map1,[0,1])
-    void(map1,[8,0])
-    void(map1,[8,1])
-    shop(map1,[3,2],[[base_silver_axe,1],[base_shield,1]])
-    treasure_chest(map1,[5,4],shield(False))
-    trigger('Save Tutorial',map1,[0,0],'Hi \nDid you know you can save?')
-    char_trigger('Discussion of games',map1,'Hi King\nGet pwnd Saitama',('Saitama','King'),[0,0])
-    map2=mapLevel('Map 2',11,10,2,[[0,0],[0,1],[0,2]],[],[])
-    throne(map2,[0,1])
+    map1=mapLevel('Tutorial',11,15,1,[(0,0),(0,1)],[],[])
+    fort(map1,(0,0))
+    throne(map1,(0,1))
+    void(map1,(8,0))
+    void(map1,(8,1))
+    shop(map1,(3,2),[[base_silver_axe,1],[base_shield,1]])
+    treasure_chest(map1,(5,4),shield(False))
+    trigger('Save Tutorial',map1,(0,0),'Hi \nDid you know you can save?')
+    char_trigger('Discussion of games',map1,'Hi King\nGet pwnd Saitama',('Saitama','King'),(0,0))
+    map2=mapLevel('Map 2',11,10,2,[(0,0),(0,1),(0,2)],[],[])
+    throne(map2,(0,1))
     #supports
     player.support_master={('Saitama','King'):[0,'Hi','Yo','Final'],('King','Zatch'):[0,'Hello','No Way']}
     ###player_char(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,{weaponType},joinMap,[inventory],level,{supports},[weapon_arts])
     ###enemy_char(name,classType,joinMap,[inventory],level,[spawn])
     ###recruitable(name,curhp,hp,hpG,atk,atkG,mag,magG,skill,skillG,luck,luckG,defense,defG,res,resG,spd,spdG,mov,classType,weaponType,joinMap,inventory,level,spawn,support_list,weapon_arts,recruit_convo)
     ###boss(name,curhp,hp,atk,mag,skill,luck,defense,res,spd,mov,classType,weaponType,joinMap,inventory,level,spawn):
-    garou=enemy_char('Garou','Wyvern Lord',1,[javelin(False),iron_axe(True)],1,[1,1])
-    boss=boss('Boss',25,25,13,1,12,4,8,7,10,0,'Hero',{},1,[iron_axe(True)],10,[5,8])
-    judas=recruitable('Judas',25,25,.5,13,.7,1,.1,12,.4,4,0,8,.2,7,.4,10,.25,0,'Hero',{},1,[iron_axe(True)],10,[5,8],{},[],'Judas continued betraying, and stabbed King in the back before long','Hey')
-    hao=enemy_char('Hao','Pirate',1,[iron_axe(False)],1,[1,0])
-    mumen=enemy_char('Mumen','Pirate',1,[iron_axe(False)],1,[1,2])
-    ash=enemy_char('Ash','Pirate',1,[silver_axe(False)],1,[9,1])
-    yuffie=enemy_char('Yuffie','Wyvern Lord',2,[javelin(False)],2,[9,1])
+    garou=enemy_char('Garou','Wyvern Lord',1,[javelin(False),iron_axe(True)],1,(1,1))
+    boss=boss('Boss',25,25,13,1,12,4,8,7,10,0,'Hero',{},1,[iron_axe(True)],10,(5,8))
+    judas=recruitable('Judas',25,25,.5,13,.7,1,.1,12,.4,4,0,8,.2,7,.4,10,.25,0,'Hero',{},1,[iron_axe(True)],10,(5,8),{},[],'Judas continued betraying, and stabbed King in the back before long','Hey')
+    hao=enemy_char('Hao','Pirate',1,[iron_axe(False)],1,(1,0))
+    mumen=enemy_char('Mumen','Pirate',1,[iron_axe(False)],1,(1,2))
+    ash=enemy_char('Ash','Pirate',1,[silver_axe(False)],1,(9,1))
+    yuffie=enemy_char('Yuffie','Wyvern Lord',2,[javelin(False)],2,(9,1))
     saitama=player_char('Saitama',25,700,.6,10,.4,100,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'],'Saitama defeated everyone in one punch')
     saitama.add_skill(luna)
     saitama.add_skill(armsthrift)
