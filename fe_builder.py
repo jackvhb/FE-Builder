@@ -11,8 +11,6 @@ def isfloat(num):
         return False
 def init_battle(char1,char2,dist,fore,*weaponX):
     expGain=0
-    dmgMod=0
-    hitMod=0
     cont=False
     active_art=None
     dualwielding_weapon=None
@@ -338,10 +336,7 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
         statusX=False
     if isinstance(weapon1,dark_magic):
         if 'vamp' in weapon1.bonus_effect:
-            startHP=char1.curhp
             char1.curhp+=damage
-            # if char1.curhp>char1.hp:
-            #     char1.curhp=char1.hp
             print(f'{char1.name} healed {damage} HP with their Nosferatu ability')
         if 'blind' in weapon1.bonus_effect:
             char2.debuff['blind']=2
@@ -356,6 +351,7 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
         char1.curhp=char1.hp
     input("Input enter to continue\n")
     return(statusX)
+
 def init_heal(char1,char2,dist):
     viable_targets={}
     j=0
@@ -550,10 +546,10 @@ def menu(self):
         for i in curMap.spaces:
             dist=abs(i[0]-self.location[0])+abs(i[1]-self.location[1])
             if dist==1:
-                if (i[0],i[1]) in curMap.objectList:
-                    if isinstance(curMap.objectList[i[0],i[1]],door):
-                        if curMap.objectList[i[0],i[1]].opened==False:
-                            doors.append([i,curMap.objectList[i[0],i[1]]])
+                if i in curMap.objectList:
+                    if isinstance(curMap.objectList[i],door):
+                        if curMap.objectList[i].opened==False:
+                            doors.append([i,curMap.objectList[i]])
             if curMap.spaces[i][0]==True:
                 if dist in atkRange:
                     if (curMap.spaces[i][1].alignment==enemy or curMap.spaces[i][1].alignment==bounty_hunter) and [i,curMap.spaces[i][1]] not in targetRange:
@@ -1106,6 +1102,8 @@ class character:
                 else:
                     print('Invalid input, try again')
             elif route=='1':
+                # len_partner_inventory=len(trade_partner.inventory)
+                # len_inventory=len(inventory)
                 for i in range(0,len(trade_partner.inventory)):
                     print(f"{i} {trade_partner.inventory[i].name}")
                 route2=input(f"Input the item to trade or x to cancel \n")
@@ -1373,22 +1371,23 @@ class character:
         if path.lower()=='x':
             return
         elif path.isdigit():
-            if int(path) in count:
-                if isinstance(self.inventory[int(path)],consumable):
-                    self.inventory[int(path)].active=True
-                    self.inventory[int(path)].curUses-=1
-                    if self.inventory[int(path)].stat=='curhp':
-                       if self.curhp+self.inventory[int(path)].effect>self.hp:
+            path=int(path)
+            if path in count:
+                if isinstance(self.inventory[path],consumable):
+                    self.inventory[path].active=True
+                    self.inventory[path].curUses-=1
+                    if self.inventory[path].stat=='curhp':
+                       if self.curhp+self.inventory[path].effect>self.hp:
                            self.curhp=self.hp
-                           if self.inventory[int(path)].curUses<=0:
-                               self.inventory[int(path)].breakX(self)
+                           if self.inventory[path].curUses<=0:
+                               self.inventory[path].breakX(self)
                            return
-                    setattr(self,self.inventory[int(path)].stat,getattr(self,self.inventory[int(path)].stat)+self.inventory[int(path)].effect)
-                    print(getattr(self,self.inventory[int(path)].stat))
-                    if self.inventory[int(path)].curUses<=0:
-                       self.inventory[int(path)].breakX(self)
-                elif isinstance(self.inventory[i],promotion_item):
-                    if self.level>=promotion_level and len(self.classType.promotions) >0 and ('All' in self.inventory[i].classType or self.classType.name in self.inventory[i].classType):
+                    setattr(self,self.inventory[path].stat,getattr(self,self.inventory[path].stat)+self.inventory[path].effect)
+                    print(getattr(self,self.inventory[path].stat))
+                    if self.inventory[path].curUses<=0:
+                       self.inventory[path].breakX(self)
+                elif isinstance(self.inventory[path],promotion_item):
+                    if self.level>=promotion_level and len(self.classType.promotions) >0 and ('All' in self.inventory[path].classType or self.classType.name in self.inventory[path].classType):
                         self.promote()
             else:
                 print('Invalid input')
