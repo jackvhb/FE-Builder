@@ -256,7 +256,6 @@ def battle(char1,weapon1,char2,dmgMod,hitMod,active_art,dist):
     damageType=weapon1.dmgtype
     if active_art!=None:
         if player_unit==char1:
-            super_effective=False
             hitMod+=active_art.accuracy
             dmgMod+=active_art.damage
             critMod+=active_art.crit
@@ -363,7 +362,7 @@ def init_heal(char1,char2,dist):
                 j+=1
     cont=False
     while cont==False:
-        path=input(f'Input the number of the staff that you would like to use or X to cancel\n')
+        path=input('Input the number of the staff that you would like to use or X to cancel\n')
         if path.lower()=='x':
             cont=True
         elif path.isdigit():
@@ -663,7 +662,7 @@ def menu(self):
                     self.moved=True
                     end=True
         elif v.lower()=='style switch' and style_switch in self.skills:
-            route=input(f'W: Trickster\nD: Swordmaster\nS: General\nA:Sniper\nInput the class you would like to switch to\n')
+            route=input('W: Trickster\nD: Swordmaster\nS: General\nA:Sniper\nInput the class you would like to switch to\n')
             if route.lower()=='w':
                 self.reclass(trickster)
             elif route.lower()=='a':
@@ -685,7 +684,7 @@ def menu(self):
                     choiceBattle=int(choiceBattle)
                     if choiceBattle>=0 and choiceBattle<htr:
                         dis=abs(self.location[0]-healTargetRange[choiceBattle][1].location[0])+abs(self.location[1]-healTargetRange[choiceBattle][1].location[1])
-                        confirm=input(f'Input Y to confirm that you wish to heal or anything else to cancel\n')
+                        confirm=input('Input Y to confirm that you wish to heal or anything else to cancel\n')
                         if confirm.lower()=='y':
                             init_heal(self,healTargetRange[choiceBattle][1],dis)
                             end=True
@@ -754,7 +753,7 @@ def menu(self):
                     if choiceBattle>=0 and choiceBattle<len(targetRange):
                         dis=abs(self.location[0]-targetRange[choiceBattle][1].location[0])+abs(self.location[1]-targetRange[choiceBattle][1].location[1])
                         weaponX=init_battle(self,targetRange[choiceBattle][1],dis,True)
-                        confirm=input(f'Input Y to confirm that you wish to battle\n')
+                        confirm=input('Input Y to confirm that you wish to battle\n')
                         if confirm.lower()=='y':
                             init_battle(self,targetRange[choiceBattle][1],dis,False,weaponX)
                             end=True
@@ -1020,8 +1019,8 @@ class character:
                 return
             elif buy.lower()=='steal':
                 print(f"'I dont feel like paying for any of this garbage' {self.name} thought to themselves\n'But that doesnt mean that I dont want it'")
-                print(f"Im sure I could get away with knicking all this stuff, but I dont know if that would be a good idea...")
-                confirm=input(f'Input Y to steal or anything else to back off\n')
+                print("Im sure I could get away with knicking all this stuff, but I dont know if that would be a good idea...")
+                confirm=input('Input Y to steal or anything else to back off\n')
                 if confirm.lower()=='y':
                     self.stole=True
                     bounty=0
@@ -1069,7 +1068,7 @@ class character:
             elif route=='0':
                 for i in range(0,len(self.inventory)):
                     print(f"{i} {self.inventory[i].name}")
-                route2=input(f"Input the item to trade or x to cancel \n")
+                route2=input("Input the item to trade or x to cancel \n")
                 if route2.lower()=='x':
                     break
                 elif route2.isdigit():
@@ -1080,20 +1079,20 @@ class character:
                             if routeFix=='0':
                                 for i in range(0,len(trade_partner.inventory)):
                                     print(f"{i} {trade_partner.inventory.name}")
-                                routeConvoyFix=input(f"Input the item to store \n")
+                                routeConvoyFix=input("Input the item to store \n")
                                 try:
                                     itemX=trade_partner.drop_item(trade_partner.inventory[int(routeConvoyFix)])
                                     trade_partner.alignment.convoy.append(itemX)
-                                except Exception as e:
+                                except:
                                     print('Invalid input, try again')
                             elif routeFix=='1':
                                 for i in range(0,len(trade_partner.inventory)):
                                     print(f"{i} {trade_partner.inventory.name}")
-                                routeTradeFix=input(f"Input the item to trade \n")
+                                routeTradeFix=input("Input the item to trade \n")
                                 try:
                                     itemX=trade_partner.drop_item(trade_partner.inventory[int(routeTradeFix)])
                                     self.inventory.append(itemX)
-                                except Exception as e:
+                                except:
                                     print('Invalid input, try again')
                             else:
                                 print('Invalid input, try again')
@@ -1106,7 +1105,7 @@ class character:
                 # len_inventory=len(inventory)
                 for i in range(0,len(trade_partner.inventory)):
                     print(f"{i} {trade_partner.inventory[i].name}")
-                route2=input(f"Input the item to trade or x to cancel \n")
+                route2=input("Input the item to trade or x to cancel \n")
                 if route2.lower()=='x':
                     break
                 elif route2.isdigit():
@@ -1117,7 +1116,7 @@ class character:
                             if routeFix=='0':
                                 for i in range(0,len(self.inventory)):
                                     print(f"{i} {self.inventory.name}")
-                                routeConvoyFix=input(f"Input the item to store \n")
+                                routeConvoyFix=input("Input the item to store \n")
                                 if routeConvoyFix.isdigit():
                                     if int(routeConvoyFix)>=0 and int(routeConvoyFix)<len(self.inventory):
                                         itemX=self.drop_item(self.inventory[int(routeConvoyFix)])
@@ -1127,7 +1126,7 @@ class character:
                             elif routeFix=='1':
                                 for i in range(0,len(self.inventory)):
                                     print(f"{i} {self.inventory.name}")
-                                routeTradeFix=input(f"Input the item to trade \n")
+                                routeTradeFix=input("Input the item to trade \n")
                                 if routeTradeFix.isdigit():
                                     if int(routeTradeFix)>=0 and int(routeTradeFix)<len(self.inventory):
                                         itemX=self.drop_item(self.inventory[int(routeTradeFix)])
@@ -1207,7 +1206,7 @@ class character:
             for i in range(0,len(self.skills_all)):
                 if self.skills_all[i] not in self.skills:
                     print(f"{i} : {self.skills_all[i].name}")
-            add=input(f"Input the number of the skill you want to add or x to cancel")
+            add=input("Input the number of the skill you want to add or x to cancel")
             if add.lower()=='x':
                 return
             elif add.isdigit():
@@ -2304,7 +2303,7 @@ class mapLevel:
                     if player.roster[j].status=='Alive':
                         print(f'{j} {player.roster[j].name}')
                         possibilities.append(j)
-                choice=input(f"Enter the number of the unit you want to use items or x to cancel \n")
+                choice=input("Enter the number of the unit you want to use items or x to cancel \n")
                 if choice.lower()=='x':
                     pass
                 elif choice.isdigit():
@@ -2318,7 +2317,7 @@ class mapLevel:
                     if player.roster[j].status=='Alive':
                         print(f'{j} {player.roster[j].name}')
                         possibilities.append(j)
-                choice=input(f"Enter the number of the unit you want to store items or x to cancel \n")
+                choice=input("Enter the number of the unit you want to store items or x to cancel \n")
                 if choice.lower()=='x':
                     pass
                 elif choice.isdigit():
@@ -2335,7 +2334,7 @@ class mapLevel:
                         if player.roster[j].status=='Alive':
                             print(f'{j} {player.roster[j].name}')
                             possibilities.append(j)
-                    choice=input(f"Enter the number of the unit you want to withdraw items or x to cancel \n")
+                    choice=input("Enter the number of the unit you want to withdraw items or x to cancel \n")
                     if choice.lower()=='x':
                         pass
                     elif choice.isdigit():
@@ -2351,7 +2350,7 @@ class mapLevel:
                     if player.roster[j].status=='Alive':
                         print(f'{j+1} {player.roster[j].name}')
                         possibilities.append(j+1)
-                choice=input(f"Enter who you want to buy items or x to cancel \n")
+                choice=input("Enter who you want to buy items or x to cancel \n")
                 if choice=='0':
                     player.buy_item(baseShop)
                 elif choice.lower()=='x':
@@ -2369,7 +2368,7 @@ class mapLevel:
                     if player.roster[j].status=='Alive':
                         print(f'{j+1} {player.roster[j].name}')
                         possibilities.append(j+1)
-                choice=input(f"Enter who you want to sell items or x to cancel \n")
+                choice=input("Enter who you want to sell items or x to cancel \n")
                 if choice=='0':
                     player.sell_item()
                 elif choice.lower()=='x':
@@ -2389,7 +2388,7 @@ class mapLevel:
                 if len(possibilities)==0:
                     print('Noone has any skills to swap. Returning to menu')
                 else:
-                    choice=input(f"Enter the number of the unit you want to swap skills or x to cancel \n")
+                    choice=input("Enter the number of the unit you want to swap skills or x to cancel \n")
                     if choice.lower()=='x':
                         pass
                     elif choice.isdigit():
@@ -2560,7 +2559,7 @@ class mapLevel:
                                         moveOn=True
                                         if (location[0],location[1]) in self.objectList:
                                             print(f'There is already a {self.objectList[location[0],location[1]].name} at {location[0]},{location[1]}.')
-                                            confirm=input(f'Input Y to confirm that you want to overwrite this object or anything else to cancel\n')
+                                            confirm=input('Input Y to confirm that you want to overwrite this object or anything else to cancel\n')
                                             if confirm.lower()=='y':
                                                 pass
                                             else:
@@ -2613,7 +2612,7 @@ class mapLevel:
             self.display('base')
             for i in self.objectList:
                 print(f'{i}: {self.objectList[i].name}')
-            path=input(f'Input the x,y coordinates of the object you want to delete or x to finish\n')
+            path=input('Input the x,y coordinates of the object you want to delete or x to finish\n')
             if path.lower()=='x':
                 cont=False
             else:
@@ -2863,7 +2862,7 @@ def gameplay(align):
     enemy_roster=[]
     bounty_roster=[]
     green_roster=[]
-    inventory=[]
+    #inventory=[]
     for i in player.roster:
         player_roster.append(i)
     for i in enemy.roster:
@@ -3406,13 +3405,13 @@ def edit_shop(*shop):
             print('Current inventory:')
             for i in range(0,len_inven):
                 print(f'{i}: {inventory[i][0].name}')
-        item_inventory=input(f'Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, 4 to remove items, or x to finish.\n')
+        item_inventory=input('Press 1 to add a weapon to this shop, 2 to add armor, 3 to add misc, 4 to remove items, or x to finish.\n')
         if item_inventory.lower()=='x':
             return(inventory)
         elif item_inventory=='4' and len_inven>0:
             for i in range(0,len_inven):
                 print(f'{i}: {inventory[i][0].name}')
-            path=input(f'Input the item number that you would like to drop or X to cancel\n')
+            path=input('Input the item number that you would like to drop or X to cancel\n')
             if path.lower()=='x':
                 pass
             elif path.isdigit():
@@ -3554,7 +3553,7 @@ def stock_inventory(name,*inventory):
 
 
 def map_ordering(name,map_num,*map_lev):
-    delete=None
+    #delete=None
     for i in mapLevel.map_list:
         if i.mapNum==map_num:
             cont=False
@@ -3672,7 +3671,7 @@ def save(kind=''):
                                 f.write(f'{attr}XYZCYX{value.name}/{str(value.curUses)}/{str(value.droppable)}\n')
                             else:
                                 f.write(f'{attr}XYZCYX{value.name}\n')
-                        except Exception as e:
+                        except:
                             f.write(f'{attr}XYZCYX{str(value)}\n')
                     count+=1
                 f.write('BREAK\n')
@@ -3718,9 +3717,9 @@ def save(kind=''):
                             f.write(f'{attr}XYZCYX{str(value)}\n')
                 f.write('BREAK\n')
         f.close()
-        if not os.path.exists(f'campaign_list.txt'):
-            open(f'campaign_list.txt', 'w')
-        with open(f'campaign_list.txt', 'r+') as f:
+        if not os.path.exists('campaign_list.txt'):
+            open('campaign_list.txt', 'w')
+        with open('campaign_list.txt', 'r+') as f:
             campaigns=f.read().splitlines()
             if campaign not in campaigns:
                 f.write(f'{campaign}\n')
@@ -3789,7 +3788,7 @@ def load(kind=''):
                         try:
                             if j[0]!='':
                                 cur_dict[cur].append(j)
-                        except Exception as e:
+                        except:
                             print(traceback.format_exc())
                             print(j)
     for i in weapon_dict:
@@ -3818,7 +3817,7 @@ def load(kind=''):
                             map_dict[cur]['objectList']=[j[1]]
                     elif j[0]!='':
                         map_dict[cur][j[0]]=eval(j[1])
-                except Exception as e:
+                except:
                     print(j)
     mapLevel.map_list=[]
     mapObject.objectList=[]
@@ -3951,7 +3950,7 @@ def load(kind=''):
                     if j[0]!='alignment' and j[0]!='active_item' and j[0]!='inventory' and j[0]!='skills' and j[0]!='skills_all' and j[0]!='classType' and j[0]!='weapon_arts':
                         try:
                             setattr(exist,j[0],eval(j[1]))
-                        except Exception as e:
+                        except:
                             setattr(exist,j[0],j[1])
                     elif j[0]=='weapon_arts':
                         for k in weapon_art.weapon_art_list:
@@ -4272,7 +4271,7 @@ def create_character(*name):
             if confirm.lower()=='y':
                 align=player
                 unit_type='Player'
-                manual=True
+                #manual=True
                 cont=True
         elif align_input.lower()=='e' and not name:
             confirm=input('To confirm your character will be a generic enemy input Y, input anything else to cancel\n')
@@ -4323,7 +4322,7 @@ def create_character(*name):
     #set join map
     cont=False
     while cont==False:
-        existing_maps=[]
+        #existing_maps=[]
         for i in mapLevel.map_list:
             print(f'Map Number {i.mapNum}: {i.name}')
         join_map=input('Input the number of the map that you would like this character to join/be on, for example if you want them to join in the first map enter 1\n')
@@ -4447,7 +4446,7 @@ def create_character(*name):
         while cont==False:
             support_char=input(f'Enter the name of one character you would like {name} to support, or x to finish\n')
             if support_char.lower()=='x':
-                end=input(f'Input X to confirm you are finished, Y to cancel, or Z to name a character X\n')
+                end=input('Input X to confirm you are finished, Y to cancel, or Z to name a character X\n')
                 if end.lower()=='x':
                     cont=True
                 elif end.lower()=='y':
@@ -4613,7 +4612,7 @@ def create_map(*num):
         map_num=input('Input the number map that you want this to be. For example, if you want this to be the 23rd map you play in the story you would enter 23 here\n')
         try:
             base_name=name
-            delete=None
+            #delete=None
             map_num=int(map_num)
             map_num=map_ordering(name,int(map_num))
             for i in mapLevel.map_list:
@@ -4685,14 +4684,14 @@ def create_unique_weapon():
     #Name
     cont=True
     while cont==True:
-        name=input(f'Enter the name for this weapon\n')
+        name=input('Enter the name for this weapon\n')
         confirm=input(f'Input Y to confirm that you wish to name this weapon {name} or anything else to cancel\n')
         if confirm.lower()=='y':
             cont=False
     #Weapon type
     cont=True
     while cont==True:
-        weptype=input(f'Input 1 to make this a sword, 2 a lance, 3 an axe, 4 a bow, 5 a tome, or 6 a gauntlet\n')
+        weptype=input('Input 1 to make this a sword, 2 a lance, 3 an axe, 4 a bow, 5 a tome, or 6 a gauntlet\n')
         if weptype=='1':
             weapontype='Sword'
             cont=False
@@ -4716,7 +4715,7 @@ def create_unique_weapon():
     #Damage type
     cont=True
     while cont==True:
-        damagetype=input(f'Input P to make this a physical weapon or M to make it a magical weapon\n')
+        damagetype=input('Input P to make this a physical weapon or M to make it a magical weapon\n')
         if damagetype.lower()=='p':
             dmgtype='Phys'
             cont=False
@@ -4731,7 +4730,7 @@ def create_unique_weapon():
         rng=[]
         print('Input the ranges that you want this weapon to be able to attack from seperated by commas.')
         print('For example if you wanted this weapon to be able to attack enemies 1,2, or 3 tiles away you would enter 1,2,3')
-        ranges=input(f'Input the range now\n')
+        ranges=input('Input the range now\n')
         try:
             ranges=ranges.split(',')
             er=False
@@ -4825,16 +4824,16 @@ def create_unique_weapon():
     #super_effective
     cont=False
     super_effective={}
-    print(f'In this step you will choose the classes you want this weapon to be super effective against\n')
-    print(f'If the class you want it to be super effective against hasnt been made yet thats fine, just enter the name now and create that class later')
-    print(f'As long as a class with the input name is made at some point it will work')
-    print(f'You can add multiple classes to be super effective against as long as its done one at a time')
-    print(f'If you dont want this weapon to be super effective against any unit types just immediately input X to finish')
+    print('In this step you will choose the classes you want this weapon to be super effective against\n')
+    print('If the class you want it to be super effective against hasnt been made yet thats fine, just enter the name now and create that class later')
+    print('As long as a class with the input name is made at some point it will work')
+    print('You can add multiple classes to be super effective against as long as its done one at a time')
+    print('If you dont want this weapon to be super effective against any unit types just immediately input X to finish')
     while cont==False:
         print(f'Current classes this weapon is super effective against: {super_effective}')
         for i in range(0,len(classType.class_list)):
             print(f'{i}: {classType.class_list[i].name}')
-        super_effective_route=input(f'Input the number/name of the class or X to finish\n')
+        super_effective_route=input('Input the number/name of the class or X to finish\n')
         if super_effective_route.lower()=='x':
             cont=True
         elif super_effective_route.isdigit():
@@ -4901,7 +4900,7 @@ def create_skill():
         print('Here you will set what stat you want this skill to trigger based off of')
         for i in character.bases:
             print(i)
-        trigger_stat=input(f'Input the stat name that you want this skill to trigger based off of\n')
+        trigger_stat=input('Input the stat name that you want this skill to trigger based off of\n')
         if trigger_stat in character.bases:
             cont=True
         else:
@@ -4927,13 +4926,13 @@ def create_skill():
         if effect_target!='weapon':
             for i in character.bases:
                 print(i)
-            effect_stat=input(f'Input the stat that you want this skill to affect\n')
+            effect_stat=input('Input the stat that you want this skill to affect\n')
             if effect_stat in character.bases:
                 cont=True
             else:
                 print('Invalid input, try again')
         else:
-            effect_stat=input(f'Input 1 to make this affect the weapons attack strength or 2 to make it affect the durability\n')
+            effect_stat=input('Input 1 to make this affect the weapons attack strength or 2 to make it affect the durability\n')
             if effect_stat=='1':
                 effect_stat='dmg'
                 cont=True
@@ -5041,7 +5040,7 @@ def create_weapon_art():
     #cost,accuracy,might,avoid, range,crit
     cont=False
     while cont==False:
-        cost=input(f'Input how much durability you want this weapon art to use, a whole number equal or greater than zero\n')
+        cost=input('Input how much durability you want this weapon art to use, a whole number equal or greater than zero\n')
         if cost.isdigit():
             if int(cost)>=0:
                 cost=int(cost)
@@ -5052,7 +5051,7 @@ def create_weapon_art():
             print('Invalid input, cost must be a whole number')
     cont=False
     while cont==False:
-        accuracy=input(f'Input the accuracy bonus you wish this art to give, between -100 and 100\n')
+        accuracy=input('Input the accuracy bonus you wish this art to give, between -100 and 100\n')
         if accuracy.isdigit():
             if int(accuracy)>=-100 and int(accuracy)<=100:
                 accuracy=int(accuracy)
@@ -5064,7 +5063,7 @@ def create_weapon_art():
 
     cont=False
     while cont==False:
-        might=input(f'Input the might bonus that you want this art to give, between -20 and 20\n')
+        might=input('Input the might bonus that you want this art to give, between -20 and 20\n')
         if might.isdigit():
             if int(might)>=-20 and int(might)<=20:
                 might=int(might)
@@ -5075,7 +5074,7 @@ def create_weapon_art():
             print('Invalid input, the might bonus must be a whole number between -20 and 20')
     cont=False
     while cont==False:
-        avoid=input(f'Input the avoid bonus that you would like this art to give, between -100 and 100\n')
+        avoid=input('Input the avoid bonus that you would like this art to give, between -100 and 100\n')
         if avoid.isdigit():
             if int(avoid)>=-100 and int(avoid)<=100:
                 avoid=int(avoid)
@@ -5086,7 +5085,7 @@ def create_weapon_art():
             print('Invalid input, the avoid bonus must be a whole number between -100 and 100')
     cont=False
     while cont==False:
-        crit=input(f'Input the crit bonus that you want this art to give, between -100 and 100\n')
+        crit=input('Input the crit bonus that you want this art to give, between -100 and 100\n')
         if crit.isdigit():
             if int(crit)>=-100 and int(crit)<=100:
                 crit=int(crit)
@@ -5116,7 +5115,7 @@ def create_weapon_art():
     #damage type (can be 'Same','Magic','Phys')
     cont=False
     while cont==False:
-        damageType=input(f'Input 1 to make this use the same damage type (magical/physical) as the weapon it is being used with, 2 to make it always physical, or 3 to make it always magical\n')
+        damageType=input('Input 1 to make this use the same damage type (magical/physical) as the weapon it is being used with, 2 to make it always physical, or 3 to make it always magical\n')
         if damageType=='1':
             damageType='Same'
             cont=True
@@ -5131,16 +5130,16 @@ def create_weapon_art():
     #super_effective
     cont=False
     super_effective=[]
-    print(f'In this step you will choose the classes you want this art to be super effective against\n')
-    print(f'If the class you want it to be super effective against hasnt been made yet thats fine, just enter the name now and create that class later')
-    print(f'As long as a class with the input name is made at some point it will work')
-    print(f'You can add multiple classes to be super effective against as long as its done one at a time')
-    print(f'If you dont want this art to be super effective against any unit types just immediately input X to finish')
+    print('In this step you will choose the classes you want this art to be super effective against\n')
+    print('If the class you want it to be super effective against hasnt been made yet thats fine, just enter the name now and create that class later')
+    print('As long as a class with the input name is made at some point it will work')
+    print('You can add multiple classes to be super effective against as long as its done one at a time')
+    print('If you dont want this art to be super effective against any unit types just immediately input X to finish')
     while cont==False:
         print(f'Current classes this art is super effective against: {super_effective}')
         for i in range(0,len(classType.class_list)):
             print(f'{i}: {classType.class_list[i].name}')
-        super_effective_route=input(f'Input the number/name of the class or X to finish\n')
+        super_effective_route=input('Input the number/name of the class or X to finish\n')
         if super_effective_route.lower()=='x':
             cont=True
         elif super_effective_route.isdigit():
@@ -5184,13 +5183,13 @@ def create_weapon_art():
             if effect_target!='weapon':
                 for i in character.bases:
                     print(i)
-                effect_stat=input(f'Input the stat that you want this weapon art to affect\n')
+                effect_stat=input('Input the stat that you want this weapon art to affect\n')
                 if effect_stat in character.bases:
                     cont=True
                 else:
                     print('Invalid input, try again')
             else:
-                effect_stat=input(f'Input 1 to make this affect the weapons attack strength, 2 to make it affect the durability\n')
+                effect_stat=input('Input 1 to make this affect the weapons attack strength, 2 to make it affect the durability\n')
                 if effect_stat=='1':
                     effect_stat='dmg'
                     cont=True
@@ -5252,11 +5251,11 @@ def create_class(*name):
     cont=False
     print('Here you will set the move type for this class. Move range and move type are completely seperate, all move type effects is the movement cost for certain tile types')
     while cont==False:
-        print(f'0: Foot, the default move type. No strengths or weaknesses')
-        print(f'1: Flying, nearly every tile type only costs one move')
-        print(f'2: Horse, generally poor at moving through many tile types')
-        print(f'3: Mage, foot but good at moving through deserts')
-        print(f'4: Pirate, foot but good at moving through water')
+        print('0: Foot, the default move type. No strengths or weaknesses')
+        print('1: Flying, nearly every tile type only costs one move')
+        print('2: Horse, generally poor at moving through many tile types')
+        print('3: Mage, foot but good at moving through deserts')
+        print('4: Pirate, foot but good at moving through water')
         route=input('Enter the number of the movement type you want\n')
         if route=='0':
             moveType='Foot'
@@ -5482,7 +5481,7 @@ def edit_map():
     while cont==True:
         for i in range(0,len(mapLevel.map_list)):
             print(f'{i}: {mapLevel.map_list[i].name}')
-        map_choice=input(f'Input the number for the map you would like to edit\n')
+        map_choice=input('Input the number for the map you would like to edit\n')
         if map_choice.isdigit():
             if int(map_choice)>=0 and int(map_choice)<len(mapLevel.map_list):
                 mapX=mapLevel.map_list[int(map_choice)]
@@ -5511,7 +5510,7 @@ def edit_map():
                         print(f'{i}: {mapX.objectList[i].name}')
                         count+=1
                 if count>0:
-                    route=input(f'Input the coordinates of the shop or chest whose contents you wish to edit in x,y form or x to cancel\n')
+                    route=input('Input the coordinates of the shop or chest whose contents you wish to edit in x,y form or x to cancel\n')
                     if route.lower()=='x':
                         pass
                     else:
@@ -5541,7 +5540,7 @@ def edit_map():
                 contZ=False
                 mapX.display('base')
                 while contZ==False:
-                    print(f'Input the coordinates for the new spawn in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
+                    print('Input the coordinates for the new spawn in x,y integer form, with 0,0 being the top left and 1,1 being down and to the right of that')
                     print('Any x,y pair will work as long as its on the map, not just 0,0 or 1,1')
                     spawn=input('Enter the coordinates now, or input X to finish\n')
                     if spawn.lower()=='x':
@@ -5581,7 +5580,7 @@ def edit_map():
                         cont=True
                     for i in range(0,len(mapX.spawns)):
                         print(f'{i}: {mapX.spawns[i]}')
-                    spawn_to_remove=input(f'Input the number of the spawn you wish to delete or X to finish\n')
+                    spawn_to_remove=input('Input the number of the spawn you wish to delete or X to finish\n')
                     if spawn_to_remove.lower()=='x':
                         cont=True
                     elif spawn_to_remove.isdigit():
@@ -5597,7 +5596,7 @@ def edit_map():
         elif path=='4':
             #edit size
             print(f'This map is currently {mapX.x_size} wide and {mapX.y_size} tall')
-            new_size=input(f'Input the new map size in X,Y form or input X to cancel\n')
+            new_size=input('Input the new map size in X,Y form or input X to cancel\n')
             if new_size.lower()=='x':
                 pass
             else:
@@ -5720,7 +5719,7 @@ def edit_map():
                         print('Map resized')
         elif path=='5':
             #edit rosters
-            path=input(f'Input 1 to remove units from this map, 2 to add units to this map, or x to cancel\n')
+            path=input('Input 1 to remove units from this map, 2 to add units to this map, or x to cancel\n')
             if path.lower()=='x':
                 pass
             elif path=='1':
@@ -5728,12 +5727,12 @@ def edit_map():
                 if path2=='1':
                     for i in range(0,len(mapX.player_roster)):
                         print(f'{i}: {mapX.player_roster[i].name}')
-                    route=input(f'Input the number of the unit that you wish to remove from this maps roster\n')
+                    route=input('Input the number of the unit that you wish to remove from this maps roster\n')
                     if route.isdigit():
                         if int(route)>=0 and int(route)<len(mapX.player_roster):
                             confirm=input(f'Input Y to confirm that you wish to remove {mapX.player_roster[int(route)].name} from this roster\n')
                             if confirm.lower()=='y':
-                                moveXY=input(f'Input Y to move this character to another map or X to delete this character')
+                                moveXY=input('Input Y to move this character to another map or X to delete this character')
                                 if moveXY.lower()=='y':
                                     pass
                                 elif moveXY.lower()=='x':
@@ -5743,7 +5742,7 @@ def edit_map():
                 elif path2=='2':
                     for i in range(0,len(mapX.enemy_roster)):
                         print(f'{i}: {mapX.enemy_roster[i].name}')
-                    remove_enemy=input(f'Input the number of the enemy you wish to remove or x to cancel\n')
+                    remove_enemy=input('Input the number of the enemy you wish to remove or x to cancel\n')
                     if remove_enemy.lower()=='x':
                         pass
                     elif remove_enemy.isdigit():
@@ -5819,14 +5818,14 @@ def edit_map():
                     eligible_maps={}
                     for i in mapLevel.map_list:
                         print(f'{i.name} map number {i.mapNum}')
-                    mapU=input(f'Enter the map number that you want to take the units from\n')
+                    mapU=input('Enter the map number that you want to take the units from\n')
                     if mapU.isdigit():
                         if int(mapU) in eligible_maps:
                             alig=input('Input 1 to add player units, 2 to add enemy units, or x to cancel\n')
                             if alig=='1':
                                 for k in range(0,len(eligible_maps[int(mapU)].player_roster)):
                                     print(f'{k}: {eligible_maps[int(mapU)].player_roster[k].name}')
-                                char_add=input(f'Input the number of the character that you would like to this map')
+                                char_add=input('Input the number of the character that you would like to this map')
                                 if char_add.isdigit():
                                     if int(char_add)>=0 and int(char_add)<len(eligible_maps[int(mapU)].player_roster):
                                         confirm=input(f'Input Y to confirm that you wish to move {eligible_maps[int(mapU)].player_roster[int(char_add)].name} from map {mapU} to map {mapX.mapNum}\n')
@@ -5856,7 +5855,7 @@ def edit_char():
     while cont==False:
         for i in range(0,len(character.character_list)):
             print(f'{i}: {character.character_list[i].name}')
-        char_choice=input(f'Input the number for the character you would like to edit\n')
+        char_choice=input('Input the number for the character you would like to edit\n')
         if char_choice.isdigit():
             if int(char_choice)>=0 and int(char_choice)<len(character.character_list):
                 char=character.character_list[int(char_choice)]
@@ -5876,7 +5875,7 @@ def edit_char():
                 print('The G stats are growths, and movModifer is how many extra spaces a character can move compared to a default member of their class')
                 print('Growths are decimals, and represent the change that a character gains that stat when leveling up')
                 print('For example a .6 hpG would mean that a character has a 60% chance of gaining 1 hp on level up and a 40% chance of gaining 0')
-                stat_change=input(f"Input the abreviation for the stat you'd like to change or x to finish\n")
+                stat_change=input("Input the abreviation for the stat you'd like to change or x to finish\n")
                 if stat_change in character.stats or stat_change in character.growths:
                     print(f"The current value for {char.name}'s {stat_change} is {getattr(char,eval(stat_change))}")
                     new_value=input(f"Input the new value you want {stat_change} to be\n")
@@ -5976,8 +5975,8 @@ def edit_char():
         elif path=='3':
             #level/exp
             print(f"Level: {char.level} Exp: {char.exp}")
-            lev=input(f'Enter their new level\n')
-            exp=input(f'Enter their new EXP\n')
+            lev=input('Enter their new level\n')
+            exp=input('Enter their new EXP\n')
             if lev.isdigit() and exp.isdigit():
                 if int(lev)<=level_cap and int(lev)>=1 and int(exp)<needed_exp and int(exp)>=0:
                     if int(lev)>char.level:
@@ -6016,7 +6015,7 @@ def edit_char():
                 print('You need to input the number of the class')
         elif path=='5':
             #skills
-            skills_path=input(f'Input A to add a skill, D to drop a skill, or X to finish\n')
+            skills_path=input('Input A to add a skill, D to drop a skill, or X to finish\n')
             if skills_path.lower()=='a':
                 cont=False
                 while cont==False:
@@ -6025,7 +6024,7 @@ def edit_char():
                         if skill.skill_list[i] not in char.skills_all:
                             print(f"{i}: {skill.skill_list[i].name}")
                             viable.append(i)
-                    skill_add=input(f"Input the number of the skill you would like to add or x to finish\n")
+                    skill_add=input("Input the number of the skill you would like to add or x to finish\n")
                     if skill_add.lower()=='x':
                         cont=True
                     elif skill_add.isdigit():
@@ -6044,7 +6043,7 @@ def edit_char():
                 while cont==False:
                     for i in range(0,len(char.skills_all)):
                         print(f'{i}: {char.skills_all[i].name}')
-                    skill_drop=input(f'Input the number of the skill you would like to drop or X to finish\n')
+                    skill_drop=input('Input the number of the skill you would like to drop or X to finish\n')
                     if skill_drop.lower()=='x':
                         cont=True
                     elif skill_drop.isdigit():
@@ -6072,11 +6071,11 @@ def edit_char():
                 while cont2==True:
                     for i in range(0,len(char.inventory)):
                         print(f"{i}: {char.inventory[i].name}")
-                    drop_route=input(f"Input the items number that you wish to drop, type info to get info on an item, or X to finish dropping items\n")
+                    drop_route=input("Input the items number that you wish to drop, type info to get info on an item, or X to finish dropping items\n")
                     if drop_route.lower()=='x':
                         cont2=False
                     elif drop_route.lower()=='info':
-                        item_info=input(f"Enter the item number that you want info on\n")
+                        item_info=input("Enter the item number that you want info on\n")
                         if item_info.isdigit():
                             if int(item_info)>=0 and int(item_info)<len(char.inventory):
                                 char.inventory[int(item_info)].info()
@@ -6140,11 +6139,11 @@ def edit_mechanics():
     #bases,growths, weapon1.stats
     cont=False
     while cont==False:
-        route=input(f'Input 1 to edit formulas such as the experience formula or the damage formula\n2 to edit number values like the max inventory size or the multiplier applied to sold item price\n3 to toggle options such as whether shops have limited items or whether a weapon type should automatically double\nX to finish editing game mechanics\n')
+        route=input('Input 1 to edit formulas such as the experience formula or the damage formula\n2 to edit number values like the max inventory size or the multiplier applied to sold item price\n3 to toggle options such as whether shops have limited items or whether a weapon type should automatically double\nX to finish editing game mechanics\n')
         if route.lower()=='x':
             cont=True
         elif route=='2':
-            print(f'1: Max character inventory size\n2: Number of skills able to be equipped at once')
+            print('1: Max character inventory size\n2: Number of skills able to be equipped at once')
             print('3: Level cap\n4: Minimum level to promote\n5: EXP needed to level up\n6: Maximum tile distance to grow and use supports')
             print('7: Weapon triangle advantage damage bonus\n8: Weapon triangle advantage accuracy bonus\n9: Minimum speed difference to double')
             print('10: Number of bonus rounds of combat for doubling\n11: Super effective weapon art damage multiplier\n12: Critical hit damage multiplier')
@@ -6281,7 +6280,7 @@ def settings():
             print(f'The permadeath option is currently set to {permadeath}')
             print('If permadeath is set to true any unit that falls in battle will be gone forever')
             print('If permadeath is set to false your dead units will come back after each map')
-            perm=input(f'Input T to have permadeath on or F to have permadeath off\n')
+            perm=input('Input T to have permadeath on or F to have permadeath off\n')
             if perm.lower()=='t':
                 permadeath=True
                 if phoenix_mode:
@@ -6295,9 +6294,9 @@ def settings():
             if permadeath==True:
                 print('Phoenix mode is only available when permadeath is set to False')
             else:
-                print(f'If phoenix mode is set to true any unit that falls in battle will revive at the start of the next turn')
-                print(f'If phoenix mode is set to false any unit that falls in battle will be lost until the end of the map')
-                pho=input(f'Input T to have phoenix mode on or F to have phoenix mode off\n')
+                print('If phoenix mode is set to true any unit that falls in battle will revive at the start of the next turn')
+                print('If phoenix mode is set to false any unit that falls in battle will be lost until the end of the map')
+                pho=input('Input T to have phoenix mode on or F to have phoenix mode off\n')
                 if pho.lower()=='y':
                     phoenix_mode=True
                 elif pho.lower()=='f':
@@ -6645,6 +6644,7 @@ else:
 saveallowed=True
 cheatallowed=True
 bighead=False
+noskill=False
 cheat_codes=['uuddlrlrab','630660714755868972','nobitches','superjack','oldschool','bestboy','ultimatelifeform','edgelord','galaxybrain','gettinghead','alphamale','super secret swordsman']
 debug='x'
 if loadbattle==False:
@@ -6747,8 +6747,10 @@ while debug.lower()=='y':
         saitama.add_skill(armsthrift)
         king=player_char('King',30,30,.6,10,.4,8,.4,6,.8,2,.35,4,.25,6,.1,2,.5,0,'Lord',{},1,[iron_sword(False),key(False)],1,{},[],'King continued his infinite unbeaten streak in Super Bash Bros')
         zatch=player_char('Zatch',25,25,.6,10,.4,12,.5,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Mercenary',{},2,[iron_sword(False)],1,{},[],'The Mamodo King returned to his throne')
-    elif path.lower()=='super secret swordsman' or path.lower()=='sick slick six' and cheatallowed:
+    elif path.lower()=='supersecretswordsman' or path.lower()=='sickslicksix' and cheatallowed:
         dante=player_char('Dante',25,25,.6,10,.4,3,.25,6,.8,2,.35,4,.25,6,.1,20,.5,0,'Swordmaster',{},1,[levin_sword(False),levin_sword(False),gauntlet(False),shield(False),vulnary(False)],10,{},['Grounder'],'Saitama defeated everyone in one punch')
+    elif path.lower()=='skillissue' and cheatallowed:
+        noskill=True
     else:
         pass
 ##Cheat setting
